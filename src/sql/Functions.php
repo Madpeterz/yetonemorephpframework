@@ -5,6 +5,38 @@ namespace YAPF\MYSQLI;
 abstract class MysqliFunctions extends MysqliCore
 {
     /**
+     * prepairBindExecute
+     * shared by Add,Remove,Select and Update
+     * this runs the code on the database after all needed
+     * checks have finished.
+     * @return mixed[] [status => bool, message => string, "stm" => false|statement object]
+     */
+    protected function SQLprepairBindExecute(string &$sql, array &$bind_args, string &$bind_text): array
+    {
+        $this->lastSql = $sql;
+        $stmt = $this->sqlConnection->prepare($sql);
+        if ($stmt == false) {
+            $error_msg = "unable to prepair: " . $sql . " because " . $this->sqlConnection->error;
+            return ["status" => false, "message" => $error_msg, "stmt" => false];
+        }
+        $bind_ok = true;
+        if (count($bind_args) > 0) {
+            $bind_ok = mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
+        }
+        if ($bind_ok == false) {
+            $error_msg = "unable to bind because: " . $stmt->error;
+            $stmt->close();
+            return ["status" => false, "message" => $error_msg, "stmt" => false];
+        }
+        $execute_result = $stmt->execute();
+        if ($execute_result == false) {
+            $error_msg = "unable to execute because: " . $stmt->error;
+            $stmt->close();
+            return ["status" => false, "message" => $error_msg, "stmt" => false];
+        }
+        return ["status" => true, "message" => "ok", "stmt" => $stmt];
+    }
+    /**
      * hasDbConfig
      * Checks if the set database user is in the disallowed list
      */
