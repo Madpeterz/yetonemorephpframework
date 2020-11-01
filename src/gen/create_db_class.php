@@ -1,4 +1,5 @@
 <?php
+
 class db extends error_logging
 {
     protected $dbHost = gen_database_host;
@@ -6,4 +7,3 @@ class db extends error_logging
     protected $dbUser = gen_database_username;
     protected $dbPass = gen_database_password;
 }
-?>
