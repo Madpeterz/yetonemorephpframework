@@ -19,7 +19,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     protected function __construct()
     {
-        $this->worker_class = strtr(get_class($this),"CollectionSet","");
+        $this->worker_class = strtr(get_class($this), "CollectionSet", "");
         parent::__construct();
     }
     /**
@@ -43,4 +43,3 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->collected[$object->getID()] = $object;
     }
 }
-?>
