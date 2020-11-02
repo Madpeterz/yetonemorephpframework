@@ -23,6 +23,7 @@ jobs:
         host port: 3306 # mysql default port
         mysql user: 'testsuser' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
         mysql password: 'testsuserPW' # Required if "mysql user" exists. The password for the "mysql user"
+    
     - name: Validate composer.json and composer.lock
       run: composer validate
 
@@ -41,6 +42,14 @@ jobs:
 
     - name: Rebuild autoloader to include out framework
       run: composer dump-autoload
+
+    - name: Verify MariaDB connection
+      env:
+        PORT: 3306
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
+            sleep 1
+          done
 
     - name: Run test suite
       run: composer run-script dev-test
