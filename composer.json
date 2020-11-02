@@ -29,7 +29,7 @@
     ],
     "scripts": {
         "dev-test": [
-          "phpcs",
+          "@phpcs",
           "phpunit --configuration phpunit.xml --testdox --testsuite All"
         ],
         "phpcs": "phpcs",

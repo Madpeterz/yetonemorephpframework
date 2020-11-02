@@ -33,10 +33,5 @@ jobs:
     - name: Rebuild autoloader to include out framework
       run: composer dump-autoload
 
-    - name: PHPUnit (graychen)
-      uses: Graychen/phpunit-action@v1.0.0
-      with:
-        config: phpunit.xml
-
     - name: Run test suite
       run: composer run-script dev-test
