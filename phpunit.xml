@@ -10,27 +10,16 @@
     colors="true"
 >
 <testsuites>
-    <testsuite name="core">
-      <directory>tests/core</directory>
-    </testsuite>
-    <testsuite name="mysqli">
-      <directory>tests/mysqli</directory>
-    </testsuite>
-    <testsuite name="db_objects">
-      <directory>tests/db_objects</directory>
-    </testsuite>
-    <testsuite name="filter">
-      <directory>tests/filter</directory>
-    </testsuite>
-    <testsuite name="gen">
-      <directory>tests/gen</directory>
-    </testsuite>
     <testsuite name="All">
       <directory>tests/core</directory>
-      <directory>tests/mysqli</directory>
-      <directory>tests/db_objects</directory>
       <directory>tests/filter</directory>
+      <file>tests/mysqli/raw_sql_Test.php</file>
+      <file>tests/mysqli/add_Test.php</file>
+      <file>tests/mysqli/remove_Test.php</file>
+      <file>tests/mysqli/count_Test.php</file>
+      <file>tests/mysqli/update_Test.php</file>
       <directory>tests/gen</directory>
+      <directory>tests/db_objects</directory>
     </testsuite>
 </testsuites>
 </phpunit>
