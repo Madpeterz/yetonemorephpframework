@@ -5,12 +5,9 @@
 */
 error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
 
-include("src/core/loader.php");
-include("src/sql/loader.php");
-include("src/objects/loader.php");
-include("src/filter/loader.php");
+include("vendor/autoload.php");
 
-use YAPF\ErrorLogging as ErrorLogging;
+use YAPF\Core\ErrorLogging as ErrorLogging;
 
 class ErrorLoggingTestClass extends ErrorLogging
 {
