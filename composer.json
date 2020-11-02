@@ -29,8 +29,8 @@
     ],
     "scripts": {
         "dev-test": [
-          "@phpcs",
-          "phpunit --configuration phpunit.xml --testdox --testsuite All"
+            "@phpcs",
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite All "
         ],
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
