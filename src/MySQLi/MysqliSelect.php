@@ -137,10 +137,10 @@ abstract class MysqliSelect extends MysqliRemove
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         if (is_array($order_config) == true) {
-            $this->buildSelectOrderby($sql, $order_config, $main_table_id, $auto_ids);
+            $this->buildOrderby($sql, $order_config, $main_table_id, $auto_ids);
         }
         if (is_array($options_config) == true) {
-            $this->buildSelectOption($sql, $options_config);
+            $this->buildOption($sql, $options_config);
         }
         $JustDoIt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
         if ($JustDoIt["status"] == false) {
