@@ -9,6 +9,8 @@ abstract class MysqliAdd extends MysqliOptions
      * takes a V2 add config
      * and inserts it into the database.
      * $config = ["table" => string, "fields" => string[], "values" => mixed[], "types" => string1[]]
+     * newID: is null on failure
+     * rowsAdded: is 0 on failure
      * @return mixed[] [newID => ?int, rowsAdded => int, status => bool, message => string]
      */
     public function addV2($config = []): array
@@ -58,28 +60,12 @@ abstract class MysqliAdd extends MysqliOptions
             $addon = " , ";
             $loop++;
         }
-        $sql .= " )";
-        $this->lastSql = $sql;
-        $stmt = $this->sqlConnection->prepare($sql);
-        if ($stmt == false) {
-            $error_msg = "unable to prepair: " . $sql . " because " . $this->sqlConnection->error;
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+        $sql .= ")";
+        $JustDoIt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        if ($JustDoIt["status"] == false) {
+            return $this->addError(__FILE__, __FUNCTION__, $JustDoIt["message"], $error_addon);
         }
-        $bind_ok = true;
-        if (count($bind_args) > 0) {
-            $bind_ok = mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
-        }
-        if ($bind_ok == false) {
-            $error_msg = "unable to bind because: " . $stmt->error;
-            $stmt->close();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
-        $execute_result = $stmt->execute();
-        if ($execute_result == false) {
-            $error_msg = "unable to execute because: " . $stmt->error;
-            $stmt->close();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
+        $stmt = $JustDoIt["stmt"];
         $newID = mysqli_insert_id($this->sqlConnection);
         $rowsAdded = mysqli_affected_rows($this->sqlConnection);
         if ($rowsAdded > 0) {

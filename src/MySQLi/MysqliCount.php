@@ -24,7 +24,7 @@ abstract class MysqliCount extends MysqliSelect
         ];
         $load_data = $this->selectV2($basic_config, null, $whereconfig);
         if ($load_data["status"] == false) {
-            $error_msg = "No table given";
+            $error_msg = "Unable to read table";
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         if (count($load_data["dataSet"]) == 0) {

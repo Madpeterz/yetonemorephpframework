@@ -25,6 +25,21 @@ abstract class MysqliCore extends Db
             $this->sqlStop();
         }
     }
+
+    /**
+     * Placeholder see: Functions
+     */
+    public function sqlStart(): bool
+    {
+        return false;
+    }
+    /**
+     * Placeholder see: Functions
+     */
+    protected function sqlStop(): bool
+    {
+        return false;
+    }
     /**
      * getLastSql
      * returns the last SQL statement processed

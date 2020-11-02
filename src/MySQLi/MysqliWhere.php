@@ -71,7 +71,9 @@ abstract class MysqliWhere extends MysqliFunctions
             $failed_on = "where_config join_with count error";
             return false;
         }
-        return !$this->buildWhere($sql, $bind_text, $bind_args, $where_config, $main_table_id, $auto_ids);
+        $failed_on = "Passed";
+        $this->buildWhere($sql, $bind_text, $bind_args, $where_config, $main_table_id, $auto_ids);
+        return true;
     }
     /**
      * autoIdWhere
@@ -121,7 +123,9 @@ abstract class MysqliWhere extends MysqliFunctions
         if (in_array($match, ["LIKE", "% LIKE", "LIKE %","% LIKE %"]) == false) {
             return;
         }
-        $value = strtr(strtr($match, " ", ""), "LIKE", $value);
+        $adj = str_replace(" ", "", $match);
+        $value = strtr($adj, "LIKE", $value);
+        $match = "LIKE";
         $current_where_code .= "" . $field . " " . $match . " ?";
         $bind_text .= $type;
         $bind_args[] = $value;
@@ -204,7 +208,7 @@ abstract class MysqliWhere extends MysqliFunctions
     protected function whereCaseProcessor(
         string &$current_where_code,
         string $field,
-        string $match,
+        ?string $match,
         string &$bind_text,
         array &$bind_args,
         string $main_table_id,

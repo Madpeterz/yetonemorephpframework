@@ -11,9 +11,9 @@ abstract class MysqliUpdate extends MysqliAdd
      * to apply a change to the database.
      * $update_config = ["fields" => string[], "values" => mixed[], "types" => string1[]]
      * $where_config: see selectV2.readme
-     * @return mixed[] [rowsAdded => int, status => bool, message => string]
+     * @return mixed[] [changes => int, status => bool, message => string]
      */
-    public function updateV2(string $table, array $update_config, array $where_config, int $expected_changes = 1): array
+    public function updateV2(string $table, array $update_config, array $where_config): array
     {
         $error_addon = ["changes" => 0];
         if (strlen($table) == 0) {
@@ -43,12 +43,12 @@ abstract class MysqliUpdate extends MysqliAdd
         $addon = "";
         while ($loop < count($update_config["values"])) {
             if ($loop == 0) {
-                            $sql .= "SET ";
+                $sql .= "SET ";
             }
             $sql .= $addon;
-            $sql .= $update_config["fields"][$loop] . "= ";
-            if (($update_config["values"][$loop] === null) && ($update_config["values"][$loop] !== 0)) {
-                    $sql .= " NULL";
+            $sql .= $update_config["fields"][$loop] . "=";
+            if (($update_config["values"][$loop] == null) && ($update_config["values"][$loop] !== 0)) {
+                $sql .= "NULL";
             } else {
                 $sql .= "?";
                 $bind_text .= $update_config["types"][$loop];
@@ -58,8 +58,14 @@ abstract class MysqliUpdate extends MysqliAdd
             $loop++;
         }
         // where fields
+        $failed_on = "";
+        $failed = "";
         if (is_array($where_config) == true) {
-            $failed = $this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, "", false);
+            $failed = !$this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, "", false);
+        }
+        if ($failed == true) {
+            $error_msg = "Where config failed: " . $failed_on;
+            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         if ($sql == "empty_in_array") {
             $error_msg = "Targeting IN|NOT IN with no array";
@@ -72,11 +78,7 @@ abstract class MysqliUpdate extends MysqliAdd
         $stmt = $JustDoIt["stmt"];
         $changes = mysqli_stmt_affected_rows($stmt);
         $stmt->close();
-        if ($changes != $expected_changes) {
-            $error_msg = "Unexpeected number of changes wanted " . $expected_changes . " but got:" . $changes;
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
         $this->needToSave = true;
-        return ["status" => true,"changes" => $changes, "message" => "update ok"];
+        return ["status" => true,"changes" => $changes, "message" => "ok"];
     }
 }

@@ -25,8 +25,14 @@ abstract class MysqliRemove extends MysqliUpdate
         $bind_text = "";
         $bind_args = [];
         $sql = "DELETE FROM " . $table . "";
+        $failed_on = "";
+        $failed = false;
         if (is_array($where_config) == true) {
-            $failed = $this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, "", false);
+            $failed = !$this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, "", false);
+        }
+        if ($failed == true) {
+            $error_msg = "Where config failed: " . $failed_on;
+            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         if ($sql == "empty_in_array") {
             $error_msg = "Targeting IN|NOT IN with no array";
@@ -42,6 +48,6 @@ abstract class MysqliRemove extends MysqliUpdate
         if ($rowsChanged > 0) {
             $this->needToSave = true;
         }
-        return ["status" => true, "rowsDeleted" => $rowsChanged];
+        return ["status" => true, "rowsDeleted" => $rowsChanged, "message" => "ok"];
     }
 }
