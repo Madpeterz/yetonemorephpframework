@@ -39,7 +39,7 @@ abstract class MysqliAdd extends MysqliOptions
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         if ($this->sqlStart() == false) {
-            $error_msg = "Unable to start SQL";
+            $error_msg = $this->getLastErrorBasic();
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         $sql = "INSERT INTO " . $config["table"] . " (" . implode(', ', $config["fields"]) . ") VALUES (";

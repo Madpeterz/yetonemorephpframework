@@ -20,10 +20,6 @@ abstract class MysqliUpdate extends MysqliAdd
             $error_msg = "No table given";
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
-        if ($this->sqlStart() == false) {
-            $error_msg = "Unable to start SQL";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
         if (count($update_config["types"]) == 0) {
             $error_msg = "No types given for update";
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
@@ -34,6 +30,10 @@ abstract class MysqliUpdate extends MysqliAdd
         }
         if (count($update_config["values"]) != count($update_config["types"])) {
             $error_msg = "count issue values <=> types";
+            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+        }
+        if ($this->sqlStart() == false) {
+            $error_msg = $this->getLastErrorBasic();
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         $bind_text = "";

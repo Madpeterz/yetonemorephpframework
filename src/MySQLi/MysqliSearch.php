@@ -42,7 +42,7 @@ abstract class MysqliSearch extends MysqliCount
             }
         }
         if ($this->sqlStart() == false) {
-            $error_msg = "Unable to start SQL";
+            $error_msg = $this->getLastErrorBasic();
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         $bind_values = [];
