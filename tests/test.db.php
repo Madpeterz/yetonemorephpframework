@@ -1,10 +1,13 @@
 <?php
-// this loads after db_objects but before mysqli loader!
-class db extends error_logging
+
+namespace App;
+
+use YAPF\Core\ErrorLogging as ErrorLogging;
+
+class Db extends ErrorLogging
 {
     protected $dbHost = "localhost";
     protected $dbName = "test";
     protected $dbUser = "root";
     protected $dbPass = "";
 }
-?>

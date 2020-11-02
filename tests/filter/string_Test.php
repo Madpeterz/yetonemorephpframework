@@ -1,4 +1,7 @@
 <?php
+
+namespace YAPFtest;
+
 use PHPUnit\Framework\TestCase;
 use YAPF\InputFilter\InputFilter as inputFilter;
 
@@ -38,35 +41,35 @@ class inputFilter_string_test extends TestCase
         $results1 = $this->_testingobject->getFilter("popcorn4");
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"InputFilter can not deal with objects you crazy person");
+        $this->assertSame($results1, "InputFilter can not deal with objects you crazy person");
     }
     public function test_string_minlength()
     {
         $_GET["popcorn5"] = "toshort";
         $_GET["popcorn6"] = "vaildlength";
         $this->_testingobject = new inputFilter();
-        $results1 = $this->_testingobject->getFilter("popcorn5","string",array("minLength"=>30));
+        $results1 = $this->_testingobject->getFilter("popcorn5", "string", array("minLength" => 30));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"Failed min length check");
-        $results1 = $this->_testingobject->getFilter("popcorn6","string",array("minLength"=>5));
+        $this->assertSame($results1, "Failed min length check");
+        $results1 = $this->_testingobject->getFilter("popcorn6", "string", array("minLength" => 5));
         $this->assertSame($results1, "vaildlength");
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"");
+        $this->assertSame($results1, "");
     }
     public function test_string_maxlength()
     {
         $_GET["popcorn7"] = "tolong";
         $_GET["popcorn8"] = "ok";
         $this->_testingobject = new inputFilter();
-        $results1 = $this->_testingobject->getFilter("popcorn7","string",array("maxLength"=>3));
+        $results1 = $this->_testingobject->getFilter("popcorn7", "string", array("maxLength" => 3));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"Failed max length check");
-        $results1 = $this->_testingobject->getFilter("popcorn8","string",array("maxLength"=>33));
+        $this->assertSame($results1, "Failed max length check");
+        $results1 = $this->_testingobject->getFilter("popcorn8", "string", array("maxLength" => 33));
         $this->assertSame($results1, "ok");
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"");
+        $this->assertSame($results1, "");
     }
     public function test_string_rangedlength()
     {
@@ -75,23 +78,21 @@ class inputFilter_string_test extends TestCase
         $_GET["popcorn11"] = "popcorn";
         $_GET["popcorn12"] = "pass";
         $this->_testingobject = new inputFilter();
-        $results1 = $this->_testingobject->getFilter("popcorn9","string",array("minLength"=>3,"maxLength"=>10));
+        $results1 = $this->_testingobject->getFilter("popcorn9", "string", array("minLength" => 3,"maxLength" => 10));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"Failed min length check");
-        $results1 = $this->_testingobject->getFilter("popcorn10","string",array("minLength"=>3,"maxLength"=>4));
+        $this->assertSame($results1, "Failed min length check");
+        $results1 = $this->_testingobject->getFilter("popcorn10", "string", array("minLength" => 3,"maxLength" => 4));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"Failed max length check");
-        $results1 = $this->_testingobject->getFilter("popcorn11","string",array("minLength"=>30,"maxLength"=>4));
+        $this->assertSame($results1, "Failed max length check");
+        $results1 = $this->_testingobject->getFilter("popcorn11", "string", array("minLength" => 30,"maxLength" => 4));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"Length values are mixed up");
-        $results1 = $this->_testingobject->getFilter("popcorn12","string",array("minLength"=>2,"maxLength"=>5));
+        $this->assertSame($results1, "Length values are mixed up");
+        $results1 = $this->_testingobject->getFilter("popcorn12", "string", array("minLength" => 2,"maxLength" => 5));
         $this->assertSame($results1, "pass");
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1,"");
+        $this->assertSame($results1, "");
     }
-
 }
-?>
