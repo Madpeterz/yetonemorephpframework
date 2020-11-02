@@ -4,14 +4,23 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeUUID extends InputFilterTypeBool
 {
-    protected function filter_uuid(string $value, array $args = []): ?string
+    /**
+     * filterUUID
+     * checks to see if the input is a vaild UUID
+     * note: supports multiple specs.
+     */
+    protected function filterUUID(string $value, array $args = []): ?string
     {
         $this->failure = false;
         $this->testOK = true;
-        if (preg_match('/^[0-9A-Fa-f]{8}\-[0-9A-Fa-f]{4}\-4[0-9A-Fa-f]{3}\-[89ABab][0-9A-Fa-f]{3}\-[0-9A-Fa-f]{12}$/i', $value)) {
-            return $value;
-        } elseif (preg_match('/^[0-9A-Fa-f]{8}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{12}$/i', $value)) {
-            return $value;
+        $uuid_specs = [
+            '/^[0-9A-Fa-f]{8}\-[0-9A-Fa-f]{4}\-4[0-9A-Fa-f]{3}\-[89ABab][0-9A-Fa-f]{3}\-[0-9A-Fa-f]{12}$/i',
+            '/^[0-9A-Fa-f]{8}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{12}$/i',
+        ];
+        foreach ($uuid_specs as $spec) {
+            if (preg_match($spec, $value)) {
+                return $value;
+            }
         }
         return null;
     }

@@ -4,7 +4,17 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeString extends InputFilterTypeArray
 {
-    protected function filter_string(string $value, array $args = []): ?string
+    /**
+     * filterString
+     * checks to see if the input is a string
+     * that passes the needed arg checks.
+     * args ->
+     * maxLength: the max length of the string
+     * minLength: The min length of the string
+     * - if the string is outside of the range min or max
+     * null is returned.
+     */
+    protected function filterString(string $value, array $args = []): ?string
     {
         $this->failure = false;
         $this->testOK = true;

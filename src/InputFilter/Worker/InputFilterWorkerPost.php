@@ -4,6 +4,11 @@ namespace YAPF\InputFilter\Worker;
 
 abstract class InputFilterWorkerPost extends InputFilterWorkerGet
 {
+    /**
+     * postFilter
+     * fetchs the value from post and redirects to valueFilter
+     * @return mixed or null
+     */
     public function postFilter(string $inputName, string $filter = "string", array $args = [], $default = null)
     {
         $this->failure = false;

@@ -6,7 +6,6 @@
     "autoload": {
         "psr-4": {
             "YAPF\\": "src/"
-            
         }
     },
     "support": {
@@ -30,9 +29,11 @@
     ],
     "scripts": {
         "dev-test": [
-          "@phpcs"
+          "phpcs",
+          "phpunit --configuration phpunit.xml --testdox --testsuite All"
         ],
         "phpcs": "phpcs",
-        "phpcbf": "phpcbf"
+        "phpcbf": "phpcbf",
+        "phpunit": "phpunit"
     }
 }

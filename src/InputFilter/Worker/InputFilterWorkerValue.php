@@ -2,9 +2,18 @@
 
 namespace YAPF\InputFilter\Worker;
 
+use YAPF\InputFilter\FilterTypes\InputFilterTypeColor as InputFilterTypeColor;
+
 abstract class InputFilterWorkerValue extends InputFilterTypeColor
 {
-    public function valueFilter($value = null, string $filter, array $args = [])
+    /**
+     * valueFilter
+     * filters the given value by the selected filter
+     * using the optional args, see the filter for their
+     * supports args.
+     * @return mixed or null
+     */
+    public function valueFilter($value = null, string $filter = "", array $args = [])
     {
         $this->failure = false;
         if ($value != null) {
@@ -24,31 +33,31 @@ abstract class InputFilterWorkerValue extends InputFilterTypeColor
                 }
                 if ($this->testOK == true) {
                     if ($filter == "string") {
-                        $value = $this->filter_string($value, $args);
+                        $value = $this->filterString($value, $args);
                     } elseif ($filter == "integer") {
-                        $value = $this->filter_integer($value, $args);
+                        $value = $this->filterInteger($value, $args);
                     } elseif (($filter == "double") || ($filter == "float")) {
-                        $value = $this->filter_float($value, $args);
+                        $value = $this->filterFloat($value, $args);
                     } elseif ($filter == "checkbox") {
-                        $value = $this->filter_checkbox($value, $args);
+                        $value = $this->filterCheckbox($value, $args);
                     } elseif ($filter == "bool") {
-                        $value = $this->filter_bool($value, $args);
+                        $value = $this->filterBool($value, $args);
                     } elseif (($filter == "uuid") || ($filter == "key")) {
-                        $value = $this->filter_uuid($value, $args);
+                        $value = $this->filterUUID($value, $args);
                     } elseif ($filter == "vector") {
-                        $value = $this->filter_vector($value, $args);
+                        $value = $this->filterVector($value, $args);
                     } elseif ($filter == "date") {
-                        $value = $this->filter_date($value, $args);
+                        $value = $this->filterDate($value, $args);
                     } elseif ($filter == "email") {
-                        $value = $this->filter_email($value, $args);
+                        $value = $this->filterEmail($value, $args);
                     } elseif ($filter == "url") {
-                        $value = $this->filter_url($value, $args);
+                        $value = $this->filterUrl($value, $args);
                     } elseif ($filter == "color") {
-                        $value = $this->filter_color($value, $args);
+                        $value = $this->filterColor($value, $args);
                     } elseif ($filter == "trueFalse") {
-                        $value = $this->filter_trueFalse($value);
+                        $value = $this->filterTrueFalse($value);
                     } elseif ($filter == "json") {
-                        $value = $this->filter_json($value);
+                        $value = $this->filterJson($value);
                     }
                     if ($value !== null) {
                         return $value;
@@ -57,7 +66,7 @@ abstract class InputFilterWorkerValue extends InputFilterTypeColor
                 }
             } else {
                 if ($filter == "array") {
-                            return $this->filter_array($value, $args);
+                    return $this->filterArray($value, $args);
                 } else {
                         $value = null;
                         $this->whyfailed = "Type error expected a string but got somthing else";
@@ -75,6 +84,11 @@ abstract class InputFilterWorkerValue extends InputFilterTypeColor
         }
         return null;
     }
+    /**
+     * varFilter
+     * see: valueFilter
+     * @return mixed or null
+     */
     public function varFilter($currentvalue, string $filter = "string", array $args = [])
     {
         return $this->valueFilter($currentvalue, $filter, $args);

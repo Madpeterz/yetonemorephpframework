@@ -4,13 +4,23 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeVector extends InputFilterTypeDate
 {
-    protected function filter_vector(string $value, array $args = [])
+    /**
+     * filterVector
+     * checks to see if the input formated as a vector
+     * args ->
+     * strict: enforces starting < and ending >
+     */
+    protected function filterVector(string $value, array $args = []): ?string
     {
         $this->failure = false;
         $this->testOK = false;
         $vectorTest = explode(",", str_replace(["<", " ", ">", "(", ")"], "", $value));
         if (count($vectorTest) == 3) {
-            if (($this->filter_float($vectorTest[0]) != null) && ($this->filter_float($vectorTest[1]) != null) && ($this->filter_float($vectorTest[2]) != null)) {
+            if (
+                ($this->filter_float($vectorTest[0]) != null) &&
+                ($this->filter_float($vectorTest[1]) != null) &&
+                ($this->filter_float($vectorTest[2]) != null)
+            ) {
                 if (array_key_exists("strict", $args)) {
                     if ((substr_count($value, '<') != 1) || (substr_count($value, '>') != 1)) {
                         $this->whyfailed = "Strict mode: Required <  & > Missing";
@@ -27,15 +37,7 @@ abstract class InputFilterTypeVector extends InputFilterTypeDate
             $this->whyfailed = "Require 3 parts split with , example: 23,42,55";
         }
         if ($this->testOK) {
-            if (function_exists("llString2Vector")) {
-                if (array_key_exists("convert", $args)) {
-                    return llString2Vector($vectorTest[0], $vectorTest[1], $vectorTest[2]);
-                } else {
-                    return $value;
-                }
-            } else {
-                return $value;
-            }
+            return $value;
         }
         return null;
     }

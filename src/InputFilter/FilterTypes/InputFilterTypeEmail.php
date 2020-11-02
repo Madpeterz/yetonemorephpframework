@@ -4,7 +4,13 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeEmail extends InputFilterTypeHttp
 {
-    protected function filter_email(string $value, array $args = []): ?string
+    /**
+     * filterEmail
+     * Checks to see if a given string appears to be a vaild email
+     * args: no_mailboxs
+     * much faster but does not support gmail style + boxs.
+     */
+    protected function filterEmail(string $value, array $args = []): ?string
     {
         $this->failure = false;
         $this->testOK = true;

@@ -4,7 +4,14 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeInteger extends InputFilterTypeString
 {
-    protected function filter_integer(string $value, array $args = []): ?int
+    /**
+     * filterInteger
+     * checks to see if the given input is a int
+     * supported args
+     * zeroCheck - The number must not be zero
+     * gtr0 - The number must be more than zero
+     */
+    protected function filterInteger(string $value, array $args = []): ?int
     {
         $this->failure = false;
         $this->testOK = true;

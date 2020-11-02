@@ -4,6 +4,11 @@ namespace YAPF\InputFilter\Worker;
 
 abstract class InputFilterWorkerGet extends InputFilterWorkerValue
 {
+    /**
+     * getFilter
+     * fetchs the value from get and redirects to valueFilter
+     * @return mixed or null
+     */
     public function getFilter(string $inputName, string $filter = "string", array $args = [], $default = null)
     {
         $this->failure = false;

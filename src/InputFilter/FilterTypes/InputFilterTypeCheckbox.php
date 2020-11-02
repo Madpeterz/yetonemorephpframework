@@ -4,7 +4,14 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeCheckbox extends InputFilterTypeVector
 {
-    protected function filter_checkbox(string $value, array $args = [])
+    /**
+     * filterCheckbox
+     * filters as integer by default
+     * but if filter is set in the args
+     * can filter by any other filter type.
+     * @return mixed or null
+     */
+    protected function filterCheckbox(string $value, array $args = [])
     {
         $filter_as = "integer";
         $this->failure = true;
@@ -17,7 +24,7 @@ abstract class InputFilterTypeCheckbox extends InputFilterTypeVector
             }
         }
         $filter_as = "filter_" . $filter_as;
-        if ($filter_as != "filter_checkbox") {
+        if ($filter_as != "filterCheckbox") {
             if (method_exists($this, $filter_as) == true) {
                 return $this->$filter_as($value, $args);
             }

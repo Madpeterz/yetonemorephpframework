@@ -4,7 +4,13 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeHttp extends InputFilterTypeJson
 {
-    protected function filter_url(string $value, array $args = []): ?string
+    /**
+     * filterUrl
+     * checks to see if the given input is a url
+     * can also enforce protocall with
+     * isHTTP and isHTTPS args.
+     */
+    protected function filterUrl(string $value, array $args = []): ?string
     {
         $this->failure = false;
         $this->testOK = true;

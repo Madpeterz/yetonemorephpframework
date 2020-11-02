@@ -4,7 +4,11 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeColor extends InputFilterTypeCheckbox
 {
-    protected function filter_color(string $value, array $args = []): ?string
+    /**
+     * filterColor
+     * Does stuff not sure what blame shado.
+     */
+    protected function filterColor(string $value, array $args = []): ?string
     {
         $this->failure = false;
         $this->testOK = true;
@@ -68,7 +72,14 @@ abstract class InputFilterTypeColor extends InputFilterTypeCheckbox
                 $this->testOK = false;
             } else {
                 $vectorTest = explode(",", str_replace(["<", " ", ">"], "", $testLSL));
-                if (($vectorTest[0] < 0) || ($vectorTest[0] > 1) || ($vectorTest[1] < 0) || ($vectorTest[1] > 1) || ($vectorTest[2] < 0) || ($vectorTest[2] > 1)) {
+                if (
+                    ($vectorTest[0] < 0) ||
+                    ($vectorTest[0] > 1) ||
+                    ($vectorTest[1] < 0) ||
+                    ($vectorTest[1] > 1) ||
+                    ($vectorTest[2] < 0) ||
+                    ($vectorTest[2] > 1)
+                ) {
                     $this->testOK = false;
                 } else {
                     return $value;
@@ -81,7 +92,14 @@ abstract class InputFilterTypeColor extends InputFilterTypeCheckbox
                 $this->testOK = false;
             } else {
                 $vectorTest = explode(",", str_replace(["<", " ", ">"], "", $testLSL));
-                if (($vectorTest[0] < 0) || ($vectorTest[0] > 255) || ($vectorTest[1] < 0) || ($vectorTest[1] > 255) || ($vectorTest[2] < 0) || ($vectorTest[2] > 255)) {
+                if (
+                    ($vectorTest[0] < 0) ||
+                    ($vectorTest[0] > 255) ||
+                    ($vectorTest[1] < 0) ||
+                    ($vectorTest[1] > 255) ||
+                    ($vectorTest[2] < 0) ||
+                    ($vectorTest[2] > 255)
+                ) {
                     $this->testOK = false;
                 } else {
                     return $value;

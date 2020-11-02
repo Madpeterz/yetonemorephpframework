@@ -4,9 +4,14 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeDate extends InputFilterTypeEmail
 {
-    protected function filter_date(string $value, array $args = [])
+    /**
+     * filterDate
+     * using the MM/DD/YYYY format
+     * attempts checks on a input
+     * supports args: asUNIX, humanReadable
+     */
+    protected function filterDate(string $value, array $args = []): ?string
     {
-        // Expected format MM/DD/YYYY
         $this->failure = false;
         $this->testOK = true;
         $timeTest = explode("/", stl_replace(" ", "", $value));

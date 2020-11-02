@@ -4,7 +4,11 @@ namespace YAPF\InputFilter\FilterTypes;
 
 abstract class InputFilterTypeFloat extends InputFilterTypeInteger
 {
-    protected function filter_float(string $value, array $args = []): ?float
+    /**
+     * filterFloat
+     * checks to see if the given input is a float.
+     */
+    protected function filterFloat(string $value, array $args = []): ?float
     {
         $this->failure = false;
         $this->testOK = true;

@@ -1,1 +1,1 @@
-phpunit --configuration phpunit.xml --testdox --testsuite All
+composer dev-test
