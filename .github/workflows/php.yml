@@ -19,7 +19,9 @@ jobs:
 
     - name: Set up MySQL
       uses: mirromutth/mysql-action@v1.1
-
+      with:
+        mysql user: 'testsuser' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
+        mysql password: 'testsuserPW' # Required if "mysql user" exists. The password for the "mysql user"
     - name: Validate composer.json and composer.lock
       run: composer validate
 

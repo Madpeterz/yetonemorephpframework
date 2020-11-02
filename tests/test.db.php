@@ -8,6 +8,6 @@ class Db extends ErrorLogging
 {
     protected $dbHost = "localhost";
     protected $dbName = "test";
-    protected $dbUser = "root";
-    protected $dbPass = "";
+    protected $dbUser = "testsuser";
+    protected $dbPass = "testsuserPW";
 }
