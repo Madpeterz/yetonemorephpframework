@@ -18,7 +18,7 @@ jobs:
       run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
 
     - name: Set up MySQL
-      uses: mirromutth/mysql-action@v1.1
+      uses: haltuf/mysql-action@master
       with:
         mysql user: 'testsuser' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
         mysql password: 'testsuserPW' # Required if "mysql user" exists. The password for the "mysql user"
