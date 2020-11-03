@@ -102,6 +102,7 @@ class mysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
+        error_log(print_r($results, true)); // see why github does not like this.
         $this->assertSame($results["status"], true);
         $this->assertSame($results["changes"], 1);
         $this->assertSame($results["message"], "ok");
