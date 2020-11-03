@@ -29,6 +29,8 @@ jobs:
       uses: haltuf/mysql-action@master
       with:
         host port: 3306 # mysql default port
+        mysql root password: ''
+        mysql database: 'test'
         mysql user: 'testsuser' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
         mysql password: 'testsuserPW' # Required if "mysql user" exists. The password for the "mysql user"
     
