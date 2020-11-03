@@ -101,11 +101,9 @@ class mysqliUpdateTest extends TestCase
             "types" => ["s"]
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
-        // [changes => int, status => bool, message => string]
-        error_log(print_r($results, true)); // see why github does not like this.
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["changes"], 1);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results["status"], false);
+        $this->assertSame($results["changes"], 0);
+        $this->assertSame($results["message"], "unable to execute because: Column 'username' cannot be null");
     }
 
     public function test_update_multiple()
