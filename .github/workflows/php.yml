@@ -70,4 +70,4 @@ jobs:
       needs: cooldown
       steps:
         - name: Run test suite
-        run: composer run-script dev-test
+          run: composer run-script dev-test
