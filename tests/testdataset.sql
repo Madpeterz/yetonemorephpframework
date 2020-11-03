@@ -1,6 +1,4 @@
-CREATE DATABASE IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `test`;
-
+set global sql_mode='STRICT_TRANS_TABLES';
 DROP TABLE IF EXISTS `alltypestable`;
 CREATE TABLE `alltypestable` (
   `id` int(11) NOT NULL,
