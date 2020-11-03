@@ -1,19 +1,19 @@
-CREATE DATABASE IF NOT EXISTS `test` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
+CREATE DATABASE IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `test`;
 
 DROP TABLE IF EXISTS `alltypestable`;
 CREATE TABLE `alltypestable` (
   `id` int(11) NOT NULL,
-  `stringfield` text NOT NULL,
+  `stringfield` mediumtext NOT NULL,
   `intfield` int(11) NOT NULL,
   `floatfield` double NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `counttoonehundo`;
 CREATE TABLE `counttoonehundo` (
   `id` int(11) NOT NULL,
   `cvalue` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `counttoonehundo` (`id`, `cvalue`) VALUES
 (1, 1),
@@ -120,9 +120,9 @@ INSERT INTO `counttoonehundo` (`id`, `cvalue`) VALUES
 DROP TABLE IF EXISTS `endoftestempty`;
 CREATE TABLE `endoftestempty` (
   `id` int(11) NOT NULL,
-  `name` text NOT NULL,
+  `name` mediumtext NOT NULL,
   `value` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `endoftestempty` (`id`, `name`, `value`) VALUES
 (1, 'yes', 1),
@@ -133,16 +133,16 @@ INSERT INTO `endoftestempty` (`id`, `name`, `value`) VALUES
 DROP TABLE IF EXISTS `endoftestwithfourentrys`;
 CREATE TABLE `endoftestwithfourentrys` (
   `id` int(11) NOT NULL,
-  `value` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `value` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `endoftestwithupdates`;
 CREATE TABLE `endoftestwithupdates` (
   `id` int(11) NOT NULL,
-  `username` text NOT NULL,
-  `oldusername` text NOT NULL,
+  `username` mediumtext NOT NULL,
+  `oldusername` mediumtext NOT NULL,
   `banned` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `endoftestwithupdates` (`id`, `username`, `oldusername`, `banned`) VALUES
 (1, 'Madpeter', 'Madpeter', 0);
@@ -150,9 +150,9 @@ INSERT INTO `endoftestwithupdates` (`id`, `username`, `oldusername`, `banned`) V
 DROP TABLE IF EXISTS `liketests`;
 CREATE TABLE `liketests` (
   `id` int(11) NOT NULL,
-  `name` text NOT NULL,
-  `value` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `name` mediumtext NOT NULL,
+  `value` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `liketests` (`id`, `name`, `value`) VALUES
 (1, 'redpondblue 1', 'pondbluered 1'),
@@ -163,9 +163,9 @@ INSERT INTO `liketests` (`id`, `name`, `value`) VALUES
 DROP TABLE IF EXISTS `relationtestinga`;
 CREATE TABLE `relationtestinga` (
   `id` int(11) NOT NULL,
-  `name` text NOT NULL,
+  `name` mediumtext NOT NULL,
   `linkid` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `relationtestinga` (`id`, `name`, `linkid`) VALUES
 (1, 'group1', 1),
@@ -174,10 +174,10 @@ INSERT INTO `relationtestinga` (`id`, `name`, `linkid`) VALUES
 DROP TABLE IF EXISTS `relationtestingb`;
 CREATE TABLE `relationtestingb` (
   `id` int(11) NOT NULL,
-  `extended1` text NOT NULL,
-  `extended2` text NOT NULL,
-  `extended3` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `extended1` mediumtext NOT NULL,
+  `extended2` mediumtext NOT NULL,
+  `extended3` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `relationtestingb` (`id`, `extended1`, `extended2`, `extended3`) VALUES
 (1, 'a1', 'a2', 'a3'),
@@ -188,9 +188,9 @@ INSERT INTO `relationtestingb` (`id`, `extended1`, `extended2`, `extended3`) VAL
 DROP TABLE IF EXISTS `twintables1`;
 CREATE TABLE `twintables1` (
   `id` int(11) NOT NULL,
-  `title` text NOT NULL,
-  `message` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `title` mediumtext NOT NULL,
+  `message` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `twintables1` (`id`, `title`, `message`) VALUES
 (1, 'harry potter', 'is not very good');
@@ -198,9 +198,9 @@ INSERT INTO `twintables1` (`id`, `title`, `message`) VALUES
 DROP TABLE IF EXISTS `twintables2`;
 CREATE TABLE `twintables2` (
   `id` int(11) NOT NULL,
-  `title` text NOT NULL,
-  `message` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `title` mediumtext NOT NULL,
+  `message` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `twintables2` (`id`, `title`, `message`) VALUES
 (1, 'harry potter', 'is great');
