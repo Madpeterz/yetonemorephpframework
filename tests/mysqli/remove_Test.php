@@ -125,7 +125,6 @@ class mysqli_remove_test extends TestCase
             ];
         $results = $this->sql->removeV2("liketests", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        error_log(print_r($results, true));
         $this->assertSame($results["status"], true);
         $this->assertSame($results["rowsDeleted"], 2);
         $this->assertSame($results["message"], "ok");
