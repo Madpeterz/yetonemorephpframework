@@ -56,11 +56,11 @@ abstract class MysqliCore extends Db
      */
     public function rawSQL(string $path_to_file): array
     {
-        if ($this->sqlStart() == false) {
-            return $this->addError(__FILE__, __FUNCTION__, "Unable to start SQL");
-        }
         if (file_exists($path_to_file) == false) {
             return $this->addError(__FILE__, __FUNCTION__, "Unable to see file to read");
+        }
+        if ($this->sqlStart() == false) {
+            return $this->addError(__FILE__, __FUNCTION__, "Unable to start SQL");
         }
 
         $commands = [];
