@@ -6,7 +6,7 @@
     "autoload": {
         "psr-4": {
             "YAPF\\": "src/",
-            "JUNK\\": "junk/"
+            "JUNK\\": "tests/db_objects/testing_db_objects/"
         }
     },
     "support": {

@@ -61,10 +61,10 @@ class genTest extends TestCase
     public function test_files_match_expected()
     {
         if (file_exists("junk/alltypestable.php") == true) {
-            if (file_get_contents("tests/alltypestable.php") == file_get_contents("junk/alltypestable.php")) {
+            if (file_get_contents("tests/db_objects/testing_db_objects/alltypestable.php") == file_get_contents("junk/alltypestable.php")) {
                 $this->assertSame("pass", "pass");
             } else {
-                $this->assertSame("file sha1", "failed");
+                $this->assertSame("file contents", "dont match");
             }
         } else {
             $this->assertSame("missing", "model output");
