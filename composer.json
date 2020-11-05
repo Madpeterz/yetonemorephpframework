@@ -5,8 +5,7 @@
     "license": "GPL-3.0-only",
     "autoload": {
         "psr-4": {
-            "YAPF\\": "src/",
-            "JUNK\\": "tests/db_objects/testing_db_objects/"
+            "YAPF\\": "src/"
         }
     },
     "support": {
