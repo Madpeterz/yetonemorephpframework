@@ -47,6 +47,6 @@ abstract class CollectionSetBulkRemove extends CollectionSetBulkUpdate
             $status = true;
             $removed_entrys = $remove_status["rowsDeleted"];
         }
-        return ["status" => status, "removed_entrys" => $removed_entrys, "message" => $error_msg];
+        return ["status" => $status, "removed_entrys" => $removed_entrys, "message" => $error_msg];
     }
 }
