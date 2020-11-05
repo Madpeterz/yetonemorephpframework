@@ -25,7 +25,7 @@ abstract class MysqliWhere extends MysqliFunctions
             $failed_on = "Where config is null";
             return false;
         } elseif (is_array($where_config) == false) {
-            $failed_on = "Where config is not an array";
+            $failed_on = "Where config is Not an array";
             return false;
         }
         $failed = false;

@@ -10,7 +10,7 @@ abstract class InputFilterTypeJson extends InputFilterTypeUUID
      * into a json object
      * @return stdClass or null
      */
-    protected function filterJson(string $value): ?stdClass
+    protected function filterJson(string $value, array $args = []): ?stdClass
     {
         $json = json_decode($value, true);
         if (($json === false) || ($json === null)) {

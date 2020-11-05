@@ -17,9 +17,9 @@ abstract class InputFilterTypeVector extends InputFilterTypeDate
         $vectorTest = explode(",", str_replace(["<", " ", ">", "(", ")"], "", $value));
         if (count($vectorTest) == 3) {
             if (
-                ($this->filter_float($vectorTest[0]) != null) &&
-                ($this->filter_float($vectorTest[1]) != null) &&
-                ($this->filter_float($vectorTest[2]) != null)
+                ($this->filterFloat($vectorTest[0]) != null) &&
+                ($this->filterFloat($vectorTest[1]) != null) &&
+                ($this->filterFloat($vectorTest[2]) != null)
             ) {
                 if (array_key_exists("strict", $args)) {
                     if ((substr_count($value, '<') != 1) || (substr_count($value, '>') != 1)) {

@@ -8,9 +8,12 @@ use YAPF\InputFilter\InputFilter as inputFilter;
 class inputFilter_string_test extends TestCase
 {
     protected $_testingobject;
-    public function test_string_notset()
+    protected function setUp(): void
     {
         $this->_testingobject = new inputFilter();
+    }
+    public function test_string_notset()
+    {
         $results1 = $this->_testingobject->getFilter("popcorn");
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
@@ -19,16 +22,14 @@ class inputFilter_string_test extends TestCase
     public function test_string_empty()
     {
         $_GET["popcorn2"] = "";
-        $this->_testingobject = new inputFilter();
         $results1 = $this->_testingobject->getFilter("popcorn2");
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1, "");
+        $this->assertSame($results1, "is empty");
     }
     public function test_string_set()
     {
         $_GET["popcorn3"] = "ready";
-        $this->_testingobject = new inputFilter();
         $results1 = $this->_testingobject->getFilter("popcorn3");
         $this->assertSame($results1, "ready");
         $results1 = $this->_testingobject->getWhyFailed();
@@ -37,17 +38,15 @@ class inputFilter_string_test extends TestCase
     public function test_string_invaild()
     {
         $_GET["popcorn4"] = new inputFilter();
-        $this->_testingobject = new inputFilter();
         $results1 = $this->_testingobject->getFilter("popcorn4");
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
-        $this->assertSame($results1, "InputFilter can not deal with objects you crazy person");
+        $this->assertSame($results1, "is a object");
     }
     public function test_string_minlength()
     {
         $_GET["popcorn5"] = "toshort";
         $_GET["popcorn6"] = "vaildlength";
-        $this->_testingobject = new inputFilter();
         $results1 = $this->_testingobject->getFilter("popcorn5", "string", array("minLength" => 30));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
@@ -61,7 +60,6 @@ class inputFilter_string_test extends TestCase
     {
         $_GET["popcorn7"] = "tolong";
         $_GET["popcorn8"] = "ok";
-        $this->_testingobject = new inputFilter();
         $results1 = $this->_testingobject->getFilter("popcorn7", "string", array("maxLength" => 3));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
@@ -77,7 +75,6 @@ class inputFilter_string_test extends TestCase
         $_GET["popcorn10"] = "badbad";
         $_GET["popcorn11"] = "popcorn";
         $_GET["popcorn12"] = "pass";
-        $this->_testingobject = new inputFilter();
         $results1 = $this->_testingobject->getFilter("popcorn9", "string", array("minLength" => 3,"maxLength" => 10));
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();

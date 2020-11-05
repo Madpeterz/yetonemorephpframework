@@ -17,4 +17,12 @@ abstract class InputFilterWorkerBase extends ErrorLogging
     {
         return $this->whyfailed;
     }
+    /**
+     * valueFilter
+     * overridden later
+     * @return mixed or null
+     */
+    public function valueFilter($value = null, string $filter = "", array $args = [])
+    {
+    }
 }
