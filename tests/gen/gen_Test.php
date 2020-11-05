@@ -42,14 +42,8 @@ class genTest extends TestCase
             mkdir("junk");
         }
         if (is_dir("junk") == false) {
-            $this->assertSame("junk", "is dir");
+            $this->assertSame("junk", "dir missing");
         } else {
-            $files = glob('junk/*'); // get all file names
-            foreach ($files as $file) { // iterate files
-                if (is_file($file)) {
-                    unlink($file); // delete file
-                }
-            }
             $this->assertSame("ok", "ok");
         }
     }
