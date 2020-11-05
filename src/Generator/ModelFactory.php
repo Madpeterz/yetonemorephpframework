@@ -21,7 +21,7 @@ class ModelFactory extends GeneratorWriter
         }
         $this->file_lines = [];
         $this->createCollectionSetFile($class_name, $target_database, $target_table);
-        $create_file = GEN_SAVE_MODELS_TO . $target_table . "Set.php";
+        $create_file = GEN_SAVE_MODELS_TO . $class_name . "Set.php";
         if ($this->use_output == true) {
             echo "<td>";
         }
@@ -35,7 +35,7 @@ class ModelFactory extends GeneratorWriter
         $this->createModelGetters($target_table, $results);
         $this->createModelSetters($target_table, $results);
         $this->createModelFooter();
-        $create_file = GEN_SAVE_MODELS_TO . $target_table . ".php";
+        $create_file = GEN_SAVE_MODELS_TO . $class_name . ".php";
         if ($this->use_output == true) {
             echo "<td>";
         }
