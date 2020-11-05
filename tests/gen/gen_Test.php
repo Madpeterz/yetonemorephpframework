@@ -17,9 +17,9 @@ class genTest extends TestCase
         define("GEN_DATABASE_USERNAME", "testsuser");
         define("GEN_DATABASE_PASSWORD", "testsuserPW");
         define("GEN_ADD_DB_TO_TABLE", false); // add the database name before the table name
-        define("GEN_SAVE_MODELS_TO", "junk/");
+        define("GEN_SAVE_MODELS_TO", "src/Junk/");
         define("GEN_DATABASES", ["test"]);
-        define("GEN_NAMESPACE", "JUNK");
+        define("GEN_NAMESPACE", "YAPF\Junk");
         $this->sql = new MysqliConnector();
     }
     protected function tearDown(): void
@@ -36,18 +36,6 @@ class genTest extends TestCase
         $this->assertSame($results["message"], "51 commands run");
     }
 
-    public function test_junk_is_empty()
-    {
-        if (is_dir("junk") == false) {
-            mkdir("junk");
-        }
-        if (is_dir("junk") == false) {
-            $this->assertSame("junk", "dir missing");
-        } else {
-            $this->assertSame("ok", "ok");
-        }
-    }
-
     public function test_create_models()
     {
         $this->db_objects_factory = new DbObjectsFactory(false);
@@ -56,18 +44,5 @@ class genTest extends TestCase
         $this->db_objects_factory->start();
         $this->assertSame($this->db_objects_factory->getModelsCreated(), 20);
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
-    }
-
-    public function test_files_match_expected()
-    {
-        if (file_exists("junk/alltypestable.php") == true) {
-            if (file_get_contents("tests/db_objects/testing_db_objects/alltypestable.php") == file_get_contents("junk/alltypestable.php")) {
-                $this->assertSame("pass", "pass");
-            } else {
-                $this->assertSame("file contents", "dont match");
-            }
-        } else {
-            $this->assertSame("missing", "model output");
-        }
     }
 }

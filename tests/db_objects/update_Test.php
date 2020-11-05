@@ -1,6 +1,6 @@
 <?php
 
-namespace JUNK;
+namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
 use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
