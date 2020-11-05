@@ -85,6 +85,10 @@ class ModelFactory extends GeneratorWriter
                     $use_type = "string";
                 }
                 $return_type_addon = "?" . $use_type . "";
+                $this->file_lines[] = "/**";
+                $this->file_lines[] = "* set" . ucfirst($row_two["COLUMN_NAME"]);
+                $this->file_lines[] = "* @return mixed[] [status =>  bool, message =>  string]";
+                $this->file_lines[] = "*/";
                 $set_function = 'public function set' . ucfirst($row_two["COLUMN_NAME"]);
                 $set_function .= '(' . $return_type_addon . ' $newvalue): array';
                 $this->file_lines[] = $set_function;

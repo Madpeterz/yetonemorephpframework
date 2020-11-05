@@ -21,10 +21,18 @@ class Relationtestinga extends genClass
     {
         return $this->getField("linkid");
     }
+    /**
+    * setName
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setName(?string $newvalue): array
     {
         return $this->updateField("name", $newvalue);
     }
+    /**
+    * setLinkid
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setLinkid(?int $newvalue): array
     {
         return $this->updateField("linkid", $newvalue);

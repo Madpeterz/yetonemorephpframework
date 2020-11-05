@@ -26,14 +26,26 @@ class Relationtestingb extends genClass
     {
         return $this->getField("extended3");
     }
+    /**
+    * setExtended1
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setExtended1(?string $newvalue): array
     {
         return $this->updateField("extended1", $newvalue);
     }
+    /**
+    * setExtended2
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setExtended2(?string $newvalue): array
     {
         return $this->updateField("extended2", $newvalue);
     }
+    /**
+    * setExtended3
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setExtended3(?string $newvalue): array
     {
         return $this->updateField("extended3", $newvalue);

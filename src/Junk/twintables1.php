@@ -21,10 +21,18 @@ class Twintables1 extends genClass
     {
         return $this->getField("message");
     }
+    /**
+    * setTitle
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setTitle(?string $newvalue): array
     {
         return $this->updateField("title", $newvalue);
     }
+    /**
+    * setMessage
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setMessage(?string $newvalue): array
     {
         return $this->updateField("message", $newvalue);

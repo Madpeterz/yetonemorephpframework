@@ -16,6 +16,10 @@ class Counttoonehundo extends genClass
     {
         return $this->getField("cvalue");
     }
+    /**
+    * setCvalue
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setCvalue(?int $newvalue): array
     {
         return $this->updateField("cvalue", $newvalue);

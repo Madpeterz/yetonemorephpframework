@@ -26,14 +26,26 @@ class Alltypestable extends genClass
     {
         return $this->getField("floatfield");
     }
+    /**
+    * setStringfield
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setStringfield(?string $newvalue): array
     {
         return $this->updateField("stringfield", $newvalue);
     }
+    /**
+    * setIntfield
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setIntfield(?int $newvalue): array
     {
         return $this->updateField("intfield", $newvalue);
     }
+    /**
+    * setFloatfield
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setFloatfield(?float $newvalue): array
     {
         return $this->updateField("floatfield", $newvalue);

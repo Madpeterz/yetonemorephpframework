@@ -26,14 +26,26 @@ class Endoftestwithupdates extends genClass
     {
         return $this->getField("banned");
     }
+    /**
+    * setUsername
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setUsername(?string $newvalue): array
     {
         return $this->updateField("username", $newvalue);
     }
+    /**
+    * setOldusername
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setOldusername(?string $newvalue): array
     {
         return $this->updateField("oldusername", $newvalue);
     }
+    /**
+    * setBanned
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setBanned(?bool $newvalue): array
     {
         return $this->updateField("banned", $newvalue);

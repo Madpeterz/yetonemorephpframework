@@ -21,10 +21,18 @@ class Liketests extends genClass
     {
         return $this->getField("value");
     }
+    /**
+    * setName
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setName(?string $newvalue): array
     {
         return $this->updateField("name", $newvalue);
     }
+    /**
+    * setValue
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setValue(?string $newvalue): array
     {
         return $this->updateField("value", $newvalue);

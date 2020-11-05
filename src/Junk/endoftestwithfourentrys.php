@@ -16,6 +16,10 @@ class Endoftestwithfourentrys extends genClass
     {
         return $this->getField("value");
     }
+    /**
+    * setValue
+    * @return mixed[] [status =>  bool, message =>  string]
+    */
     public function setValue(?string $newvalue): array
     {
         return $this->updateField("value", $newvalue);
