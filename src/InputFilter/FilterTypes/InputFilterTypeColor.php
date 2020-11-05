@@ -15,16 +15,6 @@ abstract class InputFilterTypeColor extends InputFilterTypeCheckbox
         return null;
     }
 
-    protected function valueInRange(float $min, float $max, float $value): bool
-    {
-        if ($value < $min) {
-            return false;
-        } elseif ($value > $max) {
-            return false;
-        }
-        return true;
-    }
-
     protected function colorSupportLSLVector(string $value, float $maxvalue = 1): ?string
     {
         $testLSL = $this->filterVector($value);
@@ -43,19 +33,7 @@ abstract class InputFilterTypeColor extends InputFilterTypeCheckbox
         return $value;
     }
 
-    /**
-     * scaleVector
-     * takes a input vector and scales it but an amount.
-     * @return mixed[] or null
-     */
-    protected function scaleVector(string $input, int $scaleby = 255): array
-    {
-        $vectorTest = explode(",", str_replace(["<", " ", ">"], "", $input));
-        $vectorTest[0] *= $scaleby;
-        $vectorTest[1] *= $scaleby;
-        $vectorTest[2] *= $scaleby;
-        return $vectorTest;
-    }
+
 
     protected function colorSupportConvert(string $value, array $args = []): ?string
     {
@@ -100,7 +78,7 @@ abstract class InputFilterTypeColor extends InputFilterTypeCheckbox
     /**
      * filterColor
      * Does stuff not sure what blame shado.
-     * @return mixed or null
+     * @return mixed or mixed[] or null
      */
     protected function filterColor(string $value, array $args = [])
     {

@@ -55,13 +55,6 @@ abstract class InputFilterWorkerValue extends InputFilterTypeColor
         ],
     ];
 
-    protected function isNotEmpty($input): bool
-    {
-        if (($input !== "0") && ($input !== 0)) {
-            return !empty($input);
-        }
-        return true;
-    }
     /**
      * failureExpectedReplyValue
      * if a filter results in a Failure some filters

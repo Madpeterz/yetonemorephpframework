@@ -22,6 +22,7 @@ abstract class InputFilterTypeUUID extends InputFilterTypeBool
                 return $value;
             }
         }
+        $this->whyfailed = "Not a vaild v1 or v4 uuid";
         return null;
     }
 }
