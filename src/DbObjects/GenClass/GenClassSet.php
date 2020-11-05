@@ -123,7 +123,7 @@ abstract class GenClassSet extends GenClassGet
             return $this->addError(__FILE__, __FUNCTION__, $errored_on);
         }
         $this->dataset[$fieldname]["value"] = $value;
-        if ($this->get_field_type($fieldname) == "bool") {
+        if ($this->getFieldType($fieldname) == "bool") {
             $this->dataset[$fieldname]["value"] = 0;
             if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
                 $this->dataset[$fieldname]["value"] = 1;

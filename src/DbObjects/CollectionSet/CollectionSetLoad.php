@@ -90,7 +90,7 @@ abstract class CollectionSetLoad extends CollectionSetBulkRemove
         string $order = "id",
         string $order_dir = "DESC"
     ): array {
-        return $this->loadOnFields([$field], [$value], ["="], "AND", $order_by, $order_dir, $limit);
+        return $this->loadOnFields([$field], [$value], ["="], "AND", $order, $order_dir, $limit);
     }
    /**
      * loadLimited
@@ -188,10 +188,19 @@ abstract class CollectionSetLoad extends CollectionSetBulkRemove
              "type" => array_values($wherevalues),
         ];
         $options_config = [
-            "page_number" => $limit,
-            "max_entrys" => $page,
+            "page_number" => $page,
+            "max_entrys" => $limit,
         ];
-        return $this->loadWithConfig($whereconfig, order, $options_config);
+        $ordering_enabled = false;
+        if ($orderBy != "") {
+            $ordering_enabled = true;
+        }
+        $order_config = [
+            "ordering_enabled" => $ordering_enabled,
+            "order_field" => $orderBy,
+            "order_dir" => $orderDir,
+        ];
+        return $this->loadWithConfig($whereconfig, $order_config, $options_config);
     }
     /**
      * loadDataFromList
@@ -202,6 +211,7 @@ abstract class CollectionSetLoad extends CollectionSetBulkRemove
      */
     protected function loadDataFromList(string $fieldname = "id", array $values = []): array
     {
+        $this->makeWorker();
         $uids = [];
         foreach ($values as $id) {
             if (in_array($id, $uids) == false) {
@@ -211,11 +221,11 @@ abstract class CollectionSetLoad extends CollectionSetBulkRemove
         if (count($uids) == 0) {
             return $this->addError(__FILE__, __FUNCTION__, "No ids sent!", ["count" => 0]);
         }
-        return $this->load_with_config([
+        return $this->loadWithConfig([
             "fields" => [$fieldname],
             "matches" => ["IN"],
             "values" => [$uids],
-            "types" => [$new_object->getFieldType($fieldname, true)],
+            "types" => [$this->worker->getFieldType($fieldname, true)],
         ]);
     }
     /**
@@ -231,11 +241,11 @@ abstract class CollectionSetLoad extends CollectionSetBulkRemove
             $use_field = $this->worker->use_id_field;
         }
         foreach ($load_data["dataSet"] as $entry) {
-            $new_object = new $this->worker_class();
-            if ($new_object->setup($entry) == true) {
+            $new_object = new $this->worker_class($entry);
+            if ($new_object->isLoaded() == true) {
                 $id_check_passed = true;
-                if (require_id_on_load == true) {
-                    if ($new_object->getID() <= 0) {
+                if (REQUIRE_ID_ON_LOAD == true) {
+                    if ($new_object->getId() <= 0) {
                         $id_check_passed = false;
                     }
                 }

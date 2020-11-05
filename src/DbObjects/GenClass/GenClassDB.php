@@ -25,10 +25,10 @@ abstract class GenClassDB extends GenClassLoad
     public function removeEntry(): array
     {
         if ($this->disabled == false) {
-            if ($this->get_id() > 0) {
+            if ($this->getId() > 0) {
                 $wherefields = [["id" => "="]];
-                $wherevalues = [[$this->get_id() => "i"]];
-                $remove_status = $this->sql->remove($this->get_table(), $wherefields, $wherevalues);
+                $wherevalues = [[$this->getId() => "i"]];
+                $remove_status = $this->sql->remove($this->getTable(), $wherefields, $wherevalues);
                 if ($remove_status["status"] == true) {
                     $this->dataset["id"]["value"] = -1;
                 }
@@ -65,7 +65,7 @@ abstract class GenClassDB extends GenClassLoad
                         }
                     }
                     if (count($fields) > 0) {
-                        $add_status = $this->sql->add($this->get_table(), $fields, $setto);
+                        $add_status = $this->sql->add($this->getTable(), $fields, $setto);
                         if ($add_status["status"] == true) {
                             $this->dataset["id"]["value"] = $add_status["newID"];
                             $this->save_dataset["id"]["value"] = $add_status["newID"];
@@ -153,7 +153,7 @@ abstract class GenClassDB extends GenClassLoad
         if ($had_error == false) {
             $expected_changes = count($update_config["fields"]);
             if ($expected_changes > 0) {
-                return $this->sql->updateV2($this->get_table(), $update_config, $where_config, 1);
+                return $this->sql->updateV2($this->getTable(), $update_config, $where_config, 1);
             }
             $error_msg = "No changes made";
             return ["status" => false, "changes" => 0, "message" => $error_msg];
