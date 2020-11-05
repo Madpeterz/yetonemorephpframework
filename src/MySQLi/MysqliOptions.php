@@ -45,8 +45,8 @@ abstract class MysqliOptions extends MysqliWhere
         if (array_key_exists("max_entrys", $options) == true) {
             if (array_key_exists("page_number", $options) == true) {
                 if ($options["page_number"] > 0) {
-                    $sql .= " LIMIT " . ($options["page_number"] * $options["max_entrys"]) . ", ";
-                    $sql .= $options["max_entrys"] . " ";
+                    $offset = $options["page_number"] * $options["max_entrys"];
+                    $sql .= " LIMIT " . $options["max_entrys"] . " OFFSET " . $offset . "";
                 } elseif ($options["max_entrys"] > 0) {
                     $sql .= " LIMIT " . $options["max_entrys"] . " ";
                 }
