@@ -19,6 +19,7 @@ class genTest extends TestCase
         define("GEN_ADD_DB_TO_TABLE", false); // add the database name before the table name
         define("GEN_SAVE_MODELS_TO", "junk/");
         define("GEN_DATABASES", ["test"]);
+        define("GEN_NAMESPACE", "JUNK");
         $this->sql = new MysqliConnector();
     }
     protected function tearDown(): void
