@@ -8,19 +8,27 @@ class ModelFactory extends GeneratorWriter
     {
         $this->found_id = false;
         $class_name = ucfirst(strtolower($target_table));
-        echo "<tr><td>" . $class_name . "</td>";
+        if ($this->use_output == true) {
+            echo "<tr><td>" . $class_name . "</td>";
+        }
         $results = $this->getTableColumns($target_table, $target_database);
         if ($results == null) {
             $this->addError(__FILE__, __FUNCTION__, "Error ~ Unable to get fields");
-            echo "<td>Error</td><td>Unable to get fields</tr>";
+            if ($this->use_output == true) {
+                echo "<td>Error</td><td>Unable to get fields</tr>";
+            }
             return;
         }
         $this->file_lines = [];
         $this->createCollectionSetFile($class_name, $target_database, $target_table);
         $create_file = GEN_SAVE_MODELS_TO . $target_table . "Set.php";
-        echo "<td>";
+        if ($this->use_output == true) {
+            echo "<td>";
+        }
         $this->writeModelFile($create_file);
-        echo "</td>";
+        if ($this->use_output == true) {
+            echo "</td>";
+        }
         $this->file_lines = [];
         $this->createModelHeader($class_name, $target_database, $target_table);
         $this->createModelDataset($target_table, $results);
@@ -28,9 +36,13 @@ class ModelFactory extends GeneratorWriter
         $this->createModelSetters($target_table, $results);
         $this->createModelFooter();
         $create_file = GEN_SAVE_MODELS_TO . $target_table . ".php";
-        echo "<td>";
+        if ($this->use_output == true) {
+            echo "<td>";
+        }
         $this->writeModelFile($create_file);
-        echo "</td></tr>";
+        if ($this->use_output == true) {
+            echo "</td></tr>";
+        }
     }
     protected function createCollectionSetFile(string $class_name, string $target_table, string $target_database): void
     {
