@@ -17,4 +17,8 @@ abstract class SqlConnectedClass extends ErrorLogging
             $this->sql = &$sql;
         }
     }
+    public function reconnectSql(&$SetSQl): void
+    {
+        $this->sql = $SetSQl;
+    }
 }
