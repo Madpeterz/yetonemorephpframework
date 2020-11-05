@@ -27,8 +27,10 @@ abstract class MysqliWhere extends MysqliFunctions
         } elseif (is_array($where_config) == false) {
             $failed_on = "Where config is Not an array";
             return false;
+        } elseif (array_key_exists("fields", $where_config) == false) {
+            return true; // nothing todo
         }
-        $failed = false;
+
         $missing_keys_text = "";
         $check_keys = ["fields","values","types","matches"];
         $missing_keys = [];
@@ -38,13 +40,10 @@ abstract class MysqliWhere extends MysqliFunctions
             }
         }
         if (count($missing_keys) > 0) {
-            $failed = true;
-            $missing_keys_text = " ~ " . implode(",", $missing_keys);
+            $failed_on = "missing where keys:" . implode(",", $missing_keys);
+            return false;
         } elseif (array_key_exists("join_with", $where_config) == false) {
             $where_config["join_with"] = "AND";
-        } elseif ($failed == true) {
-            $failed_on = "Required where_config keys missing " . $missing_keys_text;
-            return false;
         } elseif (count($where_config["fields"]) != count($where_config["values"])) {
             $failed_on = "count error fields <=> values";
             return false;
@@ -61,7 +60,8 @@ abstract class MysqliWhere extends MysqliFunctions
         if (is_array($where_config["join_with"]) == false) {
             $new_array = [];
             $loop = 1;
-            while ($loop < count($where_config["types"])) {
+            $total = count($where_config["types"]);
+            while ($loop < $total) {
                 $new_array[] = $where_config["join_with"];
                 $loop++;
             }
@@ -152,7 +152,7 @@ abstract class MysqliWhere extends MysqliFunctions
             $sql = "empty_in_array";
             return;
         }
-        if (count($value) > 0) {
+        if (count($value) == 0) {
             $sql = "empty_in_array";
             return;
         }
