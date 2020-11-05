@@ -18,8 +18,9 @@
       <file>tests/mysqli/remove_Test.php</file>
       <file>tests/mysqli/count_Test.php</file>
       <file>tests/mysqli/update_Test.php</file>
-      <directory>tests/gen</directory>
-      <directory>tests/db_objects</directory>
+      <file>tests/gen/gen_Test.php</file>
+      <file>tests/db_objects/load_Test.php</file>
+      <file>tests/db_objects/update_Test.php</file>
     </testsuite>
 </testsuites>
 </phpunit>
