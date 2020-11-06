@@ -26,9 +26,13 @@ abstract class GenClassDB extends GenClassLoad
     {
         if ($this->disabled == false) {
             if ($this->getId() > 0) {
-                $wherefields = [["id" => "="]];
-                $wherevalues = [[$this->getId() => "i"]];
-                $remove_status = $this->sql->remove($this->getTable(), $wherefields, $wherevalues);
+                $where_config = [
+                    "fields" => ["id"],
+                    "values" => [$this->getId()],
+                    "types" => ["i"],
+                    "matches" => ["="],
+                ];
+                $remove_status = $this->sql->removeV2($this->getTable(), $where_config);
                 if ($remove_status["status"] == true) {
                     $this->dataset["id"]["value"] = -1;
                 }
