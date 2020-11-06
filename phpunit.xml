@@ -22,6 +22,7 @@
         <file>tests/db_objects/load_Test.php</file>
         <file>tests/db_objects/update_Test.php</file>
         <file>tests/db_objects/create_Test.php</file>
+        <file>tests/db_objects/remove_Test.php</file>
       </testsuite>
   </testsuites>
   <filter>

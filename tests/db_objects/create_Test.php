@@ -25,8 +25,12 @@ class DbObjectsCreateTest extends TestCase
     public function testCreate()
     {
         global $sql;
-        $testing = new Endoftestwithfourentrys();
-        $result = $testing->setValue("magic");
+        $testing = new alltypestable();
+        $result = $testing->setStringfield("magic");
+        $this->assertSame($result["status"], true);
+        $result = $testing->setIntfield(44);
+        $this->assertSame($result["status"], true);
+        $result = $testing->setFloatfield(2.5);
         $this->assertSame($result["status"], true);
         $result = $testing->createEntry();
         // newID => ?int, rowsAdded => int, status => bool, message => string
@@ -53,7 +57,7 @@ class DbObjectsCreateTest extends TestCase
         // newID => ?int, rowsAdded => int, status => bool, message => string
         $this->assertSame($result["status"], true);
         $this->assertSame($result["message"], "ok");
-        $this->assertSame($testing->getId(), 2);
+        $this->assertSame($testing->getId(), 1);
         $testing->setValue("moo");
         $result = $testing->updateEntry();
         $this->assertSame($result["status"], true);
