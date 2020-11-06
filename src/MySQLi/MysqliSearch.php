@@ -45,7 +45,8 @@ abstract class MysqliSearch extends MysqliCount
             $error_msg = $this->getLastErrorBasic();
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
-        $bind_values = [];
+        $bind_args = [];
+        $bind_text = "";
         $sql = "";
         $addon = "";
         $table_id = 1;
@@ -60,7 +61,8 @@ abstract class MysqliSearch extends MysqliCount
             $sql .= ")";
             $addon = " UNION ALL ";
             if ($match_symbol == "?") {
-                $bind_values[] = [$match_value => $match_type];
+                $bind_args[] = $match_value;
+                $bind_text .= $match_type;
             }
             $table_id++;
         }
@@ -77,6 +79,6 @@ abstract class MysqliSearch extends MysqliCount
             $dataSet[$loop] = $entry;
             $loop++;
         }
-        return ["status" => true, "dataSet" => $dataSet ,"message" => "ok"];
+        return ["status" => true, "dataset" => $dataSet ,"message" => "ok"];
     }
 }

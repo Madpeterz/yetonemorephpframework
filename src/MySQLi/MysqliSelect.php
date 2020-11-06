@@ -128,7 +128,6 @@ abstract class MysqliSelect extends MysqliRemove
         }
     }
 
-
     /**
      * selectV2
      * for a full breakdown of all the magic

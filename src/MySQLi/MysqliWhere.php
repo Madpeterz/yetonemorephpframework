@@ -27,8 +27,6 @@ abstract class MysqliWhere extends MysqliFunctions
         } elseif (is_array($where_config) == false) {
             $failed_on = "Where config is Not an array";
             return false;
-        } elseif (array_key_exists("fields", $where_config) == false) {
-            return true; // nothing todo
         }
 
         $missing_keys_text = "";
