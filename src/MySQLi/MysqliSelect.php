@@ -4,6 +4,131 @@ namespace YAPF\MySQLi;
 
 abstract class MysqliSelect extends MysqliRemove
 {
+    protected function selectBuildJoins(array $join_tables, string &$sql, bool &$failed, string &$failed_on): void
+    {
+        $all_found = true;
+        $counts_match = true;
+        $required_keys = ["tables","types","onfield_left","onfield_match","onfield_right"];
+        foreach ($required_keys as $key) {
+            if (array_key_exists($key, $join_tables) == false) {
+                $all_found = false;
+                break;
+            }
+        }
+        if ($all_found == false) {
+            return;
+        }
+        $last_key = "";
+        foreach ($required_keys as $key) {
+            if ($last_key != "") {
+                if (count($join_tables[$key]) != count($join_tables[$last_key])) {
+                    $failed_on = "counts match error " . $key . " <=> " . $last_key;
+                    $counts_match = false;
+                    break;
+                }
+            }
+            $last_key  = $key;
+        }
+        if ($counts_match == false) {
+            $failed = true;
+            return;
+        }
+        $failed = false;
+        $loop = 0;
+        while ($loop < count($join_tables["tables"])) {
+            $sql .= " " . $join_tables["types"][$loop] . " " . $join_tables["tables"][$loop] . "";
+            $sql .= " ON " . $join_tables["onfield_left"][$loop] . " ";
+            $sql .= $join_tables["onfield_match"][$loop] . " " . $join_tables["onfield_right"][$loop] . "";
+            $loop++;
+        }
+    }
+    protected function selectBuildTableIds(
+        ?array $join_tables,
+        string &$main_table_id,
+        bool &$auto_ids,
+        bool &$clean_ids
+    ): void {
+        if (is_array($join_tables) == true) {
+            $main_table_id = "mtb";
+            $auto_ids = true;
+            $clean_ids = true;
+            if (array_key_exists("main_table_id", $join_tables) == true) {
+                $main_table_id = $join_tables["main_table_id"];
+            }
+            if (array_key_exists("autoids", $join_tables) == true) {
+                $auto_ids = $join_tables["autoids"];
+            }
+            if (array_key_exists("cleanids", $join_tables) == true) {
+                $clean_ids = $join_tables["cleanids"];
+            }
+        }
+    }
+
+    protected function selectBuildFields(
+        string &$sql,
+        string $main_table_id,
+        bool $auto_ids,
+        bool &$clean_ids,
+        array $basic_config
+    ): void {
+        if (array_key_exists("fields", $basic_config) == false) {
+            $this->selectFieldsBuilderWildCard($sql, $main_table_id, $clean_ids);
+        } elseif (array_key_exists("field_function", $basic_config) == false) {
+            $this->selectFieldsBuilderBasic($sql, $main_table_id, $auto_ids, $clean_ids, $basic_config);
+        } else {
+            $this->selectFieldsBuilderWithFunction($sql, $main_table_id, $auto_ids, $basic_config);
+        }
+    }
+    protected function selectFieldsBuilderBasic(
+        string &$sql,
+        string $main_table_id,
+        bool $auto_ids,
+        bool &$clean_ids,
+        array $basic_config
+    ): void {
+        if (($main_table_id != "") && ($auto_ids == true)) {
+            $sql .= " " . $main_table_id . "." . implode(", " . $main_table_id . ".", $basic_config["fields"]);
+            return;
+        }
+        $sql .= " " . implode(", ", $basic_config["fields"]);
+        $clean_ids = false;
+    }
+    protected function selectFieldsBuilderWildCard(string &$sql, string $main_table_id, bool &$clean_ids): void
+    {
+        if ($main_table_id == null) {
+            $sql .= " *";
+            return;
+        }
+        $sql .= " " . $main_table_id . ".*";
+        $clean_ids = false;
+    }
+    protected function selectFieldsBuilderWithFunction(
+        string &$sql,
+        string $main_table_id,
+        bool $auto_ids,
+        array $basic_config
+    ): void {
+        $loop = 0;
+        $addon = "";
+        foreach ($basic_config["fields"] as $field) {
+            $sql .= $addon;
+            if (count($basic_config["field_function"]) > $loop) {
+                $sql .= " " . $basic_config["field_function"][$loop] . "( ";
+            }
+            if (($main_table_id != "") && ($auto_ids == true)) {
+                $sql .= " " . $main_table_id . "." . $field . "";
+            } else {
+                $sql .= " " . $field . "";
+            }
+            if (count($basic_config["field_function"]) > $loop) {
+                $sql .= " )";
+            }
+            $addon = " , ";
+            $loop++;
+        }
+    }
+
+
     /**
      * selectV2
      * for a full breakdown of all the magic
@@ -33,104 +158,24 @@ abstract class MysqliSelect extends MysqliRemove
         $main_table_id = "";
         $auto_ids = false;
         $clean_ids = false;
-        if (is_array($join_tables) == true) {
-            $main_table_id = "mtb";
-            $auto_ids = true;
-            $clean_ids = true;
-            if (array_key_exists("main_table_id", $join_tables) == true) {
-                $main_table_id = $join_tables["main_table_id"];
-            }
-            if (array_key_exists("autoids", $join_tables) == true) {
-                $auto_ids = $join_tables["autoids"];
-            }
-            if (array_key_exists("cleanids", $join_tables) == true) {
-                $clean_ids = $join_tables["cleanids"];
-            }
-        }
+        $this->selectBuildTableIds($join_tables, $main_table_id, $auto_ids, $clean_ids);
         $failed = false;
         $failed_on = "";
         $sql = "SELECT ";
-        if (array_key_exists("fields", $basic_config) == true) {
-            if (array_key_exists("field_function", $basic_config) == true) {
-                $loop = 0;
-                $addon = "";
-                foreach ($basic_config["fields"] as $field) {
-                    $sql .= $addon;
-                    if (count($basic_config["field_function"]) > $loop) {
-                        $sql .= " " . $basic_config["field_function"][$loop] . "( ";
-                    }
-                    if (($main_table_id != "") && ($auto_ids == true)) {
-                        $sql .= " " . $main_table_id . "." . $field . "";
-                    } else {
-                        $sql .= " " . $field . "";
-                    }
-                    if (count($basic_config["field_function"]) > $loop) {
-                        $sql .= " )";
-                    }
-                    $addon = " , ";
-                    $loop++;
-                }
-            } else {
-                if (($main_table_id != "") && ($auto_ids == true)) {
-                    $sql .= " " . $main_table_id . "." . implode(", " . $main_table_id . ".", $basic_config["fields"]);
-                } else {
-                    $sql .= " " . implode(", ", $basic_config["fields"]);
-                    $clean_ids = false;
-                }
-            }
-        } else {
-            $clean_ids = false;
-            if ($main_table_id != "") {
-                $sql .= " " . $main_table_id . ".*";
-            } else {
-                $sql .= " *";
-            }
-        }
+        $this->selectBuildFields($sql, $main_table_id, $auto_ids, $clean_ids, $basic_config);
         $sql .= " FROM " . $basic_config["table"] . " " . $main_table_id . " ";
+        $failed = false;
         if ($main_table_id != "") {
-            $failed = true;
-            $all_found = true;
-            $counts_match = true;
-            $required_keys = ["tables","types","onfield_left","onfield_match","onfield_right"];
-            foreach ($required_keys as $key) {
-                if (array_key_exists("tables", $join_tables) == false) {
-                    $all_found = false;
-                    break;
-                }
-            }
-            if ($all_found == true) {
-                $last_key = "";
-                foreach ($required_keys as $key) {
-                    if ($last_key != "") {
-                        if (count($join_tables[$key]) != count($join_tables[$last_key])) {
-                            $counts_match = false;
-                            break;
-                        }
-                    }
-                    $last_key  = $key;
-                }
-            }
-            if (($all_found == true) && ($counts_match == true)) {
-                $failed = false;
-                $loop = 0;
-                while ($loop < count($join_tables["tables"])) {
-                    $sql .= " " . $join_tables["types"][$loop] . " " . $join_tables["tables"][$loop] . "";
-                    $sql .= " ON " . $join_tables["onfield_left"][$loop] . " ";
-                    $sql .= $join_tables["onfield_match"][$loop] . " " . $join_tables["onfield_right"][$loop] . "";
-                    $loop++;
-                }
-            }
+            $this->selectBuildJoins($join_tables, $sql, $failed, $failed_on);
         }
         $bind_text = "";
         $bind_args = [];
-        if ($failed == false) {
-            if (is_array($where_config) == true) {
-                $this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, $main_table_id, $auto_ids);
-            }
-        }
         if ($failed == true) {
             $error_msg = "failed with message:" . $failed_on;
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+        }
+        if (is_array($where_config) == true) {
+            $this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, $main_table_id, $auto_ids);
         }
         if ($sql == "empty_in_array") {
             $error_msg = "Targeting IN|NOT IN with no array";
