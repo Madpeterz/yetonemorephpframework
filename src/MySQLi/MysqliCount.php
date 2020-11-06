@@ -27,11 +27,9 @@ abstract class MysqliCount extends MysqliSelect
             $error_msg = "Unable to read table";
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
-        if (count($load_data["dataSet"]) == 0) {
-            $error_msg = "No results from SQL given";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+        if (count($load_data["dataSet"]) > 0) {
+            return ["status" => true, "count" => $load_data["dataSet"][0]["sqlCount"] ,"message" => "ok"];
         }
-        $countData = $load_data["dataSet"][0];
-        return ["status" => true, "count" => $countData["sqlCount"],"message" => "ok"];
+        return ["status" => true, "count" => 0 ,"message" => "no data found"];
     }
 }
