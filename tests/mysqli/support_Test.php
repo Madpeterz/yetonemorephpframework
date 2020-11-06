@@ -131,4 +131,42 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($this->sql->getLastErrorBasic(), "Unable to start SQL");
         $this->assertSame($result["status"], false);
     }
+
+    public function testMysqliCountNoData()
+    {
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [-1],
+            "types" => ["<="],
+            "matches" => ["i"],
+        ];
+        $result = $this->sql->basicCountV2("alltypestable", $where_config);
+        error_log($this->sql->getLastSql());
+        $this->assertSame($result["count"], 0);
+        $this->assertSame($this->sql->getLastErrorBasic(), "no data found");
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testFlagErrorRollback()
+    {
+        $result = $this->sql->basicCountV2("endoftestwithfourentrys");
+        $this->assertSame($result["count"], 0);
+        $this->assertSame($result["status"], true);
+        $config = [
+            "table" => "endoftestwithfourentrys",
+            "fields" => ["value"],
+            "values" => [sha1("testAddrolback")],
+            "types" => ["s"]
+        ];
+        $results = $this->sql->addV2($config);
+        $this->assertSame($results["status"], true);
+        $this->assertSame($results["rowsAdded"], 1);
+        $this->assertSame($results["message"], "ok");
+        $this->assertGreaterThan(0, $results["newID"]);
+        $this->sql->flagError();
+        $this->sql->sqlSave(true);
+        $result = $this->sql->basicCountV2("endoftestwithfourentrys");
+        $this->assertSame($result["count"], 0);
+        $this->assertSame($result["status"], true);
+    }
 }
