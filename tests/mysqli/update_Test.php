@@ -56,8 +56,7 @@ class mysqliUpdateTest extends TestCase
         // [changes => int, status => bool, message => string]
         $this->assertSame($results["status"], false);
         $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "unable to prepair: UPDATE badtable SET username=?"
-        . " WHERE id = ? because Table 'test.badtable' doesn't exist");
+        $this->assertSame($results["message"], "unable to prepair: Table 'test.badtable' doesn't exist");
 
         $results = $this->sql->updateV2("", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
@@ -83,8 +82,7 @@ class mysqliUpdateTest extends TestCase
         // [changes => int, status => bool, message => string]
         $this->assertSame($results["status"], false);
         $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "unable to prepair: UPDATE endoftestwithupdates SET"
-        . " username=? WHERE missingfield = ? because Unknown column 'missingfield' in 'where clause'");
+        $this->assertSame($results["message"], "unable to prepair: Unknown column 'missingfield' in 'where clause'");
     }
 
     public function test_update_invaildvalue()

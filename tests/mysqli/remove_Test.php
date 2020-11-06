@@ -46,8 +46,7 @@ class mysqli_remove_test extends TestCase
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results["status"], false);
         $this->assertSame($results["rowsDeleted"], 0);
-        $error_msg = "unable to prepair: DELETE FROM badtable";
-        $error_msg .= " WHERE id = ? because Table 'test.badtable' doesn't exist";
+        $error_msg = "unable to prepair: Table 'test.badtable' doesn't exist";
         $this->assertSame($results["message"], $error_msg);
         $results = $this->sql->removeV2("", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
@@ -68,8 +67,7 @@ class mysqli_remove_test extends TestCase
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results["status"], false);
         $this->assertSame($results["rowsDeleted"], 0);
-        $error_msg = "unable to prepair: DELETE FROM endoftestempty";
-        $error_msg .= " WHERE badtheif = ? because Unknown column 'badtheif' in 'where clause'";
+        $error_msg = "unable to prepair: Unknown column 'badtheif' in 'where clause'";
         $this->assertSame($results["message"], $error_msg);
     }
 

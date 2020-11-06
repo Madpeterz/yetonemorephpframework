@@ -7,7 +7,7 @@ use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
 class MysqliSupportTest extends TestCase
 {
-    protected $sql = null;
+    protected ?MysqliConnector $sql;
     protected function setUp(): void
     {
         $this->sql = new MysqliConnector();
@@ -31,7 +31,7 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($this->sql->getLastSQl(), "INSERT INTO endoftestwithfourentrys (value) VALUES (?)");
     }
 
-    public function testAddV2MissingKey()
+    public function testAddv2MissingKey()
     {
         $result = $this->sql->addV2();
         $this->assertSame($result["message"], "Required key: table is missing");
@@ -40,7 +40,7 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($result["rowsAdded"], 0);
     }
 
-    public function testAddV2IncorrectFieldstoValues()
+    public function testAddv2IncorrectFieldstoValues()
     {
         $config = [
             "table" => "endoftestwithfourentrys",
@@ -54,7 +54,7 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($result["newID"], null);
         $this->assertSame($result["rowsAdded"], 0);
     }
-    public function testAddV2IncorrectValuesToTypes()
+    public function testAddv2IncorrectValuesToTypes()
     {
         $config = [
             "table" => "endoftestwithfourentrys",
@@ -69,7 +69,7 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($result["rowsAdded"], 0);
     }
 
-    public function testAddV2SqlStartupError()
+    public function testAddv2SqlStartupError()
     {
         $this->sql->sqlSave(true);
         $this->sql->dbName = "invaild";
@@ -80,7 +80,7 @@ class MysqliSupportTest extends TestCase
             "types" => ["s"]
         ];
         $result = $this->sql->addV2($config);
-        $this->assertSame($result["message"], "Attempting sql connection failed with code: 1049");
+        $this->assertSame($result["message"], "Connect attempt died in a fire");
         $this->assertSame($result["status"], false);
         $this->assertSame($result["newID"], null);
         $this->assertSame($result["rowsAdded"], 0);
@@ -137,36 +137,81 @@ class MysqliSupportTest extends TestCase
         $where_config = [
             "fields" => ["id"],
             "values" => [-1],
-            "types" => ["<="],
-            "matches" => ["i"],
+            "types" => ["i"],
+            "matches" => ["<="],
         ];
         $result = $this->sql->basicCountV2("alltypestable", $where_config);
-        error_log($this->sql->getLastSql());
         $this->assertSame($result["count"], 0);
-        $this->assertSame($this->sql->getLastErrorBasic(), "no data found");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result["message"], "ok");
+        $this->assertSame($result["status"], true);
     }
 
     public function testFlagErrorRollback()
     {
-        $result = $this->sql->basicCountV2("endoftestwithfourentrys");
+        $result = $this->sql->basicCountV2("rollbacktest");
         $this->assertSame($result["count"], 0);
         $this->assertSame($result["status"], true);
         $config = [
-            "table" => "endoftestwithfourentrys",
-            "fields" => ["value"],
-            "values" => [sha1("testAddrolback")],
-            "types" => ["s"]
+            "table" => "rollbacktest",
+            "fields" => ["name","value"],
+            "values" => ["kilme",12],
+            "types" => ["s","i"],
         ];
         $results = $this->sql->addV2($config);
         $this->assertSame($results["status"], true);
         $this->assertSame($results["rowsAdded"], 1);
         $this->assertSame($results["message"], "ok");
-        $this->assertGreaterThan(0, $results["newID"]);
+        $this->assertSame($results["newID"], 1);
         $this->sql->flagError();
-        $this->sql->sqlSave(true);
-        $result = $this->sql->basicCountV2("endoftestwithfourentrys");
+        $this->sql->sqlSave(); // reject save due to error and rollback
+        $result = $this->sql->basicCountV2("rollbacktest");
         $this->assertSame($result["count"], 0);
         $this->assertSame($result["status"], true);
+        $results = $this->sql->addV2($config);
+        $this->assertSame($results["status"], true);
+        $this->assertSame($results["rowsAdded"], 1);
+        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results["newID"], 2);
+        $this->sql->sqlRollBack(); // force a rollback now
+        $result = $this->sql->basicCountV2("rollbacktest");
+        $this->assertSame($result["count"], 0);
+        $this->assertSame($result["status"], true);
+    }
+
+    public function testConnectOtherhost()
+    {
+        // bad host / bad details / bad db
+        $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "test", true, "magicmadpeter.xyz", 1);
+        $this->assertSame($result, false);
+        $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
+        // good host / bad details / good db
+        $result = $this->sql->sqlStartConnection("fakeuser", "fakepassword", "test", true, "127.0.0.1", 1);
+        $this->assertSame($result, false);
+        $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
+        // good host / good details / bad DB
+        $this->sql->fullConnectionError = true;
+        $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "fakedbname", true, "127.0.0.1", 1);
+        $this->assertSame($result, false);
+        $error_msg = "SQL connection error: mysqli_real_connect(): ";
+        $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
+        $this->assertSame($this->sql->getLastErrorBasic(), $error_msg);
+        // good host / good details / good DB
+        $this->sql->fullConnectionError = false;
+        $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "information_schema", true);
+        $this->assertSame($result, true);
+    }
+
+    public function testSqlStartBadConfig()
+    {
+        $savedbuser = $this->sql->dbUser;
+        $this->sql->dbUser = null;
+        $result = $this->sql->sqlStart();
+        $this->assertSame($this->sql->getLastErrorBasic(), "DB config is not vaild to start!");
+        $this->assertSame($result, false);
+        $this->sql->dbUser = $savedbuser;
+        $this->sql->dbPass = null;
+        $result = $this->sql->sqlStart();
+        $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
+        $this->assertSame($result, false);
     }
 }

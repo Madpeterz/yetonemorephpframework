@@ -1,5 +1,7 @@
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 CREATE DATABASE IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `test`;
+
 DROP TABLE IF EXISTS `alltypestable`;
 CREATE TABLE `alltypestable` (
   `id` int(11) NOT NULL,
@@ -184,6 +186,13 @@ INSERT INTO `relationtestingb` (`id`, `extended1`, `extended2`, `extended3`) VAL
 (3, 'd1', 'd2', 'd3'),
 (4, 'c1', 'c2', 'c3');
 
+DROP TABLE IF EXISTS `rollbacktest`;
+CREATE TABLE `rollbacktest` (
+  `id` int(11) NOT NULL,
+  `name` text NOT NULL,
+  `value` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 DROP TABLE IF EXISTS `twintables1`;
 CREATE TABLE `twintables1` (
   `id` int(11) NOT NULL,
@@ -230,6 +239,9 @@ ALTER TABLE `relationtestinga`
 ALTER TABLE `relationtestingb`
   ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `rollbacktest`
+  ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `twintables1`
   ADD PRIMARY KEY (`id`);
 
@@ -260,6 +272,9 @@ ALTER TABLE `relationtestinga`
 
 ALTER TABLE `relationtestingb`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+ALTER TABLE `rollbacktest`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `twintables1`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;

@@ -33,7 +33,7 @@ class genTest extends TestCase
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "51 commands run");
+        $this->assertSame($results["message"], "56 commands run");
     }
 
     public function test_create_models()
@@ -42,7 +42,7 @@ class genTest extends TestCase
         $this->db_objects_factory->reconnectSql($this->sql);
         $this->db_objects_factory->noOutput();
         $this->db_objects_factory->start();
-        $this->assertSame($this->db_objects_factory->getModelsCreated(), 20);
+        $this->assertSame($this->db_objects_factory->getModelsCreated(), 22);
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
     }
 }

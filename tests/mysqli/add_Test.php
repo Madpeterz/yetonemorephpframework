@@ -7,8 +7,7 @@ use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
 class mysqli_add_test extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
+    protected ?MysqliConnector $sql;
     protected function setUp(): void
     {
         $this->sql = new MysqliConnector();
@@ -53,7 +52,7 @@ class mysqli_add_test extends TestCase
         $this->assertSame($results["rowsAdded"], 0);
         $this->assertSame(
             $results["message"],
-            "unable to prepair: INSERT INTO badtable (value) VALUES (?) because Table 'test.badtable' doesn't exist"
+            "unable to prepair: Table 'test.badtable' doesn't exist"
         );
         $this->assertSame($results["newID"], null);
     }
@@ -70,8 +69,7 @@ class mysqli_add_test extends TestCase
         // [newID => ?int, rowsAdded => int, status => bool, message => string]
         $this->assertSame($results["status"], false);
         $this->assertSame($results["rowsAdded"], 0);
-        $error_msg = "unable to prepair: INSERT INTO endoftestwithfourentrys (badfield)";
-        $error_msg .= " VALUES (?) because Unknown column 'badfield' in 'field list'";
+        $error_msg = "unable to prepair: Unknown column 'badfield' in 'field list'";
         $this->assertSame($results["message"], $error_msg);
         $this->assertSame($results["newID"], null);
     }
