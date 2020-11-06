@@ -24,6 +24,19 @@ class coreErrorLoggingtest extends TestCase
         $this->assertSame($result, ["status" => false,"message" => THIS_IS_A_TEST_STRING]);
     }
 
+    public function testLastBasicErrorEmpty()
+    {
+        $_testingobject = new ErrorLoggingTestClass();
+        $this->assertSame($_testingobject->getLastErrorBasic(), "");
+    }
+
+    public function testLastBasicErrorSet()
+    {
+        $_testingobject = new ErrorLoggingTestClass();
+        $result = $_testingobject->test_addError(__FILE__, __FUNCTION__, THIS_IS_A_TEST_STRING);
+        $this->assertSame($_testingobject->getLastErrorBasic(), THIS_IS_A_TEST_STRING);
+    }
+
     public function test_return_array_extended()
     {
         $_testingobject = new ErrorLoggingTestClass();
