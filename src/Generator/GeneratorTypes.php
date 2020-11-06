@@ -25,7 +25,7 @@ abstract class GeneratorTypes extends SqlConnectedClass
      * getColType
      * returns the col type for the selected target_table
      */
-    public function getColType(
+    protected function getColType(
         string $target_type,
         string $col_type,
         string $table,
