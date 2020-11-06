@@ -18,11 +18,13 @@
         <file>tests/mysqli/remove_Test.php</file>
         <file>tests/mysqli/count_Test.php</file>
         <file>tests/mysqli/update_Test.php</file>
+        <file>tests/mysqli/support_Test.php</file>
         <file>tests/gen/gen_Test.php</file>
         <file>tests/db_objects/load_Test.php</file>
         <file>tests/db_objects/update_Test.php</file>
         <file>tests/db_objects/create_Test.php</file>
         <file>tests/db_objects/remove_Test.php</file>
+        <file>tests/db_objects/support_Test.php</file>
       </testsuite>
   </testsuites>
   <filter>
