@@ -116,7 +116,7 @@ abstract class GenClassGet extends GenClassCore
      * getId
      * returns the ID for the object
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         if ($this->bad_id == false) {
             return $this->getField("id");

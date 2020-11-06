@@ -4,6 +4,7 @@ namespace YAPF\Core;
 
 abstract class SqlConnectedClass extends ErrorLogging
 {
+    /* @var YAPF\MySQLi\MysqliEnabled $sql */
     protected $sql = null;
     protected $disabled = false;
     /**

@@ -16,6 +16,13 @@ abstract class MysqliAdd extends MysqliOptions
     public function addV2($config = []): array
     {
         $error_addon = ["newID" => null, "rowsAdded" => 0];
+        $required_keys = ["fields","values","types"];
+        foreach ($required_keys as $key) {
+            if (array_key_exists($key, $config) == false) {
+                $error_msg = "Required key: " . $key . " is missing";
+                return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            }
+        }
         if (count($config["fields"]) != count($config["values"])) {
             $error_msg = "fields and values counts do not match!";
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
