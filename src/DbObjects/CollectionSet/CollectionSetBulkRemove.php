@@ -28,16 +28,16 @@ abstract class CollectionSetBulkRemove extends CollectionSetBulkUpdate
             $error_msg = "Collection empty to start with";
             return ["status" => true, "removed_entrys" => 0, "message" => $error_msg];
         }
-        $wherefields = [];
-        $werevalues = [];
-        foreach ($this->getAllIds() as $object_id) {
-            $wherefields[] = ["id" => "="];
-            $wherevalues[] = [$object_id => "i"];
-        }
-        $remove_status = $this->sql->remove($this->worker->getTable(), $wherefields, $wherevalues, "OR");
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [$this->getAllIds()],
+            "types" => ["i"],
+            "matches" => ["IN"],
+        ];
+        $remove_status = $this->sql->removeV2($this->getTable(), $where_config);
         $status = false;
         $removed_entrys = 0;
-        $error_msg = "Collection purged";
+        $error_msg = "ok";
         if ($remove_status["status"] == false) {
             $error_msg = "Failed to remove entrys from database because: " . $remove_status["message"];
         } elseif ($remove_status["rowsDeleted"] != $this->getCount()) {
