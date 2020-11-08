@@ -60,7 +60,7 @@ class DbObjectsRemoveTest extends TestCase
         $result = $target->removeEntry();
         $reject_message = 'unable to execute because: Cannot delete or update a parent row: ';
         $reject_message .= 'a foreign key constraint fails (`test`.`relationtestinga`, CONSTRAINT `testingb_in_use` ';
-        $reject_message .= 'FOREIGN KEY (`linkid`) REFERENCES `relationtestingb` (`id`) ON UPDATE NO ACTION)';
+        $reject_message .= 'FOREIGN KEY (`linkid`) REFERENCES `relationtestingb` (`id`))';
         $message = strtr($result["message"], [" ON UPDATE NO ACTION" => ""]);
         $this->assertSame($message, $reject_message);
         $this->assertSame($result["status"], false);
