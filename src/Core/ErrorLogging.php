@@ -8,7 +8,7 @@ abstract class ErrorLogging
     protected $myLastErrorBasic = "";
     /**
      * addError
-     * Loggeds an error to error_log
+     * Loggeds an error to trigger_error at E_USER_NOTICE
      * and also sets myLastError
      * $fl = file error happened on
      * $fn = function name
