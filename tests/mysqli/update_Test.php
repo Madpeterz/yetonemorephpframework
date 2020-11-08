@@ -38,6 +38,62 @@ class MysqliUpdateTest extends TestCase
         $this->assertSame($results["message"], "ok");
     }
 
+    public function testUpdateNoTypes()
+    {
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [1],
+            "matches" => ["="],
+            "types" => ["i"],
+        ];
+        $update_config = [
+            "fields" => ["username"],
+            "values" => ["NotMadpeter"],
+            "types" => [],
+        ];
+        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
+        // [changes => int, status => bool, message => string]
+        $this->assertSame($results["status"], false);
+        $this->assertSame($results["changes"], 0);
+        $this->assertSame($results["message"], "No types given for update");
+    }
+
+    public function testUpdateBadUpdateConfigs()
+    {
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [1],
+            "matches" => ["="],
+            "types" => ["i"],
+        ];
+        $update_config = [
+            "fields" => ["username"],
+            "values" => [],
+            "types" => ["s"],
+        ];
+        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
+        // [changes => int, status => bool, message => string]
+        $this->assertSame($results["status"], false);
+        $this->assertSame($results["changes"], 0);
+        $this->assertSame($results["message"], "count issue fields <=> values");
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [1],
+            "matches" => ["="],
+            "types" => ["i"],
+        ];
+        $update_config = [
+            "fields" => ["username"],
+            "values" => ["lol"],
+            "types" => ["s","i"],
+        ];
+        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
+        // [changes => int, status => bool, message => string]
+        $this->assertSame($results["status"], false);
+        $this->assertSame($results["changes"], 0);
+        $this->assertSame($results["message"], "count issue values <=> types");
+    }
+
     public function testUpdateInvaildTable()
     {
         $where_config = [
@@ -141,5 +197,28 @@ class MysqliUpdateTest extends TestCase
         $this->assertSame($results["status"], true);
         $this->assertSame($results["changes"], 2);
         $this->assertSame($results["message"], "ok");
+    }
+
+    public function testUpdateNoSqlConnection()
+    {
+        $this->sql->sqlSave();
+        $this->sql->dbUser = "invaild";
+        $this->sql->dbPass = null;
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [1],
+            "matches" => ["="],
+            "types" => ["i"],
+        ];
+        $update_config = [
+            "fields" => ["username"],
+            "values" => ["NotMadpeter"],
+            "types" => ["s"],
+        ];
+        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
+        // [changes => int, status => bool, message => string]
+        $this->assertSame($results["status"], false);
+        $this->assertSame($results["changes"], 0);
+        $this->assertSame($results["message"], "Connect attempt died in a fire");
     }
 }

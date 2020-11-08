@@ -94,7 +94,7 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($result, true);
         $this->assertSame($this->sql->getLastErrorBasic(), "No changes made");
         $result = $this->sql->shutdown();
-        $this->assertSame($result, false);
+        $this->assertSame($result, true);
         $this->assertSame($this->sql->getLastErrorBasic(), "Not connected");
     }
 
@@ -236,6 +236,91 @@ class MysqliSupportTest extends TestCase
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($result["message"], "Unable to bind to statement");
+        $this->assertSame($result["status"], false);
+        $this->sql->fullSqlErrors = true;
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $full_bind_error = "Unable to bind to statement: mysqli_stmt_bind_param(): Number of elements ";
+        $full_bind_error .= "in type definition string doesn't match number of bind variables";
+        $this->assertSame($result["message"], $full_bind_error);
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testSqlSelectEmptyWhereConfig()
+    {
+        $result = $this->sql->selectV2(["table" => "example"], null, []);
+        $this->assertSame($result["message"], "Where config failed: where_config is empty but not null!");
+        $this->assertSame($result["status"], false);
+    }
+    public function testSqlSelectWhereConfigMissingKeys()
+    {
+        $result = $this->sql->selectV2(["table" => "example"], null, ["fields" => ["lol"]]);
+        $this->assertSame($result["message"], "Where config failed: missing where keys:values,types,matches");
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testSelectWhereConfigFieldsToValueError()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [14,44],
+            "types" => ["s"],
+            "matches" => ["="]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Where config failed: count error fields <=> values");
+        $this->assertSame(count($result["dataset"]), 0);
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testSelectWhereConfigValueToTypeError()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [14],
+            "types" => ["s","i"],
+            "matches" => ["="]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Where config failed: count error values <=> types");
+        $this->assertSame(count($result["dataset"]), 0);
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testSelectWhereConfigTypetoMatchsError()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [14],
+            "types" => ["s"],
+            "matches" => ["=","<="]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Where config failed: count error types <=> matches");
+        $this->assertSame(count($result["dataset"]), 0);
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testSelectWhereConfigExtraJoinWiths()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [14],
+            "types" => ["s"],
+            "matches" => ["="],
+            "join_with" => ["OR","AND"]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Where config failed: where_config join_with count error");
+        $this->assertSame(count($result["dataset"]), 0);
         $this->assertSame($result["status"], false);
     }
 }

@@ -21,8 +21,17 @@ class MysqliCountTest extends TestCase
     public function testCountOnehundo()
     {
         $results = $this->sql->basicCountV2("counttoonehundo");
+        $this->assertSame($results["message"], "ok");
         $this->assertSame($results["status"], true);
         $this->assertSame($results["count"], 100);
+    }
+
+    public function testCountEmpty()
+    {
+        $results = $this->sql->basicCountV2("rollbacktest");
+        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results["status"], true);
+        $this->assertSame($results["count"], 0);
     }
 
     public function testCountNoTable()
