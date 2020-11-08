@@ -198,7 +198,7 @@ class MysqliSupportTest extends TestCase
         $error_msg = "";
         if (strpos($this->sql->getLastErrorBasic(), "HY000/1049") === false) {
             $error_msg = "SQL connection error: mysqli_real_connect(): ";
-            $error_msg .= "Access denied for user 'testsuser'@'%' to database 'fakedbname'";
+            $error_msg .= "(HY000/1044) Access denied for user 'testsuser'@'%' to database 'fakedbname'";
         } else {
             $error_msg = "SQL connection error: mysqli_real_connect(): ";
             $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
