@@ -5,10 +5,9 @@ namespace YAPFtest;
 use PHPUnit\Framework\TestCase;
 use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
-class mysqliUpdateTest extends TestCase
+class MysqliUpdateTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
+    protected ?MysqliConnector $sql;
     protected function setUp(): void
     {
         $this->sql = new MysqliConnector();
@@ -19,7 +18,7 @@ class mysqliUpdateTest extends TestCase
         $this->sql = null;
     }
 
-    public function test_update()
+    public function testUpdate()
     {
         $where_config = [
             "fields" => ["id"],
@@ -39,7 +38,7 @@ class mysqliUpdateTest extends TestCase
         $this->assertSame($results["message"], "ok");
     }
 
-    public function test_update_invaildtable()
+    public function testUpdateInvaildTable()
     {
         $where_config = [
             "fields" => ["id"],
@@ -65,7 +64,7 @@ class mysqliUpdateTest extends TestCase
         $this->assertSame($results["message"], "No table given");
     }
 
-    public function test_update_invaildfield()
+    public function testUpdateInvaildField()
     {
         $where_config = [
             "fields" => ["missingfield"],
@@ -85,7 +84,7 @@ class mysqliUpdateTest extends TestCase
         $this->assertSame($results["message"], "unable to prepair: Unknown column 'missingfield' in 'where clause'");
     }
 
-    public function test_update_invaildvalue()
+    public function testUpdateInvaildValue()
     {
         $where_config = [
             "fields" => ["id"],
@@ -99,12 +98,12 @@ class mysqliUpdateTest extends TestCase
             "types" => ["s"]
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
+        $this->assertSame($results["message"], "unable to execute because: Column 'username' cannot be null");
         $this->assertSame($results["status"], false);
         $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "unable to execute because: Column 'username' cannot be null");
     }
 
-    public function test_update_multiple()
+    public function testUpdateMultiple()
     {
         $where_config = [
             "fields" => ["id"],
@@ -124,7 +123,7 @@ class mysqliUpdateTest extends TestCase
         $this->assertSame($results["message"], "ok");
     }
 
-    public function test_update_like()
+    public function testUpdateLike()
     {
         $where_config = [
             "fields" => ["name"],

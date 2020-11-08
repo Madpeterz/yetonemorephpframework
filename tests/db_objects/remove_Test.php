@@ -44,6 +44,7 @@ class DbObjectsRemoveTest extends TestCase
     {
         $target = new CounttoonehundoSet();
         $result = $target->loadAll();
+        $this->assertSame($result["message"], "ok");
         $this->assertSame($result["status"], true);
         $this->assertSame($target->getCount(), 100);
         $result = $target->purgeCollection();

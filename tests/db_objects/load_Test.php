@@ -22,7 +22,7 @@ class DbObjectsLoadTest extends TestCase
         $sql->sqlSave(true);
         $sql = null;
     }
-    public function test_reset_db_first()
+    public function testResetDbFirst()
     {
         global $sql;
         $results = $sql->rawSQL("tests/testdataset.sql");
@@ -43,18 +43,18 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadAll();
+        $this->assertSame($load_status["message"], "ok");
         $this->assertSame($load_status["status"], true);
         $this->assertSame($load_status["count"], 100);
-        $this->assertSame($load_status["message"], "ok");
     }
 
     public function testLoadRange()
     {
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadLimited(44, "id", "DESC", [], [], "AND", 1);
+        $this->assertSame($load_status["message"], "ok");
         $this->assertSame($load_status["status"], true);
         $this->assertSame($load_status["count"], 44);
-        $this->assertSame($load_status["message"], "ok");
         $firstobj = $countto->getFirst();
         $this->assertSame($firstobj->getId(), 56);
         $this->assertSame($firstobj->getCvalue(), 32);

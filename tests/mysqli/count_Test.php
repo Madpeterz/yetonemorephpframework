@@ -5,9 +5,9 @@ namespace YAPFtest;
 use PHPUnit\Framework\TestCase;
 use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
-class mysqli_count_test extends TestCase
+class MysqliCountTest extends TestCase
 {
-    protected $sql = null;
+    protected ?MysqliConnector $sql;
     protected function setUp(): void
     {
         $this->sql = new MysqliConnector();
@@ -18,14 +18,14 @@ class mysqli_count_test extends TestCase
         $this->sql = null;
     }
 
-    public function test_count_onehundo()
+    public function testCountOnehundo()
     {
         $results = $this->sql->basicCountV2("counttoonehundo");
         $this->assertSame($results["status"], true);
         $this->assertSame($results["count"], 100);
     }
 
-    public function test_count_no_table()
+    public function testCountNoTable()
     {
         $results = $this->sql->basicCountV2("");
         $this->assertSame($results["status"], false);
@@ -33,15 +33,15 @@ class mysqli_count_test extends TestCase
         $this->assertSame($results["message"], "No table given");
     }
 
-    public function test_count_invaild_table()
+    public function testCountInvaildTable()
     {
         $results = $this->sql->basicCountV2("badtable");
         $this->assertSame($results["status"], false);
         $this->assertSame($results["count"], 0);
-        $this->assertSame($results["message"], "Unable to read table");
+        $this->assertSame($results["message"], "unable to prepair: Table 'test.badtable' doesn't exist");
     }
 
-    public function test_count_onehundo_only_negitive_ids()
+    public function testCountOnehundoOnlyNegitive()
     {
         $where_config = [
             "fields" => ["id"],
@@ -55,7 +55,7 @@ class mysqli_count_test extends TestCase
         $this->assertSame($results["message"], "ok");
     }
 
-    public function test_count_onehundo_only_ids_gtr_60()
+    public function testCountOnehundoOnlyIdsGtr60()
     {
         $where_config = [
             "fields" => ["id"],
@@ -69,7 +69,7 @@ class mysqli_count_test extends TestCase
         $this->assertSame($results["message"], "ok");
     }
 
-    public function test_remove_has_emptyed()
+    public function testRemoveHasEmptyedCheckCount()
     {
         $where_config = [
             "fields" => ["id"],
@@ -84,7 +84,7 @@ class mysqli_count_test extends TestCase
     }
 
 
-    public function test_add_has_added_rows()
+    public function testAddHasAddedCheckCount()
     {
         $where_config = [
             "fields" => ["id"],

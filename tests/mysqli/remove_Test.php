@@ -7,8 +7,7 @@ use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
 class mysqli_remove_test extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
+    protected ?MysqliConnector $sql;
     protected function setUp(): void
     {
         $this->sql = new MysqliConnector();
@@ -17,6 +16,13 @@ class mysqli_remove_test extends TestCase
     {
         $this->sql->sqlSave(true);
         $this->sql = null;
+    }
+    public function testRestoreDbFirst()
+    {
+        $results = $this->sql->rawSQL("tests/testdataset.sql");
+        // [status =>  bool, message =>  string]
+        $this->assertSame($results["status"], true);
+        $this->assertSame($results["message"], "56 commands run");
     }
 
     public function test_remove()
@@ -123,8 +129,8 @@ class mysqli_remove_test extends TestCase
             ];
         $results = $this->sql->removeV2("liketests", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
+        $this->assertSame($results["message"], "ok");
         $this->assertSame($results["status"], true);
         $this->assertSame($results["rowsDeleted"], 2);
-        $this->assertSame($results["message"], "ok");
     }
 }

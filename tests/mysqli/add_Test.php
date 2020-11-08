@@ -18,7 +18,7 @@ class mysqli_add_test extends TestCase
         $this->sql = null;
     }
 
-    public function test_add()
+    public function testAdd()
     {
         $loop = 0;
         while ($loop < 4) {
@@ -30,9 +30,9 @@ class mysqli_add_test extends TestCase
             ];
             $results = $this->sql->addV2($config);
             // [newID => ?int, rowsAdded => int, status => bool, message => string]
+            $this->assertSame($results["message"], "ok");
             $this->assertSame($results["status"], true);
             $this->assertSame($results["rowsAdded"], 1);
-            $this->assertSame($results["message"], "ok");
             $this->assertGreaterThan(0, $results["newID"]);
             $loop++;
         }

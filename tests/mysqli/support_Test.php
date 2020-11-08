@@ -189,14 +189,14 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($result, false);
         $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
         // good host / good details / bad DB
-        $this->sql->fullConnectionError = true;
+        $this->sql->fullSqlErrors = true;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "fakedbname", true, "127.0.0.1", 1);
         $this->assertSame($result, false);
         $error_msg = "SQL connection error: mysqli_real_connect(): ";
         $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
         $this->assertSame($this->sql->getLastErrorBasic(), $error_msg);
         // good host / good details / good DB
-        $this->sql->fullConnectionError = false;
+        $this->sql->fullSqlErrors = false;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "information_schema", true);
         $this->assertSame($result, true);
     }
@@ -213,5 +213,20 @@ class MysqliSupportTest extends TestCase
         $result = $this->sql->sqlStart();
         $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
         $this->assertSame($result, false);
+    }
+
+    public function testSqlSelectBadBinds()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["cvalue"],
+            "values" => [256],
+            "types" => ["tttt"],
+            "matches" => ["<"],
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Unable to bind to statement");
+        $this->assertSame($result["status"], false);
     }
 }

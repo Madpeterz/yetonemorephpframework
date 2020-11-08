@@ -30,7 +30,7 @@ class DbObjectsSupportTest extends TestCase
         $testing = new liketests();
         $this->assertSame($testing->getLastSql(), "");
         $testing->loadID(1);
-        $this->assertSame($testing->getLastSql(), "SELECT  * FROM liketests   WHERE id = ? LIMIT 1 ");
+        $this->assertSame($testing->getLastSql(), 'SELECT * FROM liketests  WHERE id = ? LIMIT 1');
     }
     public function testLastSQlWithNullGlobalSql()
     {
