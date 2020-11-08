@@ -26,7 +26,7 @@ class DbObjectsRemoveTest extends TestCase
 
     public function testRemoveSingle()
     {
-        $target = new alltypestable();
+        $target = new Alltypestable();
         $result = $target->loadID(1);
         $this->assertSame($result, true);
         $result = $target->removeEntry();
@@ -54,7 +54,7 @@ class DbObjectsRemoveTest extends TestCase
     }
     public function testRemoveSetRejectRelationship()
     {
-        $target = new relationtestingb();
+        $target = new Relationtestingb();
         $result = $target->loadID(1);
         $this->assertSame($result, true);
         $result = $target->removeEntry();

@@ -7,7 +7,7 @@ use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
 class mysqli_raw_test extends TestCase
 {
-    protected $sql = null;
+    protected ?MysqliConnector $sql;
     protected function setUp(): void
     {
         $this->sql = new MysqliConnector();
@@ -18,8 +18,9 @@ class mysqli_raw_test extends TestCase
         $this->sql = null;
     }
 
-    public function test_raw_sql()
+    public function testRawSql()
     {
+        $this->sql->fullSqlErrors = false;
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results["status"], true);

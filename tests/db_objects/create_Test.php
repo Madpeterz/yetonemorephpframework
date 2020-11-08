@@ -25,7 +25,7 @@ class DbObjectsCreateTest extends TestCase
     public function testCreate()
     {
         global $sql;
-        $testing = new alltypestable();
+        $testing = new Alltypestable();
         $result = $testing->setStringfield("magic");
         $this->assertSame($result["status"], true);
         $result = $testing->setIntfield(44);

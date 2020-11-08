@@ -122,6 +122,9 @@ class MysqliSupportTest extends TestCase
         $error_msg .= "You have an error in your SQL syntax; check the manual ";
         $error_msg .= "that corresponds to your MariaDB server version for the right ";
         $error_msg .= "syntax to use near 'WHERE id != 4' at line 1";
+        if (strpos($this->sql->getLastErrorBasic(), "MariaDB") === false) {
+            $error_msg = strtr($error_msg, ["MariaDB" => "MySQL"]);
+        }
         $this->assertSame($this->sql->getLastErrorBasic(), $error_msg);
         $this->assertSame($result["status"], false);
         $this->sql->sqlSave(true);
@@ -192,8 +195,14 @@ class MysqliSupportTest extends TestCase
         $this->sql->fullSqlErrors = true;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "fakedbname", true, "127.0.0.1", 1);
         $this->assertSame($result, false);
-        $error_msg = "SQL connection error: mysqli_real_connect(): ";
-        $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
+        $error_msg = "";
+        if (strpos($this->sql->getLastErrorBasic(), "HY000/1049") === false) {
+            $error_msg = "SQL connection error: mysqli_real_connect(): ";
+            $error_msg .= "Access denied for user 'testsuser'@'%' to database 'fakedbname'";
+        } else {
+            $error_msg = "SQL connection error: mysqli_real_connect(): ";
+            $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
+        }
         $this->assertSame($this->sql->getLastErrorBasic(), $error_msg);
         // good host / good details / good DB
         $this->sql->fullSqlErrors = false;
