@@ -24,11 +24,10 @@ abstract class MysqliCount extends MysqliSelect
         ];
         $load_data = $this->selectV2($basic_config, null, $whereconfig);
         if ($load_data["status"] == false) {
-            $error_msg = "Unable to read table";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return $this->addError(__FILE__, __FUNCTION__, $load_data["message"], $error_addon);
         }
-        if (count($load_data["dataSet"]) > 0) {
-            return ["status" => true, "count" => $load_data["dataSet"][0]["sqlCount"] ,"message" => "ok"];
+        if (count($load_data["dataset"]) > 0) {
+            return ["status" => true, "count" => $load_data["dataset"][0]["sqlCount"] ,"message" => "ok"];
         }
         return ["status" => true, "count" => 0 ,"message" => "no data found"];
     }

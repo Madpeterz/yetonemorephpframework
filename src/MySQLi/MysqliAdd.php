@@ -2,7 +2,7 @@
 
 namespace YAPF\MySQLi;
 
-abstract class MysqliAdd extends MysqliOptions
+abstract class MysqliAdd extends MysqliProcess
 {
     /**
      * addV2
@@ -54,7 +54,7 @@ abstract class MysqliAdd extends MysqliOptions
             $loop++;
         }
         $sql .= ")";
-        $JustDoIt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        $JustDoIt = $this->processSqlRequest($bind_text, $bind_args, $error_addon, $sql);
         if ($JustDoIt["status"] == false) {
             return $this->addError(__FILE__, __FUNCTION__, $JustDoIt["message"], $error_addon);
         }

@@ -67,18 +67,18 @@ abstract class MysqliSearch extends MysqliCount
             $table_id++;
         }
         $sql .= " ORDER BY id DESC";
-        $JustDoIt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        $JustDoIt = $this->SQLprepairBindExecute($error_addon, $sql, $bind_args, $bind_text);
         if ($JustDoIt["status"] == false) {
-            return $this->addError(__FILE__, __FUNCTION__, $JustDoIt["message"], $error_addon);
+            return $JustDoIt;
         }
         $stmt = $JustDoIt["stmt"];
         $result = $stmt->get_result();
-        $dataSet = [];
+        $dataset = [];
         $loop = 0;
         while ($entry = $result->fetch_assoc()) {
-            $dataSet[$loop] = $entry;
+            $dataset[$loop] = $entry;
             $loop++;
         }
-        return ["status" => true, "dataset" => $dataSet ,"message" => "ok"];
+        return ["status" => true, "dataset" => $dataset ,"message" => "ok"];
     }
 }

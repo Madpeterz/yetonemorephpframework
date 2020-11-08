@@ -13,7 +13,7 @@ abstract class MysqliUpdate extends MysqliAdd
      * $where_config: see selectV2.readme
      * @return mixed[] [changes => int, status => bool, message => string]
      */
-    public function updateV2(string $table, array $update_config, array $where_config): array
+    public function updateV2(string $table, array $update_config, ?array $where_config = null): array
     {
         $error_addon = ["changes" => 0];
         if (strlen($table) == 0) {
@@ -58,22 +58,9 @@ abstract class MysqliUpdate extends MysqliAdd
             $loop++;
         }
         // where fields
-        $failed_on = "";
-        $failed = "";
-        if (is_array($where_config) == true) {
-            $failed = !$this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, "", false);
-        }
-        if ($failed == true) {
-            $error_msg = "Where config failed: " . $failed_on;
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
-        if ($sql == "empty_in_array") {
-            $error_msg = "Targeting IN|NOT IN with no array";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
-        $JustDoIt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        $JustDoIt = $this->processSqlRequest($bind_text, $bind_args, $error_addon, $sql, "", false, $where_config);
         if ($JustDoIt["status"] == false) {
-            return $this->addError(__FILE__, __FUNCTION__, $JustDoIt["message"], $error_addon);
+            return $JustDoIt;
         }
         $stmt = $JustDoIt["stmt"];
         $changes = mysqli_stmt_affected_rows($stmt);

@@ -11,7 +11,7 @@ abstract class MysqliRemove extends MysqliUpdate
      * $where_config: see selectV2.readme
      * @return mixed[] [rowsDeleted => int, status => bool, message => string]
      */
-    public function removeV2(string $table, array $where_config): array
+    public function removeV2(string $table, ?array $where_config = null): array
     {
         $error_addon = ["rowsDeleted" => 0];
         if (strlen($table) == 0) {
@@ -22,25 +22,10 @@ abstract class MysqliRemove extends MysqliUpdate
             $error_msg = $this->getLastErrorBasic();
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
-        $bind_text = "";
-        $bind_args = [];
         $sql = "DELETE FROM " . $table . "";
-        $failed_on = "";
-        $failed = false;
-        if (is_array($where_config) == true) {
-            $failed = !$this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, "", false);
-        }
-        if ($failed == true) {
-            $error_msg = "Where config failed: " . $failed_on;
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
-        if ($sql == "empty_in_array") {
-            $error_msg = "Targeting IN|NOT IN with no array";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
-        }
-        $JustDoIt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        $JustDoIt = $this->processSqlRequest("", [], $error_addon, $sql, "", false, $where_config);
         if ($JustDoIt["status"] == false) {
-            return $this->addError(__FILE__, __FUNCTION__, $JustDoIt["message"], $error_addon);
+            return $JustDoIt;
         }
         $stmt = $JustDoIt["stmt"];
         $rowsChanged = mysqli_affected_rows($this->sqlConnection);

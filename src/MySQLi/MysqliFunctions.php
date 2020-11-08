@@ -6,7 +6,120 @@ use Exception;
 
 abstract class MysqliFunctions extends MysqliCore
 {
-    public bool $fullConnectionError = false;
+    public bool $fullSqlErrors = false;
+    protected function selectBuildJoins(array $join_tables, string &$sql, bool &$failed, string &$failed_on): void
+    {
+        $all_found = true;
+        $counts_match = true;
+        $required_keys = ["tables","types","onfield_left","onfield_match","onfield_right"];
+        foreach ($required_keys as $key) {
+            if (array_key_exists($key, $join_tables) == false) {
+                $all_found = false;
+                break;
+            }
+        }
+        if ($all_found == false) {
+            return;
+        }
+        $last_key = "";
+        foreach ($required_keys as $key) {
+            if ($last_key != "") {
+                if (count($join_tables[$key]) != count($join_tables[$last_key])) {
+                    $failed_on = "counts match error " . $key . " <=> " . $last_key;
+                    $counts_match = false;
+                    break;
+                }
+            }
+            $last_key  = $key;
+        }
+        if ($counts_match == false) {
+            $failed = true;
+            return;
+        }
+        $failed = false;
+        $loop = 0;
+        while ($loop < count($join_tables["tables"])) {
+            $sql .= " " . $join_tables["types"][$loop] . " " . $join_tables["tables"][$loop] . "";
+            $sql .= " ON " . $join_tables["onfield_left"][$loop] . " ";
+            $sql .= $join_tables["onfield_match"][$loop] . " " . $join_tables["onfield_right"][$loop] . "";
+            $loop++;
+        }
+    }
+    protected function selectBuildTableIds(
+        ?array $join_tables,
+        string &$main_table_id,
+        bool &$auto_ids,
+        bool &$clean_ids
+    ): void {
+        if (is_array($join_tables) == true) {
+            $main_table_id = "mtb";
+            $auto_ids = true;
+            $clean_ids = true;
+            if (array_key_exists("main_table_id", $join_tables) == true) {
+                $main_table_id = $join_tables["main_table_id"];
+            }
+            if (array_key_exists("autoids", $join_tables) == true) {
+                $auto_ids = $join_tables["autoids"];
+            }
+            if (array_key_exists("cleanids", $join_tables) == true) {
+                $clean_ids = $join_tables["cleanids"];
+            }
+        }
+    }
+
+    protected function selectBuildFields(
+        string &$sql,
+        string $main_table_id,
+        bool $auto_ids,
+        bool &$clean_ids,
+        array $basic_config
+    ): void {
+        if (array_key_exists("fields", $basic_config) == false) {
+            $this->selectFieldsBuilderWildCard($sql, $main_table_id, $clean_ids);
+        } else {
+            $this->selectFieldsBuilderBasic($sql, $main_table_id, $auto_ids, $clean_ids, $basic_config);
+        }
+    }
+    protected function selectFieldsBuilderBasic(
+        string &$sql,
+        string $main_table_id,
+        bool $auto_ids,
+        bool &$clean_ids,
+        array $basic_config
+    ): void {
+        if (($main_table_id != "") && ($auto_ids == true)) {
+            $sql .= " " . $main_table_id . "." . implode(", " . $main_table_id . ".", $basic_config["fields"]);
+            return;
+        }
+        $sql .= " " . implode(", ", $basic_config["fields"]);
+        $clean_ids = false;
+    }
+    protected function selectFieldsBuilderWildCard(string &$sql, string $main_table_id, bool &$clean_ids): void
+    {
+        if ($main_table_id == null) {
+            $sql .= " *";
+            return;
+        }
+        $sql .= " " . $main_table_id . ".*";
+        $clean_ids = false;
+    }
+    protected function selectFieldsBuilderWithFunction(
+        string &$sql,
+        string $main_table_id,
+        bool $auto_ids,
+        array $basic_config
+    ): void {
+        $loop = 0;
+        $addon = "";
+        $sql .= $basic_config["field_function"];
+        $sql .= "(";
+        $field = $basic_config["fields"][0];
+        if (($main_table_id != "") && ($auto_ids == true)) {
+            $sql .= $main_table_id;
+        }
+        $sql .= $field . ")";
+    }
+
     /**
      * prepairBindExecute
      * shared by Add,Remove,Select and Update
@@ -14,28 +127,39 @@ abstract class MysqliFunctions extends MysqliCore
      * checks have finished.
      * @return mixed[] [status => bool, message => string, "stm" => false|statement object]
      */
-    protected function SQLprepairBindExecute(string &$sql, array &$bind_args, string &$bind_text): array
-    {
+    protected function SQLprepairBindExecute(
+        array $error_addon,
+        string &$sql,
+        array &$bind_args,
+        string &$bind_text
+    ): array {
+        $sql = strtr($sql, ["  " => " "]);
+        $sql = trim($sql);
         $this->lastSql = $sql;
         $stmt = $this->sqlConnection->prepare($sql);
         if ($stmt == false) {
             $error_msg = "unable to prepair: " . $this->sqlConnection->error;
-            return ["status" => false, "message" => $error_msg, "stmt" => false];
+            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
-        $bind_ok = true;
         if (count($bind_args) > 0) {
-            $bind_ok = mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
+            try {
+                mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
+            } catch (Exception $e) {
+                $stmt->close();
+                $error_msg = "Unable to bind to statement";
+                if ($this->fullSqlErrors == true) {
+                    $error_msg .= ": ";
+                    $error_msg .= $e->getMessage();
+                }
+                return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            }
         }
-        if ($bind_ok == false) {
-            $error_msg = "unable to bind because: " . $stmt->error;
-            $stmt->close();
-            return ["status" => false, "message" => $error_msg, "stmt" => false];
-        }
+
         $execute_result = $stmt->execute();
         if ($execute_result == false) {
             $error_msg = "unable to execute because: " . $stmt->error;
             $stmt->close();
-            return ["status" => false, "message" => $error_msg, "stmt" => false];
+            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         return ["status" => true, "message" => "ok", "stmt" => $stmt];
     }
@@ -83,12 +207,10 @@ abstract class MysqliFunctions extends MysqliCore
                 if ($stop == true) {
                     $this->sqlStop();
                 }
-            } else {
-                $this->addError(__FILE__, __FUNCTION__, "mysqli_real_connect has failed");
             }
             return $status;
         } catch (Exception $e) {
-            if ($this->fullConnectionError == true) {
+            if ($this->fullSqlErrors == true) {
                 $this->addError(__FILE__, __FUNCTION__, "SQL connection error: " . $e->getMessage());
             } else {
                 $this->addError(__FILE__, __FUNCTION__, "Connect attempt died in a fire");

@@ -22,12 +22,16 @@ abstract class MysqliWhere extends MysqliFunctions
         bool $auto_ids = false
     ): bool {
         if ($where_config == null) {
-            $failed_on = "Where config is null";
-            return false;
+            $failed_on = "note: Where config is null skipping";
+            return true;
         } elseif (is_array($where_config) == false) {
             $failed_on = "Where config is Not an array";
             return false;
+        } elseif (count($where_config) == 0) {
+            $failed_on = "where_config is empty but not null!";
+            return false;
         }
+
 
         $missing_keys_text = "";
         $check_keys = ["fields","values","types","matches"];
@@ -52,9 +56,11 @@ abstract class MysqliWhere extends MysqliFunctions
             $failed_on = "count error types <=> matches";
             return false;
         } elseif (count($where_config["fields"]) == 0) {
-            $failed_on = "where fields is empty - accepting this is risky so im not";
-            return false;
+            $failed_on = "Note: where config keys are empty inside  skipping";
+            return true;
         }
+
+
         if (is_array($where_config["join_with"]) == false) {
             $new_array = [];
             $loop = 1;
@@ -71,6 +77,15 @@ abstract class MysqliWhere extends MysqliFunctions
         }
         $failed_on = "Passed";
         $this->buildWhere($sql, $bind_text, $bind_args, $where_config, $main_table_id, $auto_ids);
+        if (strpos($sql, "WHERE") === false) {
+            if ($where_config != null) {
+                error_log("Where missing but was expected");
+                error_log("Current SQL:" . $sql);
+                error_log("Given where config");
+                error_log(print_r($where_config, true));
+                return false;
+            }
+        }
         return true;
     }
     /**
@@ -84,8 +99,8 @@ abstract class MysqliWhere extends MysqliFunctions
     protected function autoIdWhere(string $field, string $main_table_id, bool $auto_ids): string
     {
         if ($auto_ids == true) {
-            if (strpos($field, ".") === false) {
-                return $main_table_id . "." . $field;
+            if (strpos($field, " . ") === false) {
+                return $main_table_id . " . " . $field;
             }
         }
         return $field;
@@ -100,7 +115,7 @@ abstract class MysqliWhere extends MysqliFunctions
         if (in_array($match, ["IS", "IS NOT"]) == false) {
             return;
         }
-        $current_where_code .= "" . $field . " " . $match . " NULL ";
+        $current_where_code .= "" . $field . " " . $match . " null ";
     }
     /**
      * buildWhereCaseLike
@@ -117,16 +132,17 @@ abstract class MysqliWhere extends MysqliFunctions
         array &$bind_args,
         $value,
         string $type
-    ): void {
+    ): bool {
         if (in_array($match, ["LIKE", "% LIKE", "LIKE %","% LIKE %"]) == false) {
-            return;
+            return false;
         }
         $adj = str_replace(" ", "", $match);
         $value = strtr($adj, "LIKE", $value);
         $match = "LIKE";
-        $current_where_code .= "" . $field . " " . $match . " ?";
+        $current_where_code .= "" . $field . " " . $match . " ? ";
         $bind_text .= $type;
         $bind_args[] = $value;
+        return true;
     }
     /**
      * buildWhereCaseIn
@@ -171,9 +187,9 @@ abstract class MysqliWhere extends MysqliFunctions
     */
     protected function whereJoinProcessor(string &$current_where_code, int &$open_groups, string $join_with): void
     {
-        $open_only = ["AND(", "OR("];
-        $close_only = [")AND", ")OR"];
-        $close_then_reopen = ["(AND)", "(OR)"];
+        $open_only = [" and (", " or ("];
+        $close_only = [") and ", ") or "];
+        $close_then_reopen = ["( and )", "( or )"];
         $open_group = false;
         $close_group = false;
         if (in_array($join_with, $open_only) == true) {
@@ -223,7 +239,7 @@ abstract class MysqliWhere extends MysqliFunctions
         } elseif (in_array($match, ["IN","NOT IN"]) == true) {
             $this->buildWhereCaseIn($current_where_code, $field, $match, $bind_text, $bind_args, $value, $type, $sql);
         } else {
-            $current_where_code .= "" . $field . " " . $match . " ?";
+            $current_where_code .= "" . $field . " " . $match . " ? ";
             $bind_text .= $type;
             $bind_args[] = $value;
         }
@@ -247,7 +263,7 @@ abstract class MysqliWhere extends MysqliFunctions
         $open_groups = 0;
         while ($loop < count($where_config["fields"])) {
             $match = $where_config["matches"][$loop];
-            if ($match == "NULL") {
+            if ($match == "null") {
                 $match = null;
             }
             $type = $where_config["types"][$loop];
