@@ -58,7 +58,7 @@ abstract class MysqliUpdate extends MysqliAdd
             $loop++;
         }
         // where fields
-        $JustDoIt = $this->processSqlRequest($bind_text, $bind_args, $error_addon, $sql, "", false, $where_config);
+        $JustDoIt = $this->processSqlRequest($bind_text, $bind_args, $error_addon, $sql, $where_config);
         if ($JustDoIt["status"] == false) {
             return $JustDoIt;
         }

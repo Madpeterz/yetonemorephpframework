@@ -23,7 +23,7 @@ abstract class MysqliRemove extends MysqliUpdate
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
         $sql = "DELETE FROM " . $table . "";
-        $JustDoIt = $this->processSqlRequest("", [], $error_addon, $sql, "", false, $where_config);
+        $JustDoIt = $this->processSqlRequest("", [], $error_addon, $sql, $where_config);
         if ($JustDoIt["status"] == false) {
             return $JustDoIt;
         }

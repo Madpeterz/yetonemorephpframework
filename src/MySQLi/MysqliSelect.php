@@ -15,7 +15,8 @@ abstract class MysqliSelect extends MysqliRemove
         ?array $order_config = null,
         ?array $where_config = null,
         ?array $options_config = null,
-        ?array $join_tables = null
+        ?array $join_tables = null,
+        bool $clean_ids = false
     ): array {
         $error_addon = ["dataset" => []];
         if (array_key_exists("table", $basic_config) == false) {
@@ -32,20 +33,16 @@ abstract class MysqliSelect extends MysqliRemove
         }
         $main_table_id = "";
         $auto_ids = false;
-        $clean_ids = false;
+
         $this->selectBuildTableIds($join_tables, $main_table_id, $auto_ids, $clean_ids);
-        $failed = false;
-        $failed_on = "";
         $sql = "SELECT ";
-        $this->selectBuildFields($sql, $main_table_id, $auto_ids, $clean_ids, $basic_config);
+        $this->selectBuildFields($sql, $basic_config);
         $sql .= " FROM " . $basic_config["table"] . " " . $main_table_id . " ";
         $JustDoIt = $this->processSqlRequest(
             "",
             [],
             $error_addon,
             $sql,
-            $main_table_id,
-            $auto_ids,
             $where_config,
             $order_config,
             $options_config,
@@ -68,12 +65,7 @@ abstract class MysqliSelect extends MysqliRemove
             while ($entry = $result->fetch_assoc()) {
                 $cleaned_entry = [];
                 foreach ($entry as $field => $value) {
-                    $field_name_bits = explode(".", $field);
-                    if (count($field_name_bits) > 1) {
-                        $cleaned_entry[$field_name_bits[1]] = $value;
-                    } else {
-                        $cleaned_entry[$field] = $value;
-                    }
+                    $cleaned_entry[$field] = $value;
                 }
                 $dataset[] = $cleaned_entry;
                 $loop++;

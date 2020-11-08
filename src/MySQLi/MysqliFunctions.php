@@ -76,18 +76,24 @@ abstract class MysqliFunctions extends MysqliCore
         $this->needToSave = true;
         return ["status" => true,"message" => "" . $commands_run . " commands run"];
     }
-    protected function selectBuildJoins(array $join_tables, string &$sql, bool &$failed, string &$failed_on): void
+    protected function selectBuildJoins(?array $join_tables, string &$sql, bool &$failed, string &$failed_on): void
     {
+        if ($join_tables == null) {
+            return;
+        }
         $all_found = true;
         $counts_match = true;
         $required_keys = ["tables","types","onfield_left","onfield_match","onfield_right"];
+        $missing_join_key = "";
         foreach ($required_keys as $key) {
             if (array_key_exists($key, $join_tables) == false) {
+                $missing_join_key = $key;
                 $all_found = false;
                 break;
             }
         }
         if ($all_found == false) {
+            $failed_on = "Join tables config missing key: " . $missing_join_key;
             return;
         }
         $last_key = "";
@@ -109,8 +115,10 @@ abstract class MysqliFunctions extends MysqliCore
         $loop = 0;
         while ($loop < count($join_tables["tables"])) {
             $sql .= " " . $join_tables["types"][$loop] . " " . $join_tables["tables"][$loop] . "";
-            $sql .= " ON " . $join_tables["onfield_left"][$loop] . " ";
-            $sql .= $join_tables["onfield_match"][$loop] . " " . $join_tables["onfield_right"][$loop] . "";
+            if ($join_tables["onfield_left"][$loop] != "") {
+                $sql .= " ON " . $join_tables["onfield_left"][$loop] . " ";
+                $sql .= $join_tables["onfield_match"][$loop] . " " . $join_tables["onfield_right"][$loop] . "";
+            }
             $loop++;
         }
     }
@@ -122,73 +130,28 @@ abstract class MysqliFunctions extends MysqliCore
     ): void {
         if (is_array($join_tables) == true) {
             $main_table_id = "mtb";
-            $auto_ids = true;
             $clean_ids = true;
             if (array_key_exists("main_table_id", $join_tables) == true) {
                 $main_table_id = $join_tables["main_table_id"];
-            }
-            if (array_key_exists("autoids", $join_tables) == true) {
-                $auto_ids = $join_tables["autoids"];
+                $auto_ids = false;
             }
             if (array_key_exists("cleanids", $join_tables) == true) {
                 $clean_ids = $join_tables["cleanids"];
+                $auto_ids = false;
             }
         }
     }
 
     protected function selectBuildFields(
         string &$sql,
-        string $main_table_id,
-        bool $auto_ids,
-        bool &$clean_ids,
         array $basic_config
     ): void {
         if (array_key_exists("fields", $basic_config) == false) {
-            $this->selectFieldsBuilderWildCard($sql, $main_table_id, $clean_ids);
-        } else {
-            $this->selectFieldsBuilderBasic($sql, $main_table_id, $auto_ids, $clean_ids, $basic_config);
-        }
-    }
-    protected function selectFieldsBuilderBasic(
-        string &$sql,
-        string $main_table_id,
-        bool $auto_ids,
-        bool &$clean_ids,
-        array $basic_config
-    ): void {
-        if (($main_table_id != "") && ($auto_ids == true)) {
-            $sql .= " " . $main_table_id . "." . implode(", " . $main_table_id . ".", $basic_config["fields"]);
-            return;
-        }
-        $sql .= " " . implode(", ", $basic_config["fields"]);
-        $clean_ids = false;
-    }
-    protected function selectFieldsBuilderWildCard(string &$sql, string $main_table_id, bool &$clean_ids): void
-    {
-        if ($main_table_id == null) {
             $sql .= " *";
-            return;
+        } else {
+            $sql .= " " . implode(", ", $basic_config["fields"]);
         }
-        $sql .= " " . $main_table_id . ".*";
-        $clean_ids = false;
     }
-    protected function selectFieldsBuilderWithFunction(
-        string &$sql,
-        string $main_table_id,
-        bool $auto_ids,
-        array $basic_config
-    ): void {
-        $loop = 0;
-        $addon = "";
-        $sql .= $basic_config["field_function"];
-        $sql .= "(";
-        $field = $basic_config["fields"][0];
-        if (($main_table_id != "") && ($auto_ids == true)) {
-            $sql .= $main_table_id;
-        }
-        $sql .= $field . ")";
-    }
-
     /**
      * prepairBindExecute
      * shared by Add,Remove,Select and Update
@@ -295,7 +258,7 @@ abstract class MysqliFunctions extends MysqliCore
      * the stop flag is set to true, so this would close
      * the SQL connection, if you want todo more changes
      * then set stop to false.
-     * returns true if saved, false if rollback
+     * returns true if saved (or no changes), false if rollback
      */
     public function sqlSave(bool $stop = true): bool
     {
@@ -308,6 +271,9 @@ abstract class MysqliFunctions extends MysqliCore
             }
         } elseif (($this->hadErrors == true) && ($this->needToSave == true)) {
             $this->sqlRollBack();
+        } else {
+            $this->myLastErrorBasic = "No changes made";
+            $commit_status = true; // no changes (save ok)
         }
         if ($stop == true) {
             $this->sqlStop();

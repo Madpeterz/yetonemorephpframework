@@ -20,31 +20,12 @@ abstract class MysqliCore extends Db
 
     public function shutdown(): bool
     {
-        $change_status = false;
-        if ($this->sqlConnection != null) {
-            if (($this->hadErrors == false) && ($this->needToSave == true)) {
-                $change_status = $this->sqlConnection->commit();
-            } else {
-                $this->sqlConnection->rollback();
-            }
-            $last_error = "Errors reported by SQL";
-            if ($this->hadErrors == false) {
-                $last_error = "changes commited to DB";
-                if ($this->needToSave == false) {
-                    $last_error = "No changes made";
-                }
-                if ($this->needToSave != $change_status) {
-                    if ($this->needToSave == true) {
-                        $last_error = "Failed to write commit to db";
-                    }
-                }
-            }
-
-            $this->myLastErrorBasic = $last_error;
-            return $this->sqlStop();
-        }
         $this->myLastErrorBasic = "Not connected";
-        return false;
+        $result = true;
+        if ($this->sqlConnection != null) {
+            $result = $this->sqlSave();
+        }
+        return $result;
     }
     /**
      * getLastSql
