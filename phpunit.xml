@@ -14,6 +14,7 @@
         <directory>tests/core</directory>
         <directory>tests/filter</directory>
         <file>tests/mysqli/raw_sql_Test.php</file>
+        <file>tests/mysqli/select_Test.php</file>
         <file>tests/mysqli/add_Test.php</file>
         <file>tests/mysqli/remove_Test.php</file>
         <file>tests/mysqli/count_Test.php</file>
