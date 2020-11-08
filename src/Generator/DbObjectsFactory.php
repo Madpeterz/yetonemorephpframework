@@ -53,7 +53,7 @@ class DbObjectsFactory extends ModelFactory
             $this->addError(__FILE__, __FUNCTION__, $error_msg);
             return;
         }
-        foreach ($results["dataSet"] as $row) {
+        foreach ($results["dataset"] as $row) {
             $this->CreateModel($row["TABLE_NAME"], $target_database);
         }
         if ($this->use_output == true) {
@@ -79,7 +79,7 @@ class DbObjectsFactory extends ModelFactory
         ];
         $results = $this->sql->selectV2($basic_config, null, $where_config);
         if ($results["status"] == true) {
-            return $results["dataSet"];
+            return $results["dataset"];
         }
         return null;
     }

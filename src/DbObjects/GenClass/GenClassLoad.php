@@ -101,9 +101,9 @@ abstract class GenClassLoad extends GenClassSet
     protected function processLoad(array $load_data): bool
     {
         if ($load_data["status"] == true) {
-            if (count($load_data["dataSet"]) == 1) {
+            if (count($load_data["dataset"]) == 1) {
                 $id_check_passed = true;
-                $this->setup($load_data["dataSet"][0]);
+                $this->setup($load_data["dataset"][0]);
                 if (REQUIRE_ID_ON_LOAD == true) {
                     if ($this->getId() <= 0) {
                         $id_check_passed = false;
@@ -113,7 +113,7 @@ abstract class GenClassLoad extends GenClassSet
             }
             $error_message = "Attempt to load multiple entrys into solo storage,";
             $error_message .= " please use the set collector X_set found: ";
-            $error_message .= count($load_data["dataSet"]) . " matches only allowed 1";
+            $error_message .= count($load_data["dataset"]) . " matches only allowed 1";
             $this->addError(__FILE__, __FUNCTION__, $error_message);
         }
         return false;
