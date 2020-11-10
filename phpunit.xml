@@ -5,7 +5,7 @@
     convertErrorsToExceptions="true"
     backupStaticAttributes="false"
     processIsolation="false"
-    stopOnFailure="false"
+    stopOnFailure="true"
     backupGlobals="false"
     colors="true"
 >
