@@ -34,6 +34,8 @@ class inputFilter_string_test extends TestCase
         $this->assertSame($results1, "ready");
         $results1 = $this->_testingobject->getWhyFailed();
         $this->assertSame($results1, "");
+        $direct = $this->_testingobject->varFilter("Magic", "");
+        $this->assertSame($direct, "Magic");
     }
     public function test_string_invaild()
     {

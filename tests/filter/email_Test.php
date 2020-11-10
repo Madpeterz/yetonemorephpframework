@@ -39,6 +39,13 @@ class inputFilter_email_test extends TestCase
         $this->assertSame($results1, "you+boxenabled@email.com");
         $results2 = $this->_testingobject->getWhyFailed();
         $this->assertSame($results2, "");
+        $_GET["popcorn5"] = "you@email.com";
+        $results1 = $this->_testingobject->getFilter("popcorn5", "email", ["no_mailboxs"]);
+        $this->assertSame($results1, "you@email.com");
+        $results2 = $this->_testingobject->getWhyFailed();
+        $this->assertSame($results2, "");
+        $direct = $this->_testingobject->varFilter("you@email.com", "email");
+        $this->assertSame($direct, "you@email.com");
     }
     public function test_email_invaild()
     {
@@ -57,5 +64,10 @@ class inputFilter_email_test extends TestCase
         $this->assertSame($results1, null);
         $results1 = $this->_testingobject->getWhyFailed();
         $this->assertSame($results1, "Required @ missing");
+        $_GET["popcorn4"] = "youboxnotenabledgmail@com";
+        $results1 = $this->_testingobject->getFilter("popcorn4", "email");
+        $results2 = $this->_testingobject->getWhyFailed();
+        $this->assertSame($results2, "Failed vaildation after removing mailbox");
+        $this->assertSame($results1, null);
     }
 }

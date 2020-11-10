@@ -83,6 +83,23 @@ class MysqliSelectTest extends TestCase
         $this->assertSame($result["status"], false);
     }
 
+    public function testSelectNullAsText()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $options = ["max_entrys" => 5];
+        $where_config = [
+            "fields" => ["id"],
+            "values" => ["null"],
+            "types" => ["i"],
+            "matches" => ["IS NOT"]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config, $options);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "ok");
+        $this->assertSame(count($result["dataset"]), 5);
+        $this->assertSame($result["status"], true);
+    }
+
     public function testSelectUnkownWhereMatcher()
     {
         $basic_config = ["table" => "counttoonehundo"];
@@ -151,6 +168,59 @@ class MysqliSelectTest extends TestCase
         $this->assertSame($result["message"], "ok");
         $this->assertSame(count($result["dataset"]), 70);
         $this->assertSame($result["status"], true);
+    }
+
+    public function testSelectGroupedMatchesOpenFirst()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["cvalue","cvalue","cvalue"],
+            "values" => [1,2560,100],
+            "types" => ["i","i","i"],
+            "matches" => ["=","!=","<"],
+            "join_with" => ["( OR","AND"]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $expected_sql = "SELECT * FROM counttoonehundo  WHERE (cvalue = ? OR (cvalue != ? AND cvalue < ? ))";
+        $this->assertSame($this->sql->getLastSql(), $expected_sql);
+        $this->assertSame($result["message"], "ok");
+        $this->assertSame(count($result["dataset"]), 70);
+        $this->assertSame($result["status"], true);
+    }
+
+    public function testSelectGroupedEmptyInArray()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["cvalue","cvalue","cvalue"],
+            "values" => [1,2560,[]],
+            "types" => ["i","i","i"],
+            "matches" => ["=","!=","IN"],
+            "join_with" => ["( OR","AND"]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Targeting IN|NOT IN with no array");
+        $this->assertSame(count($result["dataset"]), 0);
+        $this->assertSame($result["status"], false);
+    }
+
+    public function testSelectGroupedUnknownMatcher()
+    {
+        $basic_config = ["table" => "counttoonehundo"];
+        $where_config = [
+            "fields" => ["cvalue","cvalue","cvalue"],
+            "values" => [1,2560,44],
+            "types" => ["i","i","i"],
+            "matches" => ["LOL","!=","="],
+            "join_with" => ["( OR","AND"]
+        ];
+        $result = $this->sql->selectV2($basic_config, null, $where_config);
+        // [dataset => mixed[mixed[]], status => bool, message => string]
+        $this->assertSame($result["message"], "Where config failed: Unsupported where match type!");
+        $this->assertSame(count($result["dataset"]), 0);
+        $this->assertSame($result["status"], false);
     }
 
     public function testSelectBasicExtended()

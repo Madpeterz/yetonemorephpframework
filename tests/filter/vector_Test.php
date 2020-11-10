@@ -53,4 +53,17 @@ class inputFilter_vector_test extends TestCase
         $results2 = $this->_testingobject->getWhyFailed();
         $this->assertSame($results2, "Require 3 parts split with , example: 23,42,55");
     }
+    public function testVectorSetStrictMode()
+    {
+        $_GET["vectorwith"] = "<1,2,4>";
+        $results1 = $this->_testingobject->getFilter("vectorwith", "vector", ["strict" => true]);
+        $this->assertSame($results1, "<1,2,4>");
+        $results2 = $this->_testingobject->getWhyFailed();
+        $this->assertSame($results2, "");
+        $_GET["vectorwithout"] = "5,7,8";
+        $results1 = $this->_testingobject->getFilter("vectorwithout", "vector", ["strict" => true]);
+        $this->assertSame($results1, null);
+        $results2 = $this->_testingobject->getWhyFailed();
+        $this->assertSame($results2, "Strict mode: Required <  & > Missing");
+    }
 }

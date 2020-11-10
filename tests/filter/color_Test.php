@@ -83,9 +83,9 @@ class inputFilter_color_test extends TestCase
     {
         $_GET["popcorn3"] = "<1,0.2,0.6>";
         $results1 = $this->_testingobject->getFilter("popcorn3", "color");
-        $this->assertSame($results1, "<1,0.2,0.6>");
         $results2 = $this->_testingobject->getWhyFailed();
         $this->assertSame($results2, "");
+        $this->assertSame($results1, "<1,0.2,0.6>");
         $_GET["popcorn4"] = "0.4,0.3,0.88";
         $results1 = $this->_testingobject->getFilter("popcorn4", "color");
         $this->assertSame($results1, "0.4,0.3,0.88");
