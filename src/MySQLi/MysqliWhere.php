@@ -261,11 +261,11 @@ abstract class MysqliWhere extends MysqliFunctions
         int &$pending_closer
     ): void {
         $match = $where_config["matches"][$loop];
-        if ($match == "null") {
-            $match = null;
-        }
         $type = $where_config["types"][$loop];
         $value = $where_config["values"][$loop];
+        if ($value == "null") {
+            $value = null;
+        }
         $field = $where_config["fields"][$loop];
         $this->whereCaseProcessor(
             $current_where_code,
