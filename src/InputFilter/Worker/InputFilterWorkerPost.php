@@ -9,20 +9,9 @@ abstract class InputFilterWorkerPost extends InputFilterWorkerGet
      * fetchs the value from post and redirects to valueFilter
      * @return mixed or null
      */
-    public function postFilter(string $inputName, string $filter = "string", array $args = [], $default = null)
+    public function postFilter(string $inputName, string $filter = "string", array $args = [])
     {
-        $this->failure = false;
-        $this->whyfailed = "";
-        $value = $default;
-        if (isset($_POST[$inputName]) == false) {
-            $this->failure = true;
-        }
-        if ($this->failure == false) {
-            $value = $this->valueFilter($_POST[$inputName], $filter, $args);
-            if ($this->whyfailed != "") {
-                $this->addError(__FILE__, __FUNCTION__, $this->whyfailed);
-            }
-        }
-        return $this->failureExpectedReplyValue($value, $filter);
+        $this->whyfailed = "No post value found with name: " . $inputName;
+        return $this->sharedInputFilter($inputName, $_POST, $filter, $args);
     }
 }

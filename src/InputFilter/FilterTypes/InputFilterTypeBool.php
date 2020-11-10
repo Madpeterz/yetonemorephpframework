@@ -13,7 +13,7 @@ abstract class InputFilterTypeBool extends InputFilterTypeFloat
     {
         $this->failure = false;
         $this->testOK = true;
-        return in_array($value, ["true",true,1,"yes","True",true,"TRUE"]);
+        return in_array($value, ["true",true,1,"yes","True",true,"TRUE"], true);
     }
     /**
      * filterTrueFalse
@@ -21,7 +21,8 @@ abstract class InputFilterTypeBool extends InputFilterTypeFloat
      */
     protected function filterTruefalse(string $value, array $args = []): int
     {
-        $value = filterBool($value);
+        $invalue = $value;
+        $value = $this->filterBool($value);
         if ($value === true) {
             return 1;
         }

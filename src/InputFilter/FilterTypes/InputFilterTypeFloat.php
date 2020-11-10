@@ -12,14 +12,6 @@ abstract class InputFilterTypeFloat extends InputFilterTypeInteger
     {
         $this->failure = false;
         $this->testOK = true;
-        if ($value === "") {
-            $this->whyfailed = "Empty inside like me";
-            return null;
-        }
-        if (is_float($value + 0) == false) {
-            $this->whyfailed = "Not a float";
-            return null;
-        }
         $value = floatval($value);
         if (array_key_exists("zeroCheck", $args)) {
             if ($value == "0") {

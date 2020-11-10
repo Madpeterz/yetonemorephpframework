@@ -17,14 +17,6 @@ abstract class InputFilterWorkerBase extends ErrorLogging
     {
         return $this->whyfailed;
     }
-    /**
-     * valueFilter
-     * overridden later
-     * @return mixed or null
-     */
-    public function valueFilter($value = null, string $filter = "", array $args = [])
-    {
-    }
 
     protected function isNotEmpty($input): bool
     {
@@ -32,20 +24,6 @@ abstract class InputFilterWorkerBase extends ErrorLogging
             return !empty($input);
         }
         return true;
-    }
-
-    /**
-     * scaleVector
-     * takes a input vector and scales it but an amount.
-     * @return mixed[] or null
-     */
-    protected function scaleVector(string $input, int $scaleby = 255): array
-    {
-        $vectorTest = explode(",", str_replace(["<", " ", ">"], "", $input));
-        $vectorTest[0] *= $scaleby;
-        $vectorTest[1] *= $scaleby;
-        $vectorTest[2] *= $scaleby;
-        return $vectorTest;
     }
 
     protected function valueInRange(float $min, float $max, float $value): bool
@@ -56,5 +34,103 @@ abstract class InputFilterWorkerBase extends ErrorLogging
             return false;
         }
         return true;
+    }
+
+        /**
+     * SharedInputFilter
+     * fetchs the value from get or post
+     * or returns the default
+     * @return mixed
+     */
+    protected function sharedInputFilter(
+        string $inputName,
+        array &$source_dataset,
+        string $filter = "string",
+        array $args = []
+    ) {
+        $not_set = false;
+        $value = $this->fetchTestingValue($not_set, $source_dataset, $inputName);
+        if ($not_set == false) {
+            $this->whyfailed = "";
+            $value = $this->valueFilter($value, $filter, $args);
+            if ($this->whyfailed != "") {
+                $this->addError(__FILE__, __FUNCTION__, $this->whyfailed);
+            }
+        }
+        return $this->failureExpectedReplyValue($value, $filter);
+    }
+    /**
+     * fetchTestingValue
+     * fetchs the value from get or post
+     * or returns the default
+     * @return mixed
+     */
+    protected function fetchTestingValue(bool &$not_set, array &$source_dataset, string $name = "")
+    {
+        if (isset($source_dataset[$name]) == true) {
+            return $source_dataset[$name];
+        }
+        $not_set = true;
+        $this->failure = true;
+        return null;
+    }
+
+    protected $filter_list = [
+        "string",
+        "integer",
+        "float",
+        "checkbox",
+        "bool",
+        "uuid",
+        "vector",
+        "date",
+        "email",
+        "url",
+        "color",
+        "truefalse",
+        "json",
+        "array",
+    ];
+    protected $filters = [
+        "array" => [
+            "tests" => [
+                "is_array" => [
+                    "expected" => true,
+                    "why" => "Not an array",
+                ],
+            ],
+        ],
+        "integer" => [
+            "tests" => [
+                "is_numeric" => [
+                    "expected" => true,
+                    "why" => "not numeric",
+                ],
+            ],
+        ],
+        "float" => [
+            "tests" => [
+                "is_numeric" => [
+                    "expected" => true,
+                    "why" => "not numeric",
+                ],
+            ],
+        ],
+    ];
+
+    /**
+     * failureExpectedReplyValue
+     * if a filter results in a Failure some filters
+     * expect a non null reply
+     * @return mixed
+     */
+    protected function failureExpectedReplyValue($value, string $filter)
+    {
+        if ($value === null) {
+            if (in_array($filter, ["checkbox", "truefalse"]) == true) {
+                return 0;
+            }
+        }
+        return $value;
     }
 }

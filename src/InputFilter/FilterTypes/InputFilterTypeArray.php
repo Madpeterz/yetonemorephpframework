@@ -13,12 +13,6 @@ abstract class InputFilterTypeArray extends InputFilterWorkerBase
      */
     protected function filterArray($value, array $args = []): ?array
     {
-        // used by groupped inputs
-        if (is_array($value) == true) {
-            return $value;
-        } else {
-            $this->whyfailed = "Not an array";
-            return null;
-        }
+        return $value; // :) tests are done before we get to me
     }
 }

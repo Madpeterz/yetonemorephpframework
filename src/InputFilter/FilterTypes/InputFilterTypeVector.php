@@ -22,10 +22,7 @@ abstract class InputFilterTypeVector extends InputFilterTypeDate
         $tests[] = $this->isNotEmpty($vectorTest[0]); // R
         $tests[] = $this->isNotEmpty($vectorTest[1]); // G
         $tests[] = $this->isNotEmpty($vectorTest[2]); // B
-        if (in_array(false, $tests) == true) {
-            $this->whyfailed = "nulls not allowed for values";
-            return null;
-        }
+
 
         if (array_key_exists("strict", $args) == true) {
             if ((substr_count($inputvalue, '<') != 1) || (substr_count($inputvalue, '>') != 1)) {
