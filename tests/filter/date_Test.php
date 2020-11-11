@@ -72,7 +72,7 @@ class inputFilter_date_test extends TestCase
     {
         $_GET["popcorn3"] = "11/02/1972";
         $results1 = $this->_testingobject->getFilter("popcorn3", "date", ["asUNIX" => true]);
-        $this->assertSame($results1, '89506800');
+        $this->assertSame($results1, '66610800');
         $results2 = $this->_testingobject->getWhyFailed();
         $this->assertSame($results2, "");
     }

@@ -34,7 +34,8 @@ abstract class InputFilterTypeDate extends InputFilterTypeEmail
             return null;
         }
         if (array_key_exists("asUNIX", $args)) {
-            return mktime(0, 0, 0, $timeTest[0], $timeTest[1], $timeTest[2]);
+            $date = new \DateTime($timeTest[2] . "-" . $timeTest[1] . "-" . $timeTest[0]);
+            return $date->format("U");
         }
         if (array_key_exists("humanReadable", $args)) {
             return date('l jS \of F Y', strtotime(implode('/', $timeTest)));
