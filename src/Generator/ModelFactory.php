@@ -4,51 +4,70 @@ namespace YAPF\Generator;
 
 class ModelFactory extends GeneratorWriter
 {
+    /**
+     * getTableColumns
+     * returns the table schema.columns or null
+     * @return mixed[] or null
+     */
+    protected function getTableColumns(string $target_table, string $target_database): ?array
+    {
+        $where_config = [
+            "fields" => ["TABLE_SCHEMA", "TABLE_NAME"],
+            "matches" => ["=","="],
+            "values" => [$target_database, $target_table],
+            "types" => ["s", "s"],
+        ];
+        $basic_config = [
+            "table" => "information_schema.columns",
+            "fields" => ["COLUMN_NAME","COLUMN_DEFAULT","DATA_TYPE","COLUMN_TYPE"],
+        ];
+        $results = $this->sql->selectV2($basic_config, null, $where_config);
+        $returndata = null;
+        if ($results["status"] == true) {
+            $returndata = $results["dataset"];
+        }
+        return $returndata;
+    }
     protected function createModel(string $target_table, string $target_database): void
     {
         $this->found_id = false;
         $class_name = ucfirst(strtolower($target_table));
         if ($this->use_output == true) {
-            echo "<tr><td>" . $class_name . "</td>";
+            $this->output .=  "<tr><td>" . $class_name . "</td>";
         }
         $results = $this->getTableColumns($target_table, $target_database);
-        if ($results == null) {
-            $this->addError(__FILE__, __FUNCTION__, "Error ~ Unable to get fields");
+        if ($results != null) {
+            $this->file_lines = [];
+            $this->createCollectionSetFile($class_name, $target_database, $target_table);
+            $create_file = GEN_SAVE_MODELS_TO . $class_name . "Set.php";
             if ($this->use_output == true) {
-                echo "<td>Error</td><td>Unable to get fields</tr>";
+                $this->output .=  "<td>";
             }
-            return;
-        }
-        $this->file_lines = [];
-        $this->createCollectionSetFile($class_name, $target_database, $target_table);
-        $create_file = GEN_SAVE_MODELS_TO . $class_name . "Set.php";
-        if ($this->use_output == true) {
-            echo "<td>";
-        }
-        $this->writeModelFile($create_file);
-        if ($this->use_output == true) {
-            echo "</td>";
-        }
-        $this->file_lines = [];
-        $this->createModelHeader($class_name, $target_database, $target_table);
-        $this->createModelDataset($target_table, $results);
-        $this->createModelGetters($target_table, $results);
-        $this->createModelSetters($target_table, $results);
-        $this->createModelFooter();
-        $create_file = GEN_SAVE_MODELS_TO . $class_name . ".php";
-        if ($this->use_output == true) {
-            echo "<td>";
-        }
-        $this->writeModelFile($create_file);
-        if ($this->use_output == true) {
-            echo "</td></tr>";
+            $this->writeModelFile($create_file);
+            if ($this->use_output == true) {
+                $this->output .=  "</td>";
+            }
+            $this->file_lines = [];
+            $this->createModelHeader($class_name, $target_database, $target_table);
+            $this->createModelDataset($target_table, $results);
+            $this->createModelGetters($target_table, $results);
+            $this->createModelSetters($target_table, $results);
+            $this->createModelFooter();
+            $create_file = GEN_SAVE_MODELS_TO . $class_name . ".php";
+            if ($this->use_output == true) {
+                $this->output .=  "<td>";
+            }
+            $this->writeModelFile($create_file);
+            if ($this->use_output == true) {
+                $this->output .=  "</td></tr>";
+            }
         }
     }
     protected function createCollectionSetFile(string $class_name, string $target_table, string $target_database): void
     {
         $add_target_db_to_class = "";
         if (GEN_ADD_DB_TO_TABLE == true) {
-            $add_target_db_to_class = $database . ".";
+            $add_target_db_to_class = $target_database . ".";
         }
 
         $this->file_lines[] = '<?php';

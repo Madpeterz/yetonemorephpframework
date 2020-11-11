@@ -35,8 +35,8 @@ abstract class GeneratorTypes extends SqlConnectedClass
             $error_msg = "Table: " . $table . " Column: " . $colname . " unknown type: ";
             $error_msg .= $target_type . " defaulting to string!<br/>";
             if ($this->use_output == true) {
-                echo $error_msg;
-                echo "<br/>";
+                $this->output .=  $error_msg;
+                $this->output .=  "<br/>";
             }
             return "str";
         }

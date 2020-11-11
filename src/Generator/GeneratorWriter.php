@@ -6,9 +6,9 @@ class GeneratorWriter extends GeneratorDefaults
 {
     protected function writeModelFile(string $create_file, int $retrys = 0, string $file_content = ""): void
     {
-        if (file_exists($create_file)) {
+        if (file_exists($create_file) == true) {
             unlink($create_file);
-            usleep((30 * 0.001) * 100); // wait for 3ms for the disk to finish
+            usleep((30 * 0.001) * 10000); // wait for 300ms for the disk to finish
         }
         $file_content = "";
         if ($file_content == "") {
@@ -27,23 +27,13 @@ class GeneratorWriter extends GeneratorDefaults
         }
         $file_content .= "\n";
         $this->file_lines = [];
+        $this->counter_models_failed++;
         $status = file_put_contents($create_file, $file_content);
-        if ($status === false) {
-            if ($retrys < 3) {
-                $retrys++;
-                usleep((30 * 0.001) * 1000); // wait for 30ms and retry
-                $this->writeModelFile($create_file, $retrys, $file_content);
-            } else {
-                if ($this->use_output == true) {
-                    echo " <font color=\"#FF0000\">Failed</font>";
-                }
-
-                $this->counter_models_failed++;
-            }
-        } else {
+        if ($status !== false) {
+            $this->counter_models_failed--;
             $this->counter_models_created++;
             if ($this->use_output == true) {
-                echo " <font color=\"#00FF00\">Ok</font>";
+                $this->output .=  " <font color=\"#00FF00\">Ok</font>";
             }
         }
     }
