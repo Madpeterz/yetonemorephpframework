@@ -237,7 +237,7 @@ class DbObjectsGenClassTest extends TestCase
         $countto = new Counttoonehundo();
         $countto->loadID(44);
         $mapped = $countto->objectToValueArray();
-        $this->assertSame($mapped[0], 44);
+        $this->assertSame(in_array(44, $mapped), true);
     }
     public function testObjectHasField()
     {
