@@ -12,12 +12,23 @@ abstract class GenClass extends GenClassDB
      */
     public function hasAny(): bool
     {
-        $reply = $this->sql->basic_count($this->getTable(), [["id" => ">"]], [[0 => "i"]]);
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [-1],
+            "types" => ["i"],
+            "matches" => [">="],
+        ];
+        $reply = $this->sql->basicCountV2($this->getTable(), $where_config);
         if ($reply["status"] == true) {
             if ($reply["count"] > 0) {
                 return true;
             }
         }
         return false;
+    }
+
+    public function makedisabled(): void
+    {
+        $this->disabled = true;
     }
 }

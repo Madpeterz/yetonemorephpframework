@@ -2,44 +2,49 @@
 
 namespace YAPF\DbObjects\GenClass;
 
-abstract class GenClassGet extends GenClassCore
+use YAPF\Core\SqlConnectedClass as SqlConnectedClass;
+
+abstract class GenClassGet extends SqlConnectedClass
 {
+    protected $use_table = "";
+    protected $save_dataset = [];
+    protected $dataset = [];
+    protected $allow_set_field = true;
+    public $bad_id = false;
+    public $use_id_field = "id";
     /**
      * createUID
      * public alias of overloadCreateUID
      * creates a UID based on the target field that does not exist in the datbase
-     * @return mixed[] [status => bool, message =>  string]
+     * @return mixed[] [status => bool, message =>  string, uid => ?string]
      */
-    public function createUID(string $onfield, int $length, int $maxattempts): array
+    public function createUID(string $onfield, int $length): array
     {
-        return $this->overloadCreateUID($onfield, $length, $maxattempts, 0, "");
-    }
-
-    /**
-     * overloadCreateUID
-     * creates a UID based on the target field that does not exist in the datbase
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    protected function overloadCreateUID(string $onfield, int $length, int $limit, int $attempts, string $prev): array
-    {
-        $feedValues = [time(), microtime(), rand(200, 300), $prev];
+        $feedValues = [time(), microtime(), rand(200, 300)];
         $testuid = substr(md5(implode(".", $feedValues)), 0, $length);
-        $wherefields = [[$onfield => "="]];
-        $wherevalues = [[$testuid => "s"]];
-        $count_check = $this->sql->basic_count($this->getTable(), $wherefields, $wherevalues, "AND");
+        $where_config = [
+            "fields" => [$onfield],
+            "values" => [$testuid],
+            "types" => ["s"],
+            "matches" => ["="],
+        ];
+        $count_check = $this->sql->basicCountV2($this->getTable(), $where_config);
+        $message = "Unable to check DB for UID";
+        $status = false;
+        $applyed_uid = null;
         if ($count_check["status"] == true) {
+            $message = "created uid in use, please try again";
             if ($count_check["count"] == 0) {
-                return ["status" => true, "uid" => $testuid];
-            } else {
-                if ($attempts < $limit) {
-                    $attempts++;
-                    return $this->overloadCreateUID($onfield, $length, $limit, $attempts, $testuid);
-                } else {
-                    return ["status" => false, "message" => "Attempt to create a uid timed out or failed"];
-                }
+                $status = true;
+                $message = "ok";
+                $applyed_uid = $testuid;
             }
         }
-        return ["status" => false, "message" => "Attempt to create a uid timed out or failed"];
+        return [
+            "status" => $status,
+            "message" => $message,
+            "uid" => $applyed_uid
+        ];
     }
     /**
      * getHash
@@ -96,21 +101,20 @@ abstract class GenClassGet extends GenClassCore
      */
     public function getFieldType(string $fieldname, bool $as_mysqli_code = false): ?string
     {
-        if (array_key_exists($fieldname, $this->dataset)) {
-            if ($as_mysqli_code == false) {
-                return $this->dataset[$fieldname]["type"];
-            } else {
-                if ($this->dataset[$fieldname]["type"] == "str") {
-                    return "s";
-                } elseif ($this->dataset[$fieldname]["type"] == "float") {
-                    return "d";
-                }
+        if (array_key_exists($fieldname, $this->dataset) == false) {
+            $error_meesage = " Attempting to read a fieldtype [" . $fieldname . "] that does not exist";
+            $this->addError(__FILE__, __FUNCTION__, get_class($this) . $error_meesage);
+            return null;
+        }
+        if ($as_mysqli_code == true) {
+            if ($this->dataset[$fieldname]["type"] == "str") {
+                return "s";
+            } elseif ($this->dataset[$fieldname]["type"] == "float") {
+                return "d";
             }
             return "i";
         }
-        $error_meesage = " Attempting to read a fieldtype [" . $fieldname . "] that does not exist";
-        $this->addError(__FILE__, __FUNCTION__, get_class($this) . $error_meesage);
-        return null;
+        return $this->dataset[$fieldname]["type"];
     }
     /**
      * getId
@@ -118,22 +122,6 @@ abstract class GenClassGet extends GenClassCore
      */
     public function getId(): ?int
     {
-        if ($this->bad_id == false) {
-            return $this->getField("id");
-        }
-        return $this->getField($this->use_id_field);
-    }
-
-    /**
-     * getBadID
-     * returns the ID for the object
-     * as a string
-     */
-    public function getBadID(): string
-    {
-        if ($this->bad_id == false) {
-            return $this->getField("id");
-        }
         return $this->getField($this->use_id_field);
     }
     /**
@@ -162,33 +150,27 @@ abstract class GenClassGet extends GenClassCore
     /**
      * getField
      * returns the value of a field
-     * or null if not supported/not loaded
+     * or null if not supported/not loaded,
      * @return mixed
      */
-    public function getField(string $fieldname)
+    protected function getField(string $fieldname)
     {
-        if ($this->allow_set_field == true) {
-            if (array_key_exists($fieldname, $this->dataset) == true) {
-                $value = $this->dataset[$fieldname]["value"];
-                if ($value === null) {
-                    return null;
-                }
-                if ($this->dataset[$fieldname]["type"] == "int") {
-                    $value = intval($value);
-                } elseif ($this->dataset[$fieldname]["type"] == "bool") {
-                    $value = in_array($value, [1,"1","true",true,"yes"], true);
-                } elseif ($this->dataset[$fieldname]["type"] == "float") {
-                    $value = floatval($value);
-                }
-                return $value;
+        if (array_key_exists($fieldname, $this->dataset) == true) {
+            $value = $this->dataset[$fieldname]["value"];
+            if ($value === null) {
+                return null;
             }
-            $error_message = "Attempting to read a field [" . $fieldname . "]";
-            $error_message .= " from a unloaded object, please check the code";
-            $this->addError(__FILE__, __FUNCTION__, get_class($this) . " " . $error_message);
-            return null;
+            if ($this->dataset[$fieldname]["type"] == "int") {
+                $value = intval($value);
+            } elseif ($this->dataset[$fieldname]["type"] == "bool") {
+                $value = in_array($value, [1,"1","true",true,"yes"], true);
+            } elseif ($this->dataset[$fieldname]["type"] == "float") {
+                $value = floatval($value);
+            }
+            return $value;
         }
-        $error_message = "Sorry this collection does not allow you to use the get_field";
-        $error_message .= " function please call the direct object only!";
+        $error_message = "Attempting to read a field [" . $fieldname . "]";
+        $error_message .= " from a unloaded object, please check the code";
         $this->addError(__FILE__, __FUNCTION__, get_class($this) . " " . $error_message);
         return null;
     }

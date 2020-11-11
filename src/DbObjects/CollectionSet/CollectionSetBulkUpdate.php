@@ -5,19 +5,6 @@ namespace YAPF\DbObjects\CollectionSet;
 abstract class CollectionSetBulkUpdate extends CollectionSetGet
 {
     /**
-     * updateSingleFieldForCollection [E_USER_DEPRECATED]
-     * please use: updateFieldInCollection
-     * Updates all objects in the collection's value
-     * for the selected field
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function updateSingleFieldForCollection(string $update_field, $new_value): array
-    {
-        $errormsg = "updateSingleFieldForCollection is being phased out please use updateFieldInCollection";
-        trigger_error($errormsg, E_USER_DEPRECATED);
-        return $this->updateFieldInCollection($update_field, $new_value);
-    }
-    /**
      * updateFieldInCollection
      * Updates all objects in the collection's value
      * for the selected field
@@ -53,15 +40,16 @@ abstract class CollectionSetBulkUpdate extends CollectionSetGet
                 $message = "Unable to find getter: " . $lookup;
                 break;
             }
-            $field_type = $this->worker->getFieldType($update_fields[$loop], true);
+            $field_type = $this->worker->getFieldType($update_fields[$loop], false);
             if ($field_type == null) {
                 $all_ok = false;
                 $message = "Unable to find fieldtype: " . $update_fields[$loop];
                 break;
             }
+
             $update_config["fields"][] = $update_fields[$loop];
             $update_config["values"][] = $new_values[$loop];
-            $update_config["types"][] = $field_type;
+            $update_config["types"][] = $this->worker->getFieldType($update_fields[$loop], true);
             $loop++;
         }
         return ["status" => $all_ok, "dataset" => $update_config, "message" => $message];

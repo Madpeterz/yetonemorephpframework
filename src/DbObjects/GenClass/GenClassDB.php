@@ -5,18 +5,6 @@ namespace YAPF\DbObjects\GenClass;
 abstract class GenClassDB extends GenClassLoad
 {
     /**
-     * removeMe [E_USER_DEPRECATED]
-     * Please use removeEntry
-     * removes the loaded object from the database
-     * and marks the object as unloaded by setting its id to -1
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function removeMe(): array
-    {
-        trigger_error("removeMe is being phased out please use removeEntry", E_USER_DEPRECATED);
-        return $this->removeEntry();
-    }
-    /**
      * removeMe
      * removes the loaded object from the database
      * and marks the object as unloaded by setting its id to -1
@@ -70,6 +58,7 @@ abstract class GenClassDB extends GenClassLoad
                             $types[] = $update_code;
                         }
                     }
+                    $return_dataset = ["status" => false,"message" => "Nothing processed"];
                     if (count($fields) > 0) {
                         $config = [
                             "table" => $this->getTable(),
@@ -77,14 +66,13 @@ abstract class GenClassDB extends GenClassLoad
                             "values" => $values,
                             "types" => $types,
                         ];
-                        $add_status = $this->sql->addV2($config);
-                        if ($add_status["status"] == true) {
-                            $this->dataset["id"]["value"] = $add_status["newID"];
-                            $this->save_dataset["id"]["value"] = $add_status["newID"];
+                        $return_dataset = $this->sql->addV2($config);
+                        if ($return_dataset["status"] == true) {
+                            $this->dataset["id"]["value"] = $return_dataset["newID"];
+                            $this->save_dataset["id"]["value"] = $return_dataset["newID"];
                         }
-                        return $add_status;
                     }
-                    return ["status" => false, "message" => "No fields set to create with!"];
+                    return $return_dataset;
                 }
                 $error_msg = "attempting to create a object with a set id, this is not allowed!";
                 return ["status" => false, "message" => $error_msg];
@@ -92,16 +80,6 @@ abstract class GenClassDB extends GenClassLoad
             return ["status" => false, "message" => "id field is required on the class to support create"];
         }
         return ["status" => false, "message" => "this class is disabled."];
-    }
-    /**
-     * saveChanges [E_USER_DEPRECATED]
-     * updates changes to the object in the database
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function saveChanges(): array
-    {
-        trigger_error("saveChanges is being phased out please use updateEntry", E_USER_DEPRECATED);
-        return $this->updateEntry();
     }
     /**
      * updateEntry
@@ -115,7 +93,7 @@ abstract class GenClassDB extends GenClassLoad
             return ["status" => false, "changes" => 0, "message" => $error_msg];
         }
         if (array_key_exists("id", $this->save_dataset) == false) {
-            $error_msg = "Object does not have its if field!";
+            $error_msg = "Object does not have its id field set!";
             return ["status" => false, "changes" => 0, "message" => $error_msg];
         }
         if ($this->save_dataset["id"]["value"] < 1) {

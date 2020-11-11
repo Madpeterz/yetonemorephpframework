@@ -38,7 +38,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * adds an object to the collected array
      * using its id as the index.
      */
-    public function addToCollected(genClass $object): void
+    public function addToCollected($object): void
     {
         $this->collected[$object->getId()] = $object;
     }

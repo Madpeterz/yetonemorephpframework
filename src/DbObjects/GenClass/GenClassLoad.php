@@ -5,27 +5,11 @@ namespace YAPF\DbObjects\GenClass;
 abstract class GenClassLoad extends GenClassSet
 {
     /**
-     * loadTargeted E_USER_DEPRECATED
-     * please use loadWithConfig
-     */
-    public function loadTargeted(array $wherefields, array $wherevalues, string $joinword = "AND"): bool
-    {
-        trigger_error("loadTargeted is being phased out please use loadWithConfig", E_USER_DEPRECATED);
-        $whereconfig = [
-            "join_with" => $joinword,
-             "fields" => array_keys($wherefields),
-             "matches" => array_values($wherefields),
-             "values" => array_keys($wherevalues),
-             "type" => array_values($wherevalues),
-        ];
-        return $this->loadWithConfig($whereconfig);
-    }
-    /**
      * loadOnField
      * alias of loadByField
      * loads a object that matchs in the DB on the field and value
      */
-    public function loadOnField(string $field_name, string $field_value): bool
+    public function loadOnField(string $field_name, $field_value): bool
     {
         return $this->loadByField($field_name, $field_value);
     }
@@ -33,29 +17,20 @@ abstract class GenClassLoad extends GenClassSet
      * loadByField
      * loads a object that matchs in the DB on the field and value
      */
-    public function loadByField(string $field_name, string $field_value): bool
+    public function loadByField(string $field_name, $field_value): bool
     {
         $field_type = $this->getFieldType($field_name, true);
-        if ($field_type !== null) {
-            $whereconfig = [
-                 "fields" => [$field_name],
-                 "matches" => ["="],
-                 "values" => [$field_value],
-                 "types" => [$field_type],
-            ];
-            return $this->loadWithConfig($whereconfig);
+        if ($field_type == null) {
+            $this->addError(__FILE__, __FUNCTION__, "Attempted to get field type: " . $field_name . " but its not supported!");
+            return false;
         }
-        $this->addError("Attempted to get field type: " . $field_name . " but its not supported!");
-        return false;
-    }
-    /**
-     * load E_USER_DEPRECATED
-     * Please use loadID
-     */
-    public function load(int $id): bool
-    {
-        trigger_error("load is being phased out please use loadID", E_USER_DEPRECATED);
-        return $this->loadID($id);
+        $whereconfig = [
+                "fields" => [$field_name],
+                "matches" => ["="],
+                "values" => [$field_value],
+                "types" => [$field_type],
+        ];
+        return $this->loadWithConfig($whereconfig);
     }
     /**
      * loadID
@@ -81,12 +56,8 @@ abstract class GenClassLoad extends GenClassSet
     public function loadWithConfig(array $whereconfig): bool
     {
         if ($this->disabled == false) {
-            $options_config = [
-                "page_number" => 0,
-                "max_entrys" => 1,
-            ];
             $basic = ["table" => $this->getTable()];
-            $load_data = $this->sql->selectV2($basic, null, $whereconfig, $options_config);
+            $load_data = $this->sql->selectV2($basic, null, $whereconfig);
             return $this->processLoad($load_data);
         }
         $this->addError(__FILE__, __FUNCTION__, "unable to loadData this class is disabled");
@@ -103,17 +74,18 @@ abstract class GenClassLoad extends GenClassSet
         if ($load_data["status"] == true) {
             if (count($load_data["dataset"]) == 1) {
                 $id_check_passed = true;
+                $restore_dataset = $this->dataset;
                 $this->setup($load_data["dataset"][0]);
                 if (REQUIRE_ID_ON_LOAD == true) {
-                    if ($this->getId() <= 0) {
+                    if (($this->getId() <= 0) || ($this->getId() === null)) {
                         $id_check_passed = false;
+                        $this->dataset = $restore_dataset;
                     }
                 }
                 return $id_check_passed;
             }
-            $error_message = "Attempt to load multiple entrys into solo storage,";
-            $error_message .= " please use the set collector X_set found: ";
-            $error_message .= count($load_data["dataset"]) . " matches only allowed 1";
+            $error_message = "Load error incorrect number of entrys expected 1 but got:";
+            $error_message .= count($load_data["dataset"]);
             $this->addError(__FILE__, __FUNCTION__, $error_message);
         }
         return false;

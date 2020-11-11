@@ -13,7 +13,7 @@ abstract class CollectionSetGet extends CollectionSetIndex
         return count($this->collected);
     }
     /**
-     * getCollection [E_USER_DEPRECATED]
+     * getCollection
      * please use: getAllIds and getObjectByID
      * as this mehtod duplicates objects increasing memory usage
      * returns an array of objects in this collection
@@ -21,7 +21,6 @@ abstract class CollectionSetGet extends CollectionSetIndex
      */
     public function getCollection(): array
     {
-        trigger_error("getCollection is being phased out please use getAllIds and getObjectByID", E_USER_DEPRECATED);
         return array_values($this->collected);
     }
     /**
@@ -32,8 +31,8 @@ abstract class CollectionSetGet extends CollectionSetIndex
      */
     public function getLinkedArray(string $left_side_field, string $right_side_field): array
     {
-        $left_side_field_getter = "get_" . $left_side_field;
-        $right_side_field_getter = "get_" . $right_side_field;
+        $left_side_field_getter = "get" . ucfirst($left_side_field);
+        $right_side_field_getter = "get" . ucfirst($right_side_field);
         $worker = new $this->worker_class();
         if (method_exists($worker, $left_side_field_getter) == false) {
             $this->addError(__FILE__, __FUNCTION__, "Field: " . $left_side_field . " is missing");
@@ -89,18 +88,12 @@ abstract class CollectionSetGet extends CollectionSetIndex
      */
     public function getIdsMatchingField(string $fieldname, $fieldvalue): array
     {
-        if ($this->built_search_index_level_1 != $fieldname) {
-            $this->createFastIndex($fieldname);
+        $objects = $this->ObjectIndexSearcher($fieldname, $fieldvalue);
+        $ids = [];
+        foreach ($objects as $object) {
+            $ids[] = $object->getId();
         }
-        $results = [];
-        if (in_array($fieldvalue, array_values($this->built_search_index)) == true) {
-            foreach ($this->built_search_index as $object_id => $value) {
-                if ($value == $fieldvalue) {
-                    $results[] = $object_id;
-                }
-            }
-        }
-        return $results;
+        return $ids;
     }
     /**
      * getFirst
@@ -139,23 +132,14 @@ abstract class CollectionSetGet extends CollectionSetIndex
         return hash("sha256", $hash_builder);
     }
     /**
-     * getByField [E_USER_DEPRECATED]
-     * please use: getObjectByField
-     * returns the first matching object from the collection
-     * thats matchs the field and value.
-     */
-    protected function getByField(string $fieldname, $value): ?genClass
-    {
-        trigger_error("getByField is being phased out please use getObjectByField", E_USER_DEPRECATED);
-        return $this->getObjectByField($fieldname, $value);
-    }
-    /**
      * getObjectByField
+     * Note: Please use getObjectByID if your using the id field
+     * as its faster and does not need a index!
      * searchs the index for a object that matchs
      * fieldname to value, if a object shares
      * a value the last loaded one is taken.
      */
-    public function getObjectByField(string $fieldname, $value): ?genClass
+    public function getObjectByField(string $fieldname, $value): ?object
     {
         return $this->findObjectByField($fieldname, $value, false);
     }
@@ -163,37 +147,25 @@ abstract class CollectionSetGet extends CollectionSetIndex
      * getObjectByField
      * searchs the index for a object that matchs
      * fieldname to value, if a object shares
-     * a value the last loaded one is taken.
+     * a value the last entry is used
      */
-    protected function findObjectByField(string $fieldname, $value, bool $using_bad_id): ?genClass
+    protected function findObjectByField(string $fieldname, $value): ?object
     {
-        $ids = $this->getIdsMatchingField($fieldname, $value);
-        if (count($ids) == 1) {
-            $object = null;
-            foreach ($ids as $value => $entry) {
-                if ($this->worker->bad_id == true) {
-                    $object = $entry;
-                } else {
-                    $object = $this->getObjectByID($value);
-                }
-                break;
-            }
-            return $object;
+        $objects = $this->ObjectIndexSearcher($fieldname, $value);
+        if (count($objects) >= 1) {
+            return array_pop($objects);
         }
         return null;
     }
     /**
-     * getObjectByField
+     * getObjectByID
      * returns a object that matchs the selected id
      * returns null if not found
-     * [if using bad ids redirects the request as needed]
+     * Note: Does not support bad Ids please use findObjectByField
      */
-    public function getObjectByID($id): ?genClass
+    public function getObjectByID($id): ?object
     {
         $this->makeWorker();
-        if ($this->worker->bad_id == true) {
-            return $this->findObjectByField($this->worker->use_id_field, $id, true);
-        }
         if (array_key_exists($id, $this->collected) == true) {
             return $this->collected[$id];
         }
@@ -216,9 +188,6 @@ abstract class CollectionSetGet extends CollectionSetIndex
      */
     public function getAllIds(): array
     {
-        if ($this->worker->bad_id == true) {
-            return $this->getUniqueArray($this->worker->use_id_field);
-        }
-        return $this->getUniqueArray("id");
+        return $this->getUniqueArray($this->worker->use_id_field);
     }
 }

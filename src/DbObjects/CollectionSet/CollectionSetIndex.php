@@ -22,23 +22,54 @@ abstract class CollectionSetIndex extends CollectionSetCore
      * again please dont use bad_id objects unless you have to
      * they suck so bad [god I hate wordpress]
      */
-    public function buildObjectGetIndex(string $fieldname, bool $force_rebuild = false): void
+    protected function buildObjectGetIndex(string $fieldname, bool $force_rebuild = false): void
     {
         $this->makeWorker();
         if ((in_array($fieldname, $this->fast_get_object_array_indexs) == false) || ($force_rebuild == true)) {
-            $loadstring = "get_" . $fieldname;
+            $loadstring = "get" . ucfirst($fieldname);
             if (method_exists($this->worker, $loadstring)) {
                 $this->fast_get_object_array_indexs[] = $fieldname;
                 $index = [];
                 foreach ($this->collected as $key => $object) {
-                    if ($this->worker->bad_id == false) {
-                        $index[$object->$loadstring()] = $object->getId();
-                    } else {
-                        $index[$object->$loadstring()] = $object;
+                    if (array_key_exists($object->$loadstring(), $index) == false) {
+                        $index[$object->$loadstring()] = [];
                     }
+                    $storeitem = $object;
+                    if ($this->worker->bad_id == false) {
+                        $storeitem = $object->getId();
+                    }
+                    $index[$object->$loadstring()][] = $storeitem;
                 }
                 $this->fast_get_object_array_dataset[$fieldname] = $index;
             }
         }
+    }
+    /**
+     * ObjectIndexSearcher
+     * returns an array of objects that matched the search settings
+     * @return mixed[] [object,...]
+    */
+    protected function objectIndexSearcher(string $fieldname, $fieldvalue)
+    {
+        $this->makeWorker();
+        $this->buildObjectGetIndex($fieldname);
+        $return_objects = [];
+        if (array_key_exists($fieldname, $this->fast_get_object_array_dataset) == true) {
+            $loadstring = "get" . ucfirst($fieldname);
+            if (method_exists($this->worker, $loadstring)) {
+                if (array_key_exists($fieldvalue, $this->fast_get_object_array_dataset[$fieldname]) == true) {
+                    $return_objects = $this->fast_get_object_array_dataset[$fieldname][$fieldvalue];
+                    if ($this->worker->bad_id == false) {
+                        $return_objects = [];
+                        foreach ($this->fast_get_object_array_dataset[$fieldname][$fieldvalue] as $objectid) {
+                            if (array_key_exists($objectid, $this->collected) == true) {
+                                $return_objects[] = $this->collected[$objectid];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $return_objects;
     }
 }

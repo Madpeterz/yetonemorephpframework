@@ -4,6 +4,14 @@ namespace YAPF\DbObjects\GenClass;
 
 abstract class GenClassSet extends GenClassGet
 {
+    public function setBadId(): void
+    {
+        $this->bad_id = true;
+    }
+    public function disableAllowSetField(): void
+    {
+        $this->allow_set_field = false;
+    }
     /**
      * __construct
      * [Optional] takes a key => value array
@@ -24,7 +32,7 @@ abstract class GenClassSet extends GenClassGet
      * used when first loading a object
      * returns true if there was no errors
      */
-    protected function setup(array $keyvalues): bool
+    public function setup(array $keyvalues): bool
     {
         $hasErrors = false;
         $saveDataset = $this->dataset;
@@ -44,26 +52,17 @@ abstract class GenClassSet extends GenClassGet
         return true;
     }
     /**
-     * setFields
-     * public alias of setup
-     */
-    public function setFields(array $KeyValuePairs): bool
-    {
-        return $this->setup($KeyValuePairs);
-    }
-    /**
-     * setID
-     * creates a UID based on the target field that does not exist in the datbase
-     * Does not support objects marked with bad_id
-     * Note: Setting the ID can lead to weird side effects!
+     * setId
+     * force sets the Id of a object, please avoid using this!
      * @return mixed[] [status =>  bool, message =>  string]
      */
-    public function setID(int $newvalue): array
+    public function setId(int $newvalue): array
     {
         if ($this->bad_id == false) {
-            return $this->updateField("id", $newvalue, true);
+            $this->addError(__FILE__, __FUNCTION__, "Warning: setId called. if you expected this please ignore");
+            return $this->updateField($this->use_id_field, $newvalue, true);
         }
-        return ["status" => false , "message" => "bad ID marked"];
+        return ["status" => false,"message" => "bad_id flag is set unable to setId"];
     }
     /**
      * setTable
@@ -75,17 +74,6 @@ abstract class GenClassSet extends GenClassGet
     {
         $this->addError(__FILE__, __FUNCTION__, "Warning: setTable called. if you expected this please ignore");
         $this->use_table = $tablename;
-    }
-    /**
-     * setField [E_USER_DEPRECATED]
-     * Please use set_<fieldname>
-     * Note: Setting the ID can lead to weird side effects!
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function setField(string $fieldname, $value, bool $ignore_set_id_warning = false): array
-    {
-        trigger_error("setField is being phased out please use set_[fieldname]", E_USER_DEPRECATED);
-        return $this->updateField($fieldname, $value, $ignore_set_id_warning);
     }
     /**
      * updateField
@@ -129,12 +117,6 @@ abstract class GenClassSet extends GenClassGet
             if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
                 $this->dataset[$fieldname]["value"] = 1;
             }
-        }
-
-        if (($fieldname == "id") && ($ignore_set_id_warning == true)) {
-            $this->save_dataset["id"]["value"] = $value;
-        } elseif (($fieldname == "id") && ($ignore_set_id_warning == false)) {
-            return ["status" => false, "message" => "Setting ID is blocked for this object"];
         }
         return ["status" => true, "message" => "value set"];
     }
