@@ -34,7 +34,10 @@ abstract class InputFilterTypeDate extends InputFilterTypeEmail
             return null;
         }
         if (array_key_exists("asUNIX", $args)) {
-            $date = new \DateTime($timeTest[2] . "-" . $timeTest[1] . "-" . $timeTest[0]);
+            $date = new \DateTime(
+                $timeTest[2] . "-" . $timeTest[1] . "-" . $timeTest[0],
+                new \DateTimeZone('Europe/London')
+            );
             return $date->format("U");
         }
         if (array_key_exists("humanReadable", $args)) {
