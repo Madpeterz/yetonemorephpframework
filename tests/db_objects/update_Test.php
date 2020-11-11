@@ -76,4 +76,17 @@ class DbObjectsUpdateTest extends TestCase
         $fail_message = "Nothing loaded in collection";
         $this->assertSame($result["message"], $fail_message);
     }
+
+    public function testUpdateFloat()
+    {
+        $target = new Alltypestable();
+        $target->setFloatfield(23.4);
+        $target->setIntfield(55);
+        $target->setStringfield("Hello world");
+        $target->createEntry();
+        $target->setFloatfield(55.81);
+        $result = $target->updateEntry();
+        $this->assertSame($result["status"], true);
+        $this->assertSame($result["changes"], 1);
+    }
 }

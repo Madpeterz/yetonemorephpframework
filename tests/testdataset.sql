@@ -7,7 +7,8 @@ CREATE TABLE `alltypestable` (
   `id` int(11) NOT NULL,
   `stringfield` mediumtext NOT NULL,
   `intfield` int(11) NOT NULL,
-  `floatfield` double NOT NULL
+  `floatfield` double NOT NULL,
+  `boolfield` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `counttoonehundo`;
@@ -213,6 +214,17 @@ CREATE TABLE `twintables2` (
 INSERT INTO `twintables2` (`id`, `title`, `message`) VALUES
 (1, 'harry potter', 'is great');
 
+DROP TABLE IF EXISTS `weirdtable`;
+CREATE TABLE `weirdtable` (
+  `id` int(11) NOT NULL,
+  `weirda` set('5','6','7','8') DEFAULT NULL,
+  `weirdb` enum('1','2','3','4') DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `weirdtable` (`id`, `weirda`, `weirdb`) VALUES
+(1, '5', '4'),
+(2, '7', '2');
+
 
 ALTER TABLE `alltypestable`
   ADD PRIMARY KEY (`id`);
@@ -246,6 +258,9 @@ ALTER TABLE `twintables1`
   ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `twintables2`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `weirdtable`
   ADD PRIMARY KEY (`id`);
 
 
@@ -282,6 +297,11 @@ ALTER TABLE `twintables1`
 ALTER TABLE `twintables2`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
+ALTER TABLE `weirdtable`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
 
 ALTER TABLE `relationtestinga`
   ADD CONSTRAINT `testingb_in_use` FOREIGN KEY (`linkid`) REFERENCES `relationtestingb` (`id`) ON UPDATE NO ACTION;
+
+  INSERT INTO `weirdtable` (`id`, `weirda`, `weirdb`) VALUES ('-41', '5,6,7,8', '3');

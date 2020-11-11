@@ -2,6 +2,7 @@
 
 namespace YAPF\Junk;
 
+use PHPUnit\Framework\Constraint\Count;
 use PHPUnit\Framework\TestCase;
 use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
@@ -28,7 +29,7 @@ class DbObjectsLoadTest extends TestCase
         $results = $sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results["message"], "62 commands run");
     }
     public function testLoadId()
     {
@@ -98,5 +99,95 @@ class DbObjectsLoadTest extends TestCase
         $load_status = $twintables1->loadWithConfig($where_config);
         $this->assertSame($load_status["status"], true);
         $this->assertSame($load_status["count"], 0);
+    }
+
+    public function testLoadSingleLoadExtendedTests()
+    {
+        $countto = new Counttoonehundo();
+        $result = $countto->loadOnField("id", 44);
+        $this->assertSame($result, true);
+        $countto = new Counttoonehundo();
+        $countto->makedisabled();
+        $result = $countto->loadOnField("id", 44);
+        $this->assertSame($result, false);
+        $weird = new Weirdtable();
+        $result = $weird->loadOnField("weirdb", 3);
+        $this->assertSame($weird->getId(), null);
+        $this->assertSame($result, false);
+        $countto = new Counttoonehundo();
+        $result = $countto->loadByField("cvalue", 128);
+        $this->assertSame($countto->getLastSql(), "SELECT * FROM test.counttoonehundo  WHERE cvalue = ?");
+        $this->assertSame($countto->getLastErrorBasic(), "Load error incorrect number of entrys expected 1 but got:10");
+        $this->assertSame($result, false);
+    }
+
+    public function testLoadByFieldInvaildField()
+    {
+        $countto = new Counttoonehundo();
+        $result = $countto->loadByField("fake", 44);
+        $this->assertSame($result, false);
+        $this->assertSame($countto->getLastErrorBasic(), "Attempted to get field type: fake but its not supported!");
+    }
+
+    public function testLoadSetByIds()
+    {
+        $countto = new CounttoonehundoSet();
+        $result = $countto->loadIds([1,2,3,4,5,6,7,8,9,19], "id", false);
+        $this->assertSame($result["status"], true);
+        $this->assertSame($result["count"], 10);
+        $this->assertSame($result["message"], "ok");
+        $result = $countto->loadIds([], "id", false);
+        $this->assertSame($result["status"], false);
+        $this->assertSame($result["count"], 0);
+        $this->assertSame($result["message"], "No ids sent!");
+    }
+
+    public function testLoadSetloadOnFields()
+    {
+        $countto = new CounttoonehundoSet();
+        $result = $countto->loadOnFields(["cvalue","id"], [10,50], [">=","<="]);
+        $this->assertSame($result["status"], true);
+        $this->assertSame($result["count"], 30);
+        $this->assertSame($result["message"], "ok");
+    }
+
+    public function testLoadSetloadByField()
+    {
+        $countto = new CounttoonehundoSet();
+        $result = $countto->loadByField("cvalue", 32);
+        $this->assertSame($result["status"], true);
+        $this->assertSame($result["count"], 10);
+        $this->assertSame($result["message"], "ok");
+        $testing = new WeirdtableSet();
+        $result = $testing->loadAll();
+        $this->assertSame($result["status"], true);
+        $this->assertSame($result["count"], 2);
+        $this->assertSame($result["message"], "ok");
+    }
+
+    public function testLoadSetWithConfigInvaild()
+    {
+        $countto = new CounttoonehundoSet();
+        $where_config = [
+            "fields" => [],
+            "values" => [123],
+            "types" => ["i"],
+            "matches" => ["<="],
+        ];
+        $result = $countto->loadWithConfig($where_config);
+        $this->assertSame($result["status"], false);
+        $this->assertSame($result["count"], 0);
+        $errormsg = "YAPF\Junk\CounttoonehundoSet Unable to load data: ";
+        $errormsg .= "Where config failed: count error fields <=> values";
+        $this->assertSame($result["message"], $errormsg);
+    }
+
+    public function testLoadOnFieldsMissingField()
+    {
+        $countto = new CounttoonehundoSet();
+        $result = $countto->loadOnFields(["missing"], [1], ["="]);
+        $this->assertSame($result["status"], false);
+        $this->assertSame($result["count"], 0);
+        $this->assertSame($result["message"], "getMissing is not supported on worker");
     }
 }

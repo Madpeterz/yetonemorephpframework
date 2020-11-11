@@ -36,7 +36,7 @@ class DbObjectsCreateTest extends TestCase
         // newID => ?int, rowsAdded => int, status => bool, message => string
         $this->assertSame($result["status"], true);
         $this->assertSame($result["message"], "ok");
-        $this->assertSame($testing->getId(), 1);
+        $this->assertSame($testing->getId(), 2);
     }
 
     public function testCreateInvaild()
