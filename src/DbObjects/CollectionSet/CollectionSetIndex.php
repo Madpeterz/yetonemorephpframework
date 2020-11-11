@@ -45,11 +45,11 @@ abstract class CollectionSetIndex extends CollectionSetCore
         }
     }
     /**
-     * ObjectIndexSearcher
+     * objectIndexSearcher
      * returns an array of objects that matched the search settings
      * @return mixed[] [object,...]
     */
-    protected function objectIndexSearcher(string $fieldname, $fieldvalue)
+    protected function objectIndexSearcher(string $fieldname, $fieldvalue): array
     {
         $this->makeWorker();
         $this->buildObjectGetIndex($fieldname);

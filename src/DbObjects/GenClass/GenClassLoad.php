@@ -21,7 +21,8 @@ abstract class GenClassLoad extends GenClassSet
     {
         $field_type = $this->getFieldType($field_name, true);
         if ($field_type == null) {
-            $this->addError(__FILE__, __FUNCTION__, "Attempted to get field type: " . $field_name . " but its not supported!");
+            $errormsg = "Attempted to get field type: " . $field_name . " but its not supported!";
+            $this->addError(__FILE__, __FUNCTION__, $errormsg);
             return false;
         }
         $whereconfig = [

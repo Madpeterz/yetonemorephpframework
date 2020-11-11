@@ -1,1 +1,1 @@
-composer dev-test-objects
+composer dev-test

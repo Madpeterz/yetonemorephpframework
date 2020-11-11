@@ -43,7 +43,7 @@ abstract class GenClassGet extends SqlConnectedClass
         return [
             "status" => $status,
             "message" => $message,
-            "uid" => $applyed_uid
+            "uid" => $applyed_uid,
         ];
     }
     /**
