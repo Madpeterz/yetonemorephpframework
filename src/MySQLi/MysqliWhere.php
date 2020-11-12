@@ -288,9 +288,11 @@ abstract class MysqliWhere extends MysqliFunctions
             $current_where_code .= ")";
         }
         if ($sql != "empty_in_array") {
-            $current_where_code .= " ";
-            $current_where_code .= strtr($where_config["join_with"][$loop], ["( " => "",") " => ""]);
-            $current_where_code .= " ";
+            if (count($where_config["join_with"]) > $loop) {
+                $current_where_code .= " ";
+                $current_where_code .= strtr($where_config["join_with"][$loop], ["( " => "",") " => ""]);
+                $current_where_code .= " ";
+            }
         }
     }
     /**
