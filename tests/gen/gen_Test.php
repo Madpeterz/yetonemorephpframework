@@ -13,13 +13,22 @@ class GeneratorTest extends TestCase
     protected $db_objects_factory = null;
     protected function setUp(): void
     {
-        define("GEN_DATABASE_HOST", "localhost");
-        define("GEN_DATABASE_USERNAME", "testsuser");
-        define("GEN_DATABASE_PASSWORD", "testsuserPW");
-        define("GEN_ADD_DB_TO_TABLE", true); // add the database name before the table name
-        define("GEN_SAVE_MODELS_TO", "src/Junk/");
-        define("GEN_DATABASES", ["test"]);
-        define("GEN_NAMESPACE", "YAPF\Junk");
+        global $GEN_DATABASE_HOST, $GEN_DATABASE_USERNAME, $GEN_DATABASE_PASSWORD;
+        global $GEN_ADD_DB_TO_TABLE, $GEN_SAVE_MODELS_TO, $GEN_DATABASES, $GEN_NAMESPACE_SINGLE;
+        global $GEN_NAMESPACE_SET, $GEN_SAVE_SET_MODELS_TO, $GEN_SELECTED_TABLES_ONLY;
+        
+        $GEN_DATABASE_HOST = "localhost";
+        $GEN_DATABASE_USERNAME = "testuser";
+        $GEN_DATABASE_PASSWORD = "testsuserPW";
+        $GEN_ADD_DB_TO_TABLE = true;
+        $GEN_SAVE_MODELS_TO = "src/Junk/Models/";
+        $GEN_SAVE_SET_MODELS_TO = "src/Junk/Sets/";
+        $GEN_SELECTED_TABLES_ONLY = null;
+
+        $GEN_DATABASES = ["test"];
+        $GEN_NAMESPACE_SINGLE = "YAPF\Junk\Models";
+        $GEN_NAMESPACE_SET = "YAPF\Junk\Sets";
+
         $this->sql = new MysqliConnector();
     }
     protected function tearDown(): void

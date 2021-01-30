@@ -1,9 +1,17 @@
 <?php
+global $GEN_DATABASE_HOST, $GEN_DATABASE_USERNAME, $GEN_DATABASE_PASSWORD;
+global $GEN_ADD_DB_TO_TABLE, $GEN_SAVE_MODELS_TO, $GEN_DATABASES, $GEN_NAMESPACE_SINGLE;
+global $GEN_NAMESPACE_SET, $GEN_SAVE_SET_MODELS_TO, $GEN_SELECTED_TABLES_ONLY;
 
-define("GEN_DATABASE_HOST", "localhost");
-define("GEN_DATABASE_USERNAME", "root");
-define("GEN_DATABASE_PASSWORD", "");
-define("GEN_ADD_DB_TO_TABLE", false); // add the database name before the table name
-define("GEN_SAVE_MODELS_TO", "../App/Models/");
-define("GEN_DATABASES", ["streamadmin"]);
-define("GEN_NAMESPACE", "App");
+$GEN_DATABASE_HOST = "localhost";
+$GEN_DATABASE_USERNAME = "root";
+$GEN_DATABASE_PASSWORD = "";
+
+$GEN_ADD_DB_TO_TABLE = false;
+$GEN_DATABASES = ["example"];
+
+$GEN_SAVE_MODELS_TO = "../App/Models/";
+$GEN_SAVE_SET_MODELS_TO = "../App/Models/";
+$GEN_SELECTED_TABLES_ONLY = null;
+$GEN_NAMESPACE_SINGLE = "App\Models";
+$GEN_NAMESPACE_SET = "App\Models";
