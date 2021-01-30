@@ -79,12 +79,6 @@ class ModelFactory extends GeneratorWriter
         $this->file_lines[] = 'class ' . $class_name . 'Set extends CollectionSet';
         $this->file_lines[] = '{';
         $this->file_lines[] = [1];
-        $this->file_lines[] = '/**';
-        $this->file_lines[] = ' * getObjectByID';
-        $this->file_lines[] = ' * returns a object that matchs the selected id';
-        $this->file_lines[] = ' * returns null if not found';
-        $this->file_lines[] = ' * Note: Does not support bad Ids please use findObjectByField';
-        $this->file_lines[] = ' */';
         $this->file_lines[] = 'public function __construct()';
         $this->file_lines[] = '{';
         $this->file_lines[] = [2];

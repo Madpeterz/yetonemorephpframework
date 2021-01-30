@@ -69,6 +69,8 @@ class DbObjectsFactory extends ModelFactory
             }
             if ($process == true) {
                 $this->CreateModel($row["TABLE_NAME"], $target_database);
+            } else {
+                $this->output .= "<tr><td>" . $row["TABLE_NAME"] . "</td><td>Skipped</td><td>Skipped</td></tr>";
             }
         }
         if ($this->use_output == true) {
