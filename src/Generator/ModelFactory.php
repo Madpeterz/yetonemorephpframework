@@ -110,8 +110,8 @@ class ModelFactory extends GeneratorWriter
         $this->file_lines[] = [1];
         $this->file_lines[] = '}';
         $this->file_lines[] = '/**';
-        $this->file_lines[] = ' * getFirst';
-        $this->file_lines[] = ' * returns the first object in a collection';
+        $this->file_lines[] = ' * getObjectByField';
+        $this->file_lines[] = ' * returns the first object in a collection that matchs the field and value checks';
         $this->file_lines[] = ' */';
         $this->file_lines[] = 'public function getObjectByField(string $fieldname, $value): ?' . $class_name . '';
         $this->file_lines[] = '{';
