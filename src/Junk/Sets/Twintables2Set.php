@@ -30,4 +30,12 @@ class Twintables2Set extends CollectionSet
     {
         return parent::getFirst();
     }
+    /**
+     * getFirst
+     * returns the first object in a collection
+     */
+    public function getObjectByField(string $fieldname, $value): ?Twintables2
+    {
+        return parent::getObjectByField($fieldname, $value);
+    }
 }

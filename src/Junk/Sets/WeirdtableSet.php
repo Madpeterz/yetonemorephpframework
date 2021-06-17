@@ -30,4 +30,12 @@ class WeirdtableSet extends CollectionSet
     {
         return parent::getFirst();
     }
+    /**
+     * getFirst
+     * returns the first object in a collection
+     */
+    public function getObjectByField(string $fieldname, $value): ?Weirdtable
+    {
+        return parent::getObjectByField($fieldname, $value);
+    }
 }

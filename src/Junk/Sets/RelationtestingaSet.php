@@ -30,4 +30,12 @@ class RelationtestingaSet extends CollectionSet
     {
         return parent::getFirst();
     }
+    /**
+     * getFirst
+     * returns the first object in a collection
+     */
+    public function getObjectByField(string $fieldname, $value): ?Relationtestinga
+    {
+        return parent::getObjectByField($fieldname, $value);
+    }
 }
