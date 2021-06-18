@@ -233,6 +233,13 @@ class ModelFactory extends GeneratorWriter
             if (($row_two["COLUMN_DEFAULT"] == null) || ($row_two["COLUMN_DEFAULT"] == "NULL")) {
                 $detected_default = "null";
             }
+            if ($use_type == "str") {
+                if ((strlen($detected_default) > 0) && ($detected_default !== "null")) {
+                    if (strpos($detected_default, '"') === false) {
+                        $detected_default = '"' . $detected_default . '"';
+                    }
+                }
+            }
             $line = '"' . $row_two["COLUMN_NAME"] . '" => ["type" => "';
             $line .= $use_type . '", "value" => ' . $detected_default . '],';
             $this->file_lines[] = $line;

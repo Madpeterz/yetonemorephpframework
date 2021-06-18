@@ -13,7 +13,7 @@ class Twintables1 extends genClass
         "id" => ["type" => "int", "value" => null],
         "title" => ["type" => "str", "value" => null],
         "message" => ["type" => "str", "value" => null],
-    ];
+    ]; 
     // Getters
     public function getTitle(): ?string
     {

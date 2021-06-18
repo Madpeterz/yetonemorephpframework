@@ -31,8 +31,8 @@ class Twintables2Set extends CollectionSet
         return parent::getFirst();
     }
     /**
-     * getFirst
-     * returns the first object in a collection
+     * getObjectByField
+     * returns the first object in a collection that matchs the field and value checks
      */
     public function getObjectByField(string $fieldname, $value): ?Twintables2
     {
