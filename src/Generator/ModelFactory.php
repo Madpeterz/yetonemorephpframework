@@ -234,6 +234,7 @@ class ModelFactory extends GeneratorWriter
                 $detected_default = "null";
             }
             if ($use_type == "str") {
+                $detected_default = str_replace("'", "", $detected_default);
                 if ((strlen($detected_default) > 0) && ($detected_default !== "null")) {
                     if (strpos($detected_default, '"') === false) {
                         $detected_default = '"' . $detected_default . '"';
