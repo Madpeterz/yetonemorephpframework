@@ -173,6 +173,24 @@ abstract class CollectionSet extends CollectionSetBulkRemove
         ?array $join_tables = null
     ): array {
         $this->makeWorker();
+
+        // Cache support
+        $hitCache = false;
+        $hashme = "";
+        if ($this->cache != null) {
+            $bit1 = sha1("bit1" . implode("|", $where_config));
+            $bit2 = sha1("bit2" . implode("|", $order_config));
+            $bit3 = sha1("bit3" . implode("|", $options_config));
+            $bit4 = sha1("bit4" . implode("|", $join_tables));
+            $shaHash = sha1($bit1 . $bit2 . $bit3 . $bit4);
+            $hashme = substr($shaHash, 0, 7);
+            $hitCache = $this->cache->cacheVaild($this->worker->getTable(), $hashme);
+        }
+        if ($hitCache == true) {
+            // wooo vaild data from cache!
+            return $this->processLoad($this->cache->readHash($this->worker->getTable(), $hashme));
+        }
+        // Cache missed, read from the DB
         $load_data = $this->sql->selectV2(
             ["table" => $this->worker->getTable()],
             $order_config,
@@ -183,6 +201,10 @@ abstract class CollectionSet extends CollectionSetBulkRemove
         if ($load_data["status"] == false) {
             $error_msg = get_class($this) . " Unable to load data: " . $load_data["message"];
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, ["count" => 0]);
+        }
+        if ($this->cache != null) {
+            // push data to cache so we can avoid reading from DB as much
+            $this->cache->writeHash($this->worker->getTable(), $hashme, $load_data, $this->cacheAllowChanged);
         }
         return $this->processLoad($load_data);
     }

@@ -2,6 +2,7 @@
 
 namespace YAPF\DbObjects\CollectionSet;
 
+use YAPF\Cache\Cache;
 use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 
 abstract class CollectionSetCore extends SqlConnectedClass
@@ -9,6 +10,8 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected $collected = [];
     protected $worker_class = null;
     protected $worker = null;
+    protected Cache $cache = null;
+    protected bool $cacheAllowChanged = false;
     /**
      * __construct
      * sets up the worker class
@@ -19,8 +22,16 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     public function __construct(string $worker_class)
     {
+        global $cache;
+        if (isset($cache) == true) {
+            $this->cache = $cache;
+        }
         $this->worker_class = $worker_class;
         parent::__construct();
+    }
+    public function setCacheAllowChanged(bool $status = true): void
+    {
+        $this->cacheAllowChanged = $status;
     }
     /**
      * makeWorker
