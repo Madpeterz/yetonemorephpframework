@@ -15,6 +15,8 @@ interface CacheInterface
 
     public function shutdown(): void;
 
+    public function purge(): bool;
+
     public function setAccountHash(string $acHash): void;
 
     public function addTableToCache(string $tablename, int $autoExpireMins = 15, bool $sharedDataset = false): void;
@@ -22,6 +24,8 @@ interface CacheInterface
     public function markChangeToTable(string $tableName): void;
 
     public function cacheVaild(string $tableName, string $hash): bool;
+
+    public function getChangeID(string $tableName): int;
 
     /**
      * readHash
