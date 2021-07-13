@@ -6,7 +6,7 @@ abstract class CacheWorker extends CacheRequired
 {
     protected array $tablesConfig = [];
     protected string $accountHash = "None";
-    protected array $tableLastChanged = [];
+    protected array $tableLastChanged = []; // table => changeID
     protected bool $lastChangedUpdated = false;
     protected string $pathStarting = "";
     protected string $splitter = "-";
@@ -15,6 +15,7 @@ abstract class CacheWorker extends CacheRequired
 
     protected function removeKey($key): void
     {
+        $this->addErrorlog("Removing key: " . $key);
         $this->deleteKey($key . ".dat");
         $this->deleteKey($key . ".inf");
         $this->removed_counters++;
@@ -22,8 +23,13 @@ abstract class CacheWorker extends CacheRequired
 
     protected function saveLastChanged(): void
     {
+        $yesno = [true => "Yes", false => "No"];
+        $this->addErrorlog("Save last changed: " . $yesno[$this->lastChangedUpdated]);
         if ($this->lastChangedUpdated == true) {
-            $this->writeKey($this->getLastChangedPath(), json_encode($this->tableLastChanged), "lastChanged", true);
+            $this->tableLastChanged["updatedUnixtime"] = time();
+            $lastChangedfile = json_encode($this->tableLastChanged);
+            $this->addErrorlog("Saving last changed: " . $lastChangedfile);
+            $this->writeKey($this->getLastChangedPath(), $lastChangedfile, "lastChanged", true);
         }
     }
 
@@ -44,21 +50,29 @@ abstract class CacheWorker extends CacheRequired
 
     protected function loadLastChanged(): void
     {
+        $this->lastChangedUpdated = true;
         $path = $this->getLastChangedPath();
         if ($this->hasKey($path) == false) {
+            $this->addErrorlog("loadLastChanged: missing key");
             return;
         }
         $cacheInfoRead = $this->readKey($path);
         $info_file = json_decode($cacheInfoRead, true);
+        if (array_key_exists("updatedUnixtime", $info_file) == false) {
+            $this->addErrorlog("loadLastChanged: missing updated unixtime");
+            return;
+        }
         $dif = time() - $info_file["updatedUnixtime"];
         if ($dif > (60 * 60)) {
             // info dataset is to old to be used
             // everything is marked as changed right now
+            $this->addErrorlog("loadLastChanged: to old");
             return;
         }
         foreach (array_keys($this->tablesConfig) as $table) {
             if (array_key_exists($table, $info_file) == true) {
                 $this->tableLastChanged[$table] = $info_file[$table];
+                $this->addErrorlog("Last changed: setting table: " . $table . " to " . $info_file[$table]);
             }
         }
         $this->lastChangedUpdated = false;
@@ -68,7 +82,7 @@ abstract class CacheWorker extends CacheRequired
     {
         $this->lastChangedUpdated = true;
         foreach (array_keys($this->tablesConfig) as $table) {
-            $this->tableLastChanged[$table] = time();
+            $this->tableLastChanged[$table] = 1;
         }
     }
 
@@ -79,7 +93,9 @@ abstract class CacheWorker extends CacheRequired
     */
     protected function getHashInfo(string $tableName, string $hash): array
     {
-        return $this->getKeyInfo($this->getkeyPath($tableName, $hash));
+        $path = $this->getkeyPath($tableName, $hash);
+        $this->addErrorlog("getHashInfo: loading from: " . $path);
+        return $this->getKeyInfo($path);
     }
 
     /**
@@ -90,24 +106,12 @@ abstract class CacheWorker extends CacheRequired
     protected function getKeyInfo(string $key): array
     {
         if ($this->hasKey($key . ".inf") == false) {
+            $this->addErrorlog("getKeyInfo: " . $key . ".inf is missing");
             return []; // cache missing info dataset
         }
         $cacheInfoRead = $this->readKey($key . ".inf");
+        $this->addErrorlog("getKeyInfo: " . $key . " data: " . $cacheInfoRead);
         return json_decode($cacheInfoRead, true);
-    }
-
-    protected function purgeHash(string $tableName, string $hash): bool
-    {
-        if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            return false;
-        }
-        $path = $this->getkeyPath($tableName, $hash);
-        $check1 = $this->deleteKey($path . ".dat");
-        $check2 = $this->deleteKey($path . ".inf");
-        if ($check1 != $check2) {
-            return false;
-        }
-        return $check1;
     }
 
     protected function getkeyPath(string $tableName, string $hash): string
