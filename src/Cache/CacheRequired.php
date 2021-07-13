@@ -4,6 +4,15 @@ namespace YAPF\Cache;
 
 abstract class CacheRequired
 {
+    protected bool $useErrorlog = true;
+
+    protected function addErrorlog(string $message): void
+    {
+        if ($this->useErrorlog == true) {
+            error_log($message);
+        }
+    }
+
     protected function setupCache(): void
     {
     }
