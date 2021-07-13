@@ -8,6 +8,10 @@ abstract class GenClassSet extends GenClassGet
 {
     protected ?Cache $cache = null;
     protected bool $expectedSqlLoadError = false;
+    public function attachCache(Cache $forceAttach): void
+    {
+        $this->cache = $forceAttach;
+    }
     public function expectedSqlLoadError(bool $setFlag = false): void
     {
         $this->expectedSqlLoadError = $setFlag;
