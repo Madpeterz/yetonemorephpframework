@@ -53,6 +53,34 @@ class DiskCache extends Cache implements CacheInterface
     */
     protected function getKeys(): array
     {
-        return [];
+        return $this->mapKeysInFolder($this->pathStarting);
+    }
+
+    /**
+     * mapKeysInFolder
+     * helper function for getKeys for DiskCache only
+     * @return string[]
+    */
+    private function mapKeysInFolder(string $folder): array
+    {
+        $results = [];
+        $scan = scandir($folder);
+        $working_path = $folder . "/";
+        foreach ($scan as $file) {
+            if ($file == "..") {
+                continue;
+            } elseif ($file == ".") {
+                continue;
+            }
+            if (is_dir($working_path . $file) == true) {
+                 $results = array_merge($this->mapKeysInFolder($working_path . $file), $results);
+            }
+            $ending = substr($file, -4);
+            if ($ending == ".dat") {
+                $filepart = explode(".", $file);
+                $results[] = $working_path . $filepart[0];
+            }
+        }
+        return $results;
     }
 }
