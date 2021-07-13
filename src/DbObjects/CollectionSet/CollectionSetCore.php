@@ -4,12 +4,13 @@ namespace YAPF\DbObjects\CollectionSet;
 
 use YAPF\Cache\Cache;
 use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
+use YAPF\DbObjects\GenClass\GenClass;
 
 abstract class CollectionSetCore extends SqlConnectedClass
 {
-    protected $collected = [];
-    protected $worker_class = null;
-    protected $worker = null;
+    protected array $collected = [];
+    protected ?string $worker_class = null;
+    protected ?GenClass $worker = null;
     protected ?Cache $cache = null;
     protected bool $cacheAllowChanged = false;
     /**
