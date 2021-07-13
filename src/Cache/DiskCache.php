@@ -108,7 +108,30 @@ class DiskCache extends Cache implements CacheInterface
         foreach ($keys as $key) {
             $this->removeKey($key);
         }
+        $this->cleanFolders($this->pathStarting);
         return true;
+    }
+
+    protected function cleanFolders($folder): void
+    {
+        $scan = scandir($folder);
+        $working_path = $folder . "/";
+        $folder_busy = false;
+        foreach ($scan as $file) {
+            if ($file == "..") {
+                continue;
+            } elseif ($file == ".") {
+                continue;
+            }
+            if (is_dir($working_path . $file) == true) {
+                $this->cleanFolders($working_path . $file);
+                continue;
+            }
+            $folder_busy = true;
+        }
+        if ($folder_busy == false) {
+            rmdir($folder);
+        }
     }
 
     /**
