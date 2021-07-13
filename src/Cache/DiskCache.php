@@ -28,9 +28,9 @@ class DiskCache extends Cache implements CacheInterface
             "key" => $key,
             "data" => $data,
             "table" => $table,
-            "unixtime" => time(),
+            "versionID" => time(),
             */
-            if ($dataset["unixtime"] < $this->tableLastChanged[$dataset["table"]]) {
+            if ($dataset["versionID"] != $this->tableLastChanged[$dataset["table"]]) {
                 continue; // skipped write, table changed from read
             }
             $this->writeKey($dataset["key"], $dataset["data"], $dataset["table"], true);
@@ -40,7 +40,7 @@ class DiskCache extends Cache implements CacheInterface
 
     protected function setupCache(): void
     {
-        error_log("Cache folder:" . $this->pathStarting);
+        $this->addErrorlog("Cache folder:" . $this->pathStarting);
         if (is_dir($this->pathStarting) == false) {
             mkdir($this->pathStarting);
         }
@@ -48,7 +48,7 @@ class DiskCache extends Cache implements CacheInterface
 
     protected function hasKey(string $key): bool
     {
-        error_log("Checking cache file: " . $key);
+        $this->addErrorlog("Checking cache file: " . $key);
         return file_exists($key);
     }
 
@@ -74,12 +74,11 @@ class DiskCache extends Cache implements CacheInterface
                 $ubit .= $addon;
                 $ubit .= $bit;
                 if (is_dir($ubit) == false) {
-                    error_log($ubit);
                     mkdir($ubit);
                 }
                 $addon = "/";
             }
-            error_log("Writing cache file: " . $key);
+            $this->addErrorlog("Writing cache file: " . $key);
             $writeFile = file_put_contents($key, $data);
             if ($writeFile === false) {
                 return false;
@@ -91,15 +90,25 @@ class DiskCache extends Cache implements CacheInterface
             "key" => $key,
             "data" => $data,
             "table" => $table,
-            "unixtime" => time(),
+            "versionID" => $this->tableLastChanged[$table],
         ];
-        error_log("Putting " . $key . " onto temp");
+        $this->addErrorlog("Putting " . $key . " onto temp");
         return true;
     }
 
     protected function readKey(string $key): string
     {
+        $this->addErrorlog("readKey: " . $key);
         return file_get_contents($key);
+    }
+
+    public function purge(): bool
+    {
+        $keys = $this->getKeys();
+        foreach ($keys as $key) {
+            $this->removeKey($key);
+        }
+        return true;
     }
 
     /**
