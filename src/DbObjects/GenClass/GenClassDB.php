@@ -150,7 +150,7 @@ abstract class GenClassDB extends GenClassLoad
             $expected_changes = count($update_config["fields"]);
             if ($expected_changes > 0) {
                 $reply = $this->sql->updateV2($this->getTable(), $update_config, $where_config, 1);
-                if ($reply["statuts"] == true) {
+                if ($reply["status"] == true) {
                     if ($this->cache != null) {
                         $this->cache->markChangeToTable($this->getTable());
                     }
