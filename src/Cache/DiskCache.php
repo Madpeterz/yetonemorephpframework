@@ -2,7 +2,7 @@
 
 namespace YAPF\Cache;
 
-class DiskCache extends Cache
+class DiskCache extends Cache implements CacheInterface
 {
     public function __construct(
         string $cacheFolder = "cacheTmp"
@@ -44,5 +44,15 @@ class DiskCache extends Cache
     protected function readKey(string $key): string
     {
         return file_get_contents($key);
+    }
+
+    /**
+     * getKeys
+     * returns an array of strings of keys for the cache
+     * @return string[]
+    */
+    protected function getKeys(): array
+    {
+        return [];
     }
 }

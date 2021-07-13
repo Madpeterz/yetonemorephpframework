@@ -2,27 +2,74 @@
 
 namespace YAPF\Cache;
 
-abstract class Cache
+abstract class Cache extends CacheWorker implements CacheInterface
 {
-    protected array $tablesConfig = [];
-    protected string $accountHash = "None";
-    protected array $tableLastChanged = [];
-    protected bool $lastChangedUpdated = false;
-    protected string $pathStarting = "";
-    protected string $splitter = "-";
+    public function __destruct()
+    {
+        $this->shutdown();
+    }
 
-    public function start(): void
+    /*
+        start
+        starts the cache service with a option of self cleaning.
+
+        if self cleaning is enabled, try to remove 5 entrys on each load.
+        for redis cache this should be false.
+        if you have a cronjob cleaning up this should be false.
+    */
+    public function start(bool $selfCleanup = false): void
     {
         $this->setupCache();
         $this->intLastChanged();
         $this->loadLastChanged();
+        if ($selfCleanup == true) {
+            $this->cleanup(5);
+        }
+    }
+
+    public function cleanup(int $max_counter = 5): void
+    {
+        $keys = $this->getKeys();
+        $this->removed_counters = 0;
+        foreach ($keys as $key) {
+            if ($this->removed_counters >= $max_counter) {
+                break;
+            }
+            $info_file = $this->getKeyInfo($key);
+            if (array_key_exists("expires", $info_file) == false) {
+                // key is broken (dat but no inf)
+                $this->removeKey($key);
+                continue;
+            }
+            if (array_key_exists($info_file["tableName"], $this->tableLastChanged) == false) {
+                // table is not tracked by cache remove entry
+                $this->removeKey($key);
+                continue;
+            }
+            if ($info_file["unixtime"] < $this->tableLastChanged[$info_file["tableName"]]) {
+                if ($info_file["allowChanged"] == false) {
+                    // table has changed from cache creation remove entry.
+                    $this->removeKey($key);
+                    continue;
+                }
+            }
+            if ($info_file["expires"] < time()) {
+                // cache has expired.
+                $this->removeKey($key);
+                continue;
+            }
+        }
+    }
+
+    public function shutdown(): void
+    {
+        $this->saveLastChanged();
     }
 
     public function setAccountHash(string $acHash): void
     {
         if (strlen($acHash) > 5) {
-            $this->accountHash = substr($acHash, 0, 5);
-            return;
+            $acHash = substr($acHash, 0, 5);
         }
         $this->accountHash = $acHash;
     }
@@ -47,147 +94,46 @@ abstract class Cache
         ];
     }
 
-    public function markChangeToTable(string $tablename): void
+    public function markChangeToTable(string $tableName): void
     {
-        $this->tableLastChanged[$tablename] = time();
-        $this->lastChangedUpdated = true;
-    }
-
-    protected function loadLastChanged(): void
-    {
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        $path .= "tables-lastchanged.inf";
-        if ($this->hasKey($path) == false) {
-            return;
-        }
-        $cacheInfoRead = $this->readKey($path);
-        $info_file = json_decode($cacheInfoRead, true);
-        $dif = time() - $info_file["updatedUnixtime"];
-        if ($dif > (60 * 60)) {
-            // info dataset is to old to be used
-            // everything is marked as changed right now
-            return;
-        }
-        foreach (array_keys($this->tablesConfig) as $table) {
-            if (array_key_exists($table, $info_file) == true) {
-                $this->tableLastChanged[$table] = $info_file[$table];
+        if (array_key_exists($tableName, $this->tableLastChanged) == true) {
+            $this->tableLastChanged[$tableName] = time();
+            $this->lastChangedUpdated = true;
+            if (in_array($tableName, $this->changedTables) == false) {
+                $this->changedTables[] = $tableName;
             }
         }
     }
 
-    private function intLastChanged(): void
-    {
-        foreach (array_keys($this->tablesConfig) as $table) {
-            $this->tableLastChanged[$table] = time();
-        }
-    }
-
-    protected function setupCache(): void
-    {
-    }
-
-    protected function hasKey(string $key): bool
-    {
-        return false;
-    }
     public function cacheVaild(string $tableName, string $hash): bool
     {
         if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            return false;
+            return false; // not a table supported by cache
         }
         if (array_key_exists($tableName, $this->tableLastChanged) == false) {
+            return false; // last changed entry missing (maybe its new)
+        }
+        if (in_array($tableName, $this->changedTables) == true) {
+            return false; // table has had a change at some point miss the cache for now
+        }
+        $info_file = $this->getHashInfo($tableName, $hash);
+        if (array_key_exists("expires", $info_file) == false) {
             return false;
         }
-        $use_account_hash = $this->accountHash;
-        if ($this->tablesConfig[$tableName]["shared"] == true) {
-            $use_account_hash = "None";
-        }
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        $path .= $tableName;
-        $path .= $this->splitter;
-        $path .= $use_account_hash;
-        $path .= $this->splitter;
-        $path .= $hash;
-        if ($this->hasKey($path . ".inf") == false) {
-            return false; // cache missing info dataset
-        }
-        $cacheInfoRead = $this->readKey($path . ".inf");
-        $info_file = json_decode($cacheInfoRead, true);
         if ($info_file["expires"] < time()) {
+            $this->removeKey($this->getkeyPath($tableName, $hash));
             return false; // cache has expired
         }
         if ($info_file["unixtime"] < $this->tableLastChanged[$tableName]) {
-            return !$info_file["allowChanged"]; // cache is old (this is fine is allowChanged is true)
+            if ($info_file["allowChanged"] == false) {
+                // cache is old
+                $this->removeKey($this->getkeyPath($tableName, $hash));
+                return false;
+            }
         }
         return true; // cache is vaild
     }
-    protected function purgeHash(string $tableName, string $hash): bool
-    {
-        if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            return false;
-        }
-        $use_account_hash = $this->accountHash;
-        if ($this->tablesConfig[$tableName]["shared"] == true) {
-            $use_account_hash = "None";
-        }
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        $path .= $tableName;
-        $path .= $this->splitter;
-        $path .= $use_account_hash;
-        $path .= $this->splitter;
-        $path .= $hash;
-        $check1 = $this->deleteKey($path . ".dat");
-        $check2 = $this->deleteKey($path . ".inf");
-        if ($check1 != $check2) {
-            return false;
-        }
-        return $check1;
-    }
 
-    public function writeHash(string $tableName, string $hash, array $data, bool $allowChanged): bool
-    {
-        if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            return false;
-        }
-        $use_account_hash = $this->accountHash;
-        if ($this->tablesConfig[$tableName]["shared"] == true) {
-            $use_account_hash = "None";
-        }
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        $path .= $tableName;
-        $path .= $this->splitter;
-        $path .= $use_account_hash;
-        $path .= $this->splitter;
-        $path .= $hash;
-        $info_file = [
-            "unixtime" => time(),
-            "expires" => time() + (60 * $this->tablesConfig["autoExpire"]),
-            "allowChanged" => $allowChanged,
-        ];
-        $writeOne = $this->writeKey($path . "inf", json_encode($info_file));
-        $writeTwo = $this->writeKey($path . "data", json_encode($data));
-        if ($writeOne != $writeTwo) {
-            $this->purgeHash($tableName, $hash);
-            return false;
-        }
-        return $writeOne;
-    }
     /**
      * readHash
      * attempts to read the cache for the selected mapping.
@@ -195,36 +141,6 @@ abstract class Cache
     */
     public function readHash(string $tableName, string $hash): array
     {
-        $use_account_hash = $this->accountHash;
-        if ($this->tablesConfig[$tableName]["shared"] == true) {
-            $use_account_hash = "None";
-        }
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        $path .= $tableName;
-        $path .= $this->splitter;
-        $path .= $use_account_hash;
-        $path .= $this->splitter;
-        $path .= $hash;
-        $readBlob = $this->readKey($path . ".dat");
-        return json_decode($readBlob, true);
-    }
-
-    protected function writeKey(string $key, string $data): bool
-    {
-        return false;
-    }
-
-    protected function readKey(string $key): string
-    {
-        return "";
-    }
-
-    protected function deleteKey(string $key): bool
-    {
-        return false;
+        return json_decode($this->readKey($this->getkeyPath($tableName, $hash) . ".dat"), true);
     }
 }
