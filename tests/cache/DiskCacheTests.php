@@ -174,18 +174,33 @@ class DiskCacheTests extends TestCase
         $this->assertSame(1,$sql->getSQLselectsCount(),"DB reads should be one");
     }
 
-
-
-
     /**
      * @depends testCacheRehitBeforeSave
+     */
+    public function testAccountHash(): void
+    {
+        $countto = new CounttoonehundoSet();
+        $cache = new DiskCache("tmp");
+        $cache->addTableToCache($countto->getTable(),10,false);
+        $cache->start();
+        $cache->setAccountHash("Magic");
+        $hashid = $this->getCacheHashId($cache);
+        $countto->attachCache($cache);
+        $countto->loadNewest(1);
+        $cache->shutdown();
+        $cache_file = "tmp/test.counttoonehundo/Magic/".$hashid.".inf";
+        $this->assertSame(true,file_exists($cache_file),"expected cache file is missing");
+    }
+
+    /**
+     * @depends testAccountHash
      */
     public function testCacheFinalPurge(): void
     {
         $countto = new CounttoonehundoSet();
         $cache = new DiskCache("tmp");
         $cache->addTableToCache($countto->getTable(),10,true);
-        $cache->start(false);
+        $cache->start();
         $cache->purge();
         $hashid = $this->getCacheHashId($cache);
         $cache_file = "tmp/test.counttoonehundo/None/".$hashid.".inf";
