@@ -10,6 +10,9 @@
     colors="true"
 >
   <testsuites>
+      <testsuite name="cache">
+        <file>tests/cache/DiskCacheTests.php</file>
+      </testsuite>
       <testsuite name="All">
         <directory>tests/core</directory>
         <directory>tests/filter</directory>
