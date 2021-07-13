@@ -143,4 +143,37 @@ abstract class Cache extends CacheWorker implements CacheInterface
     {
         return json_decode($this->readKey($this->getkeyPath($tableName, $hash) . ".dat"), true);
     }
+
+    public function writeHash(string $tableName, string $hash, array $data, bool $allowChanged): bool
+    {
+        if (array_key_exists($tableName, $this->tablesConfig) == false) {
+            return false;
+        }
+        $use_account_hash = $this->accountHash;
+        if ($this->tablesConfig[$tableName]["shared"] == true) {
+            $use_account_hash = "None";
+        }
+        $path = "";
+        if ($this->pathStarting != "") {
+            $path = $this->pathStarting;
+            $path .= $this->splitter;
+        }
+        $path .= $tableName;
+        $path .= $this->splitter;
+        $path .= $use_account_hash;
+        $path .= $this->splitter;
+        $path .= $hash;
+        $info_file = [
+            "unixtime" => time(),
+            "expires" => time() + (60 * $this->tablesConfig["autoExpire"]),
+            "allowChanged" => $allowChanged,
+        ];
+        $writeOne = $this->writeKey($path . ".inf", json_encode($info_file), $tableName);
+        $writeTwo = $this->writeKey($path . ".dat", json_encode($data), $tableName);
+        if ($writeOne != $writeTwo) {
+            $this->purgeHash($tableName, $hash);
+            return false;
+        }
+        return $writeOne;
+    }
 }

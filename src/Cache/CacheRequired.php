@@ -13,7 +13,7 @@ abstract class CacheRequired
         return false;
     }
 
-    protected function writeKey(string $key, string $data): bool
+    protected function writeKey(string $key, string $data, string $table, bool $finalWrite = false): bool
     {
         return false;
     }

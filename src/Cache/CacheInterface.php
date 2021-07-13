@@ -2,6 +2,9 @@
 
 namespace YAPF\Cache;
 
+// Sadly this is not PSR-6
+// as I dont agree with all of it
+
 interface CacheInterface
 {
     public function __destruct();

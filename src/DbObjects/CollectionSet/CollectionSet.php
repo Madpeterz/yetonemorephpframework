@@ -159,6 +159,14 @@ abstract class CollectionSet extends CollectionSetBulkRemove
             ["ordering_enabled" => true,"order_field" => $order_by,"order_dir" => $by_direction]
         );
     }
+
+    protected function giveArrayOnNull(?array $input): array
+    {
+        if ($input == null) {
+            return [];
+        }
+        return $input;
+    }
    /**
      * loadWithConfig
      * Uses the select V2 system to load data
@@ -178,10 +186,10 @@ abstract class CollectionSet extends CollectionSetBulkRemove
         $hitCache = false;
         $hashme = "";
         if ($this->cache != null) {
-            $bit1 = sha1("bit1" . implode("|", $where_config));
-            $bit2 = sha1("bit2" . implode("|", $order_config));
-            $bit3 = sha1("bit3" . implode("|", $options_config));
-            $bit4 = sha1("bit4" . implode("|", $join_tables));
+            $bit1 = sha1("bit1" . implode("|", $this->giveArrayOnNull($where_config)));
+            $bit2 = sha1("bit2" . implode("|", $this->giveArrayOnNull($order_config)));
+            $bit3 = sha1("bit3" . implode("|", $this->giveArrayOnNull($options_config)));
+            $bit4 = sha1("bit4" . implode("|", $this->giveArrayOnNull($join_tables)));
             $shaHash = sha1($bit1 . $bit2 . $bit3 . $bit4);
             $hashme = substr($shaHash, 0, 7);
             $hitCache = $this->cache->cacheVaild($this->worker->getTable(), $hashme);

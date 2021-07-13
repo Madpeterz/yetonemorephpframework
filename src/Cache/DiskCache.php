@@ -4,6 +4,10 @@ namespace YAPF\Cache;
 
 class DiskCache extends Cache implements CacheInterface
 {
+    protected $tempStorage = [];
+    // writes cache to mem first, and then to disk at the end
+    // saves unneeded writes if we make a change after loading.
+
     public function __construct(
         string $cacheFolder = "cacheTmp"
     ) {
@@ -11,8 +15,32 @@ class DiskCache extends Cache implements CacheInterface
         $this->pathStarting = $cacheFolder;
     }
 
+    public function shutdown(): void
+    {
+        parent::shutdown();
+        $this->finalizeWrites();
+    }
+
+    protected function finalizeWrites(): void
+    {
+        foreach ($this->tempStorage as $tmpKey => $dataset) {
+            /*
+            "key" => $key,
+            "data" => $data,
+            "table" => $table,
+            "unixtime" => time(),
+            */
+            if ($dataset["unixtime"] < $this->tableLastChanged[$dataset["table"]]) {
+                continue; // skipped write, table changed from read
+            }
+            $this->writeKey($dataset["key"], $dataset["data"], $dataset["table"], true);
+        }
+        $this->tempStorage = [];
+    }
+
     protected function setupCache(): void
     {
+        error_log("Cache folder:" . $this->pathStarting);
         if (is_dir($this->pathStarting) == false) {
             mkdir($this->pathStarting);
         }
@@ -20,6 +48,7 @@ class DiskCache extends Cache implements CacheInterface
 
     protected function hasKey(string $key): bool
     {
+        error_log("Checking cache file: " . $key);
         return file_exists($key);
     }
 
@@ -31,13 +60,40 @@ class DiskCache extends Cache implements CacheInterface
         return true;
     }
 
-    protected function writeKey(string $key, string $data): bool
+    protected function writeKey(string $key, string $data, string $table, bool $finalWrite = false): bool
     {
-        $this->deleteKey($key);
-        $writeFile = file_put_contents($key, $data);
-        if ($writeFile === false) {
-            return false;
+        if ($finalWrite == true) {
+            if ($this->deleteKey($key) == false) {
+                return false;
+            }
+            $bits = explode("/", $key);
+            array_pop($bits);
+            $ubit = "";
+            $addon = "";
+            foreach ($bits as $bit) {
+                $ubit .= $addon;
+                $ubit .= $bit;
+                if (is_dir($ubit) == false) {
+                    error_log($ubit);
+                    mkdir($ubit);
+                }
+                $addon = "/";
+            }
+            error_log("Writing cache file: " . $key);
+            $writeFile = file_put_contents($key, $data);
+            if ($writeFile === false) {
+                return false;
+            }
+            return true;
         }
+        $tempKey = substr(sha1($key), 0, 6);
+        $this->tempStorage[$tempKey] = [
+            "key" => $key,
+            "data" => $data,
+            "table" => $table,
+            "unixtime" => time(),
+        ];
+        error_log("Putting " . $key . " onto temp");
         return true;
     }
 

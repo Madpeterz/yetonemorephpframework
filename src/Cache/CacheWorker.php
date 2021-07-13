@@ -23,7 +23,7 @@ abstract class CacheWorker extends CacheRequired
     protected function saveLastChanged(): void
     {
         if ($this->lastChangedUpdated == true) {
-            $this->writeKey($this->getLastChangedPath(), json_encode($this->tableLastChanged));
+            $this->writeKey($this->getLastChangedPath(), json_encode($this->tableLastChanged), "lastChanged", true);
         }
     }
 
@@ -61,10 +61,12 @@ abstract class CacheWorker extends CacheRequired
                 $this->tableLastChanged[$table] = $info_file[$table];
             }
         }
+        $this->lastChangedUpdated = false;
     }
 
     protected function intLastChanged(): void
     {
+        $this->lastChangedUpdated = true;
         foreach (array_keys($this->tablesConfig) as $table) {
             $this->tableLastChanged[$table] = time();
         }

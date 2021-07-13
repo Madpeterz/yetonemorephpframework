@@ -6,7 +6,7 @@ use YAPF\Cache\Cache;
 
 abstract class GenClassSet extends GenClassGet
 {
-    protected Cache $cache = null;
+    protected ?Cache $cache = null;
     protected bool $expectedSqlLoadError = false;
     public function expectedSqlLoadError(bool $setFlag = false): void
     {
