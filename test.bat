@@ -1,1 +1,1 @@
-composer dev-test-cache
+composer dev-test
