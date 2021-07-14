@@ -108,13 +108,10 @@ class inputFilter_checkbox_test extends TestCase
     {
         $_GET["popcorn3"] = 5;
         $results1 = $this->_testingobject->getCheckbox("popcorn3");
-        $this->assertSame($results1, 5);
+        $this->assertSame(5, $results1);
 
         $_POST["magic3"] = [54,22];
-        $results2 = $this->_testingobject->postCheckbox("magic3");
-        $this->assertSame($results2, [54,22]);
-
-        $this->_testingobject->
-
+        $results2 = $this->_testingobject->postCheckbox("magic3","array");
+        $this->assertSame([54,22], $results2);
     }
 }
