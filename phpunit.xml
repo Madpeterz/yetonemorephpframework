@@ -12,6 +12,7 @@
   <testsuites>
       <testsuite name="cache">
         <file>tests/cache/DiskCacheTests.php</file>
+        <file>tests/cache/RedisCacheTests.php</file>
       </testsuite>
       <testsuite name="All">
         <directory>tests/core</directory>
@@ -33,6 +34,7 @@
         <file>tests/db_objects/GenClass_Test.php</file>
         <file>tests/db_objects/CollectionSet_Test.php</file>
         <file>tests/cache/DiskCacheTests.php</file>
+        <file>tests/cache/RedisCacheTests.php</file>
       </testsuite>
   </testsuites>
   <filter>

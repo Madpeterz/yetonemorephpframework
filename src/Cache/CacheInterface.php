@@ -3,7 +3,6 @@
 namespace YAPF\Cache;
 
 // Sadly this is not PSR-6
-// as I dont agree with all of it
 
 interface CacheInterface
 {
@@ -27,10 +26,27 @@ interface CacheInterface
 
     public function getChangeID(string $tableName): int;
 
+     /**
+     * getKeys
+     * returns null on failed, otherwise an array of keys
+     * @return mixed[]
+     */
+    public function getKeys(): ?array;
+
+    /*
+        - please do not use this function -
+        this function is used for testing only
+        usage in the real world is not advised.
+
+        this function maybe renamed or remove at any time.
+        - please do not use this function -
+    */
+    public function forceWrite(string $tableName, string $hash, string $info, string $data, int $expires): void;
+
     /**
      * readHash
      * attempts to read the cache for the selected mapping.
      * @return mixed[] [id => [key => value,...], ...]
     */
-    public function readHash(string $tableName, string $hash): array;
+    public function readHash(string $tableName, string $hash): ?array;
 }

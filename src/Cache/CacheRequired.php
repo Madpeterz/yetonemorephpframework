@@ -4,7 +4,7 @@ namespace YAPF\Cache;
 
 abstract class CacheRequired
 {
-    protected bool $useErrorlog = false;
+    protected bool $useErrorlog = true;
 
     protected function addErrorlog(string $message): void
     {
@@ -13,36 +13,13 @@ abstract class CacheRequired
         }
     }
 
-    protected function setupCache(): void
-    {
-    }
+    abstract protected function setupCache(): void;
 
-    protected function hasKey(string $key): bool
-    {
-        return false;
-    }
+    abstract protected function hasKey(string $key): bool;
 
-    protected function writeKey(string $key, string $data, string $table, bool $finalWrite = false): bool
-    {
-        return false;
-    }
+    abstract protected function writeKeyReal(string $key, string $data, string $table, int $expiresUnixtime);
 
-    protected function readKey(string $key): string
-    {
-        return "";
-    }
+    abstract protected function readKey(string $key): ?string;
 
-    protected function deleteKey(string $key): bool
-    {
-        return false;
-    }
-    /**
-     * getKeys
-     * returns an array of strings of keys for the cache
-     * @return string[]
-    */
-    protected function getKeys(): array
-    {
-        return [];
-    }
+    abstract protected function deleteKey(string $key): bool;
 }

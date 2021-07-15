@@ -29,13 +29,27 @@ abstract class CacheWorker extends CacheRequired
             $this->tableLastChanged["updatedUnixtime"] = time();
             $lastChangedfile = json_encode($this->tableLastChanged);
             $this->addErrorlog("Saving last changed: " . $lastChangedfile);
-            $this->writeKey($this->getLastChangedPath(), $lastChangedfile, "lastChanged", true);
+            $this->writeKey($this->getLastChangedPath(), $lastChangedfile, "lastChanged", time() + (60 * 60));
         }
+    }
+
+    protected function writeKey(string $key, string $data, string $table, int $expiresUnixtime): bool
+    {
+        $tempKey = substr(sha1($key), 0, 6);
+        $storage = [
+            "key" => $key,
+            "data" => $data,
+            "table" => $table,
+            "versionID" => $this->tableLastChanged[$table],
+            "expires" => $expiresUnixtime,
+        ];
+        $this->tempStorage[$tempKey] = $storage;
+        return true;
     }
 
     private function getLastChangedPath(): string
     {
-        return $this->getWorkerPath() . "tables-lastchanged.inf";
+        return $this->getWorkerPath() . "tables-lastchanged";
     }
 
     private function getWorkerPath(): string
@@ -57,6 +71,10 @@ abstract class CacheWorker extends CacheRequired
             return;
         }
         $cacheInfoRead = $this->readKey($path);
+        if ($cacheInfoRead == null) {
+            $this->addErrorlog("loadLastChanged: key found but data missing");
+            return;
+        }
         $info_file = json_decode($cacheInfoRead, true);
         if (array_key_exists("updatedUnixtime", $info_file) == false) {
             $this->addErrorlog("loadLastChanged: missing updated unixtime");
@@ -110,6 +128,10 @@ abstract class CacheWorker extends CacheRequired
             return []; // cache missing info dataset
         }
         $cacheInfoRead = $this->readKey($key . ".inf");
+        if ($cacheInfoRead == null) {
+            $this->addErrorlog("getKeyInfo: read key for info returned nothing");
+            return [];
+        }
         $this->addErrorlog("getKeyInfo: " . $key . " data: " . $cacheInfoRead);
         return json_decode($cacheInfoRead, true);
     }

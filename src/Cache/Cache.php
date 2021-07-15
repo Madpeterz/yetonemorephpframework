@@ -4,9 +4,23 @@ namespace YAPF\Cache;
 
 abstract class Cache extends CacheWorker implements CacheInterface
 {
+    protected $tempStorage = [];
+    protected bool $allowCleanup = false;
+    // writes cache to mem first, and then to disk at the end
+    // saves unneeded writes if we make a change after loading.
     public function __destruct()
     {
         $this->shutdown();
+    }
+
+    /**
+     * getKeys
+     * returns null on failed, otherwise an array of keys
+     * @return mixed[]
+     */
+    public function getKeys(): ?array
+    {
+        return null;
     }
 
     /*
@@ -27,9 +41,37 @@ abstract class Cache extends CacheWorker implements CacheInterface
         }
     }
 
+    protected function finalizeWrites(): void
+    {
+        $this->addErrorlog("Finalizing with: " . count($this->tempStorage) . " entrys");
+        foreach ($this->tempStorage as $tmpKey => $dataset) {
+            /*
+            "key" => $key,
+            "data" => $data,
+            "table" => $table,
+            "versionID" => time(),
+            "expires" => int
+            */
+            if ($dataset["versionID"] != $this->tableLastChanged[$dataset["table"]]) {
+                $this->addErrorlog("Skipping writing: " . json_encode($dataset) . " version has changed");
+                continue; // skipped write, table changed from read
+            }
+            $this->writeKeyReal($dataset["key"], $dataset["data"], $dataset["table"], $dataset["expires"]);
+        }
+        $this->tempStorage = [];
+    }
+
     public function purge(): bool
     {
         return false;
+    }
+
+    public function forceWrite(string $tableName, string $hash, string $info, string $data, int $expires): void
+    {
+        $this->addErrorlog("Warning calling forceWrite is a bad idea unless your in testing!");
+        $key = $this->getkeyPath($tableName, $hash);
+        $this->writeKeyReal($key . ".dat", $data, $tableName, $expires);
+        $this->writeKeyReal($key . ".inf", $info, $tableName, $expires);
     }
 
     public function getChangeID(string $tableName): int
@@ -43,6 +85,9 @@ abstract class Cache extends CacheWorker implements CacheInterface
 
     public function cleanup(int $max_counter = 5): void
     {
+        if ($this->allowCleanup == false) {
+            return;
+        }
         $keys = $this->getKeys();
         $this->addErrorlog("cleanup: got keys: " . json_encode($keys));
         $this->removed_counters = 0;
@@ -85,7 +130,9 @@ abstract class Cache extends CacheWorker implements CacheInterface
     public function shutdown(): void
     {
         $this->saveLastChanged();
+        $this->finalizeWrites();
     }
+
 
     public function setAccountHash(string $acHash): void
     {
@@ -106,10 +153,15 @@ abstract class Cache extends CacheWorker implements CacheInterface
 
         tables that change Alot and need to always be current should avoid the
         cache.
+
+        $autoExpireMins of less than 3 are set to 3.
     */
     public function addTableToCache(string $tableName, int $autoExpireMins = 15, bool $sharedDataset = false): void
     {
         $this->addErrorlog("addTableToCache: enabled cache for: " . $tableName . " with expires: " . $autoExpireMins);
+        if ($autoExpireMins < 3) {
+            $autoExpireMins = 3;
+        }
         $this->tablesConfig[$tableName] = [
             "shared" => $sharedDataset,
             "autoExpire" => $autoExpireMins,
@@ -157,7 +209,8 @@ abstract class Cache extends CacheWorker implements CacheInterface
             return false;
         }
         if ($info_file["expires"] < time()) {
-            $this->addErrorlog("cacheVaild: entry has expired");
+            $dif = time() - $info_file["expires"];
+            $this->addErrorlog("cacheVaild: entry has expired " . $dif . " secs ago");
             $this->removeKey($this->getkeyPath($tableName, $hash));
             return false; // cache has expired
         }
@@ -178,26 +231,35 @@ abstract class Cache extends CacheWorker implements CacheInterface
      * attempts to read the cache for the selected mapping.
      * @return mixed[] [id => [key => value,...], ...]
     */
-    public function readHash(string $tableName, string $hash): array
+    public function readHash(string $tableName, string $hash): ?array
     {
         $this->addErrorlog("readHash: " . $tableName . " " . $hash);
-        return json_decode($this->readKey($this->getkeyPath($tableName, $hash) . ".dat"), true);
+        $reply = $this->readKey($this->getkeyPath($tableName, $hash) . ".dat");
+        if ($reply == null) {
+            return null;
+        }
+        return json_decode($reply, true);
     }
 
     public function writeHash(string $tableName, string $hash, array $data, bool $allowChanged): bool
     {
         if (array_key_exists($tableName, $this->tablesConfig) == false) {
+            $this->addErrorlog("(writeHash) table " . $tableName . " is not supported");
             return false;
         }
         $path = $this->getkeyPath($tableName, $hash);
+        $expiresUnixtime = time() + 10 + (60 * $this->tablesConfig[$tableName]["autoExpire"]);
+        if ($expiresUnixtime < (time() + (60 * 3))) {
+            $this->addErrorlog("Warning - short timer for table " . $tableName . " this should not be below 3 mins");
+        }
         $info_file = [
         "changeID" => $this->tableLastChanged[$tableName],
-        "expires" => time() + (60 * $this->tablesConfig["autoExpire"]),
+        "expires" => $expiresUnixtime,
         "allowChanged" => $allowChanged,
         "tableName" => $tableName,
         ];
-        $writeOne = $this->writeKey($path . ".inf", json_encode($info_file), $tableName);
-        $writeTwo = $this->writeKey($path . ".dat", json_encode($data), $tableName);
+        $writeOne = $this->writeKey($path . ".inf", json_encode($info_file), $tableName, $expiresUnixtime);
+        $writeTwo = $this->writeKey($path . ".dat", json_encode($data), $tableName, $expiresUnixtime);
         if ($writeOne != $writeTwo) {
             $this->removeKey($path . ".inf");
             $this->removeKey($path . ".dat");

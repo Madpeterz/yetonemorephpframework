@@ -4,16 +4,18 @@ namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
 use YAPF\Cache\Cache;
-use YAPF\Cache\Drivers\Disk;
+use YAPF\Cache\Drivers\Redis;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 use YAPF\MySQLi\MysqliEnabled;
 
-class DiskCacheTests extends TestCase
+class RedisCacheTests extends TestCase
 {
     protected function getCache(): Cache
     {
-        return new Disk("tmp");
+        $cache = new Redis();
+        $cache->connectTCP("127.0.0.1");
+        return $cache;
     }
 
     protected function setUp(): void
