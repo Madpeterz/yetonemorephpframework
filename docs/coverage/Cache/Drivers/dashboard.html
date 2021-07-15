@@ -2,7 +2,7 @@
 <html lang="en">
  <head>
   <meta charset="UTF-8">
-  <title>Dashboard for D:\php projects\yetonemorephpframework\src\Core\SQLi</title>
+  <title>Dashboard for D:\php projects\yetonemorephpframework\src\Cache\Drivers</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="../../_css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="../../_css/nv.d3.min.css" rel="stylesheet" type="text/css">
@@ -17,8 +17,8 @@
       <nav aria-label="breadcrumb">
        <ol class="breadcrumb">
          <li class="breadcrumb-item"><a href="../../index.html">D:\php projects\yetonemorephpframework\src</a></li>
-         <li class="breadcrumb-item"><a href="../index.html">Core</a></li>
-         <li class="breadcrumb-item"><a href="index.html">SQLi</a></li>
+         <li class="breadcrumb-item"><a href="../index.html">Cache</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Drivers</a></li>
          <li class="breadcrumb-item active">(Dashboard)</li>
 
        </ol>
@@ -59,6 +59,7 @@
         </tr>
        </thead>
        <tbody>
+       <tr><td><a href="Redis.php.html#11">YAPF\Cache\Drivers\Redis</a></td><td class="text-right">56%</td></tr>
 
        </tbody>
       </table>
@@ -75,6 +76,7 @@
         </tr>
        </thead>
        <tbody>
+       <tr><td><a href="Redis.php.html#11">YAPF\Cache\Drivers\Redis</a></td><td class="text-right">139</td></tr>
 
        </tbody>
       </table>
@@ -112,6 +114,18 @@
         </tr>
        </thead>
        <tbody>
+       <tr><td><a href="Redis.php.html#21"><abbr title="YAPF\Cache\Drivers\Redis::setTimeout">setTimeout</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Redis.php.html#35"><abbr title="YAPF\Cache\Drivers\Redis::connectUnix">connectUnix</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Redis.php.html#136"><abbr title="YAPF\Cache\Drivers\Redis::readKey">readKey</abbr></a></td><td class="text-right">33%</td></tr>
+       <tr><td><a href="Redis.php.html#176"><abbr title="YAPF\Cache\Drivers\Redis::getKeys">getKeys</abbr></a></td><td class="text-right">33%</td></tr>
+       <tr><td><a href="Redis.php.html#118"><abbr title="YAPF\Cache\Drivers\Redis::writeKeyReal">writeKeyReal</abbr></a></td><td class="text-right">50%</td></tr>
+       <tr><td><a href="Redis.php.html#96"><abbr title="YAPF\Cache\Drivers\Redis::deleteKey">deleteKey</abbr></a></td><td class="text-right">53%</td></tr>
+       <tr><td><a href="Redis.php.html#63"><abbr title="YAPF\Cache\Drivers\Redis::connectNow">connectNow</abbr></a></td><td class="text-right">57%</td></tr>
+       <tr><td><a href="Redis.php.html#81"><abbr title="YAPF\Cache\Drivers\Redis::hasKey">hasKey</abbr></a></td><td class="text-right">57%</td></tr>
+       <tr><td><a href="Redis.php.html#149"><abbr title="YAPF\Cache\Drivers\Redis::purge">purge</abbr></a></td><td class="text-right">71%</td></tr>
+       <tr><td><a href="Disk.php.html#19"><abbr title="YAPF\Cache\Drivers\Disk::setupCache">setupCache</abbr></a></td><td class="text-right">75%</td></tr>
+       <tr><td><a href="Disk.php.html#75"><abbr title="YAPF\Cache\Drivers\Disk::purge">purge</abbr></a></td><td class="text-right">77%</td></tr>
+       <tr><td><a href="Disk.php.html#41"><abbr title="YAPF\Cache\Drivers\Disk::writeKeyReal">writeKeyReal</abbr></a></td><td class="text-right">88%</td></tr>
 
        </tbody>
       </table>
@@ -128,6 +142,16 @@
         </tr>
        </thead>
        <tbody>
+       <tr><td><a href="Redis.php.html#136"><abbr title="YAPF\Cache\Drivers\Redis::readKey">readKey</abbr></a></td><td class="text-right">8</td></tr>
+       <tr><td><a href="Redis.php.html#176"><abbr title="YAPF\Cache\Drivers\Redis::getKeys">getKeys</abbr></a></td><td class="text-right">8</td></tr>
+       <tr><td><a href="Redis.php.html#96"><abbr title="YAPF\Cache\Drivers\Redis::deleteKey">deleteKey</abbr></a></td><td class="text-right">7</td></tr>
+       <tr><td><a href="Redis.php.html#149"><abbr title="YAPF\Cache\Drivers\Redis::purge">purge</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Redis.php.html#118"><abbr title="YAPF\Cache\Drivers\Redis::writeKeyReal">writeKeyReal</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Redis.php.html#81"><abbr title="YAPF\Cache\Drivers\Redis::hasKey">hasKey</abbr></a></td><td class="text-right">5</td></tr>
+       <tr><td><a href="Disk.php.html#41"><abbr title="YAPF\Cache\Drivers\Disk::writeKeyReal">writeKeyReal</abbr></a></td><td class="text-right">5</td></tr>
+       <tr><td><a href="Disk.php.html#75"><abbr title="YAPF\Cache\Drivers\Disk::purge">purge</abbr></a></td><td class="text-right">3</td></tr>
+       <tr><td><a href="Redis.php.html#63"><abbr title="YAPF\Cache\Drivers\Redis::connectNow">connectNow</abbr></a></td><td class="text-right">2</td></tr>
+       <tr><td><a href="Disk.php.html#19"><abbr title="YAPF\Cache\Drivers\Disk::setupCache">setupCache</abbr></a></td><td class="text-right">2</td></tr>
 
        </tbody>
       </table>
@@ -156,7 +180,7 @@ $(document).ready(function() {
       .yAxis.tickFormat(d3.format('d'));
 
     d3.select('#classCoverageDistribution svg')
-      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,1], "Class Coverage"))
+      .datum(getCoverageDistributionData([0,0,0,0,0,0,1,0,0,0,1,0], "Class Coverage"))
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -174,7 +198,7 @@ $(document).ready(function() {
       .yAxis.tickFormat(d3.format('d'));
 
     d3.select('#methodCoverageDistribution svg')
-      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,3], "Method Coverage"))
+      .datum(getCoverageDistributionData([2,0,0,0,2,0,4,0,3,1,1,10], "Method Coverage"))
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -224,7 +248,7 @@ $(document).ready(function() {
     chart.yAxis.axisLabel('Cyclomatic Complexity');
 
     d3.select('#classComplexity svg')
-      .datum(getComplexityData([[100,5,"<a href=\"SqlConnectedClass.php.html#8\">YAPF\\Core\\SQLi\\SqlConnectedClass<\/a>"]], 'Class Complexity'))
+      .datum(getComplexityData([[92,33,"<a href=\"Disk.php.html#8\">YAPF\\Cache\\Drivers\\Disk<\/a>"],[56.97674418604651,36,"<a href=\"Redis.php.html#11\">YAPF\\Cache\\Drivers\\Redis<\/a>"]], 'Class Complexity'))
       .transition()
       .duration(500)
       .call(chart);
@@ -248,7 +272,7 @@ $(document).ready(function() {
     chart.yAxis.axisLabel('Method Complexity');
 
     d3.select('#methodComplexity svg')
-      .datum(getComplexityData([[100,2,"<a href=\"SqlConnectedClass.php.html#17\">YAPF\\Core\\SQLi\\SqlConnectedClass::getLastSql<\/a>"],[100,2,"<a href=\"SqlConnectedClass.php.html#24\">YAPF\\Core\\SQLi\\SqlConnectedClass::__construct<\/a>"],[100,1,"<a href=\"SqlConnectedClass.php.html#31\">YAPF\\Core\\SQLi\\SqlConnectedClass::reconnectSql<\/a>"]], 'Method Complexity'))
+      .datum(getComplexityData([[100,1,"<a href=\"Disk.php.html#11\">YAPF\\Cache\\Drivers\\Disk::__construct<\/a>"],[75,2,"<a href=\"Disk.php.html#19\">YAPF\\Cache\\Drivers\\Disk::setupCache<\/a>"],[100,1,"<a href=\"Disk.php.html#27\">YAPF\\Cache\\Drivers\\Disk::hasKey<\/a>"],[100,2,"<a href=\"Disk.php.html#33\">YAPF\\Cache\\Drivers\\Disk::deleteKey<\/a>"],[88.23529411764706,5,"<a href=\"Disk.php.html#41\">YAPF\\Cache\\Drivers\\Disk::writeKeyReal<\/a>"],[100,3,"<a href=\"Disk.php.html#66\">YAPF\\Cache\\Drivers\\Disk::readKey<\/a>"],[77.77777777777779,3,"<a href=\"Disk.php.html#75\">YAPF\\Cache\\Drivers\\Disk::purge<\/a>"],[100,6,"<a href=\"Disk.php.html#90\">YAPF\\Cache\\Drivers\\Disk::cleanFolders<\/a>"],[100,2,"<a href=\"Disk.php.html#117\">YAPF\\Cache\\Drivers\\Disk::getKeys<\/a>"],[94.11764705882352,8,"<a href=\"Disk.php.html#127\">YAPF\\Cache\\Drivers\\Disk::mapKeysInFolder<\/a>"],[0,1,"<a href=\"Redis.php.html#21\">YAPF\\Cache\\Drivers\\Redis::setTimeout<\/a>"],[100,2,"<a href=\"Redis.php.html#26\">YAPF\\Cache\\Drivers\\Redis::shutdown<\/a>"],[0,1,"<a href=\"Redis.php.html#35\">YAPF\\Cache\\Drivers\\Redis::connectUnix<\/a>"],[100,1,"<a href=\"Redis.php.html#46\">YAPF\\Cache\\Drivers\\Redis::connectTCP<\/a>"],[100,1,"<a href=\"Redis.php.html#58\">YAPF\\Cache\\Drivers\\Redis::setConnectionSettings<\/a>"],[57.14285714285714,2,"<a href=\"Redis.php.html#63\">YAPF\\Cache\\Drivers\\Redis::connectNow<\/a>"],[100,1,"<a href=\"Redis.php.html#76\">YAPF\\Cache\\Drivers\\Redis::setupCache<\/a>"],[57.14285714285714,4,"<a href=\"Redis.php.html#81\">YAPF\\Cache\\Drivers\\Redis::hasKey<\/a>"],[53.84615384615385,5,"<a href=\"Redis.php.html#96\">YAPF\\Cache\\Drivers\\Redis::deleteKey<\/a>"],[50,4,"<a href=\"Redis.php.html#118\">YAPF\\Cache\\Drivers\\Redis::writeKeyReal<\/a>"],[33.33333333333333,4,"<a href=\"Redis.php.html#136\">YAPF\\Cache\\Drivers\\Redis::readKey<\/a>"],[71.42857142857143,6,"<a href=\"Redis.php.html#149\">YAPF\\Cache\\Drivers\\Redis::purge<\/a>"],[33.33333333333333,4,"<a href=\"Redis.php.html#176\">YAPF\\Cache\\Drivers\\Redis::getKeys<\/a>"]], 'Method Complexity'))
       .transition()
       .duration(500)
       .call(chart);
