@@ -106,6 +106,7 @@ abstract class CacheWorker extends CacheRequired
     protected function intLastChanged(): void
     {
         $this->lastChangedUpdated = true;
+        $this->tableLastChanged["updatedUnixtime"] = time();
         foreach (array_keys($this->tablesConfig) as $table) {
             $this->tableLastChanged[$table] = 1;
         }
