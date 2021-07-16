@@ -12,9 +12,16 @@ abstract class CacheWorker extends CacheRequired
     protected string $splitter = "-";
     protected array $changedTables = []; // tables found in this array will allways fail cache checks
     protected int $removed_counters = 0;
+    protected array $seenKeys = [];
+    protected array $keyData = [];
+    protected array $keyInfo = [];
 
     protected function removeKey($key): void
     {
+        if (in_array($key, $this->seenKeys) == true) {
+            unset($this->seenKeys[$key]);
+            unset($this->keyInfo[$key]);
+        }
         $this->addErrorlog("Removing key: " . $key);
         $this->deleteKey($key . ".dat");
         $this->deleteKey($key . ".inf");
@@ -127,12 +134,17 @@ abstract class CacheWorker extends CacheRequired
             $this->addErrorlog("getKeyInfo: " . $key . ".inf is missing");
             return []; // cache missing info dataset
         }
+        $cacheInfoRead = "";
+        if (in_array($key, $this->keyInfo) == true) {
+            return json_decode($this->keyInfo[$key], true);
+        }
         $cacheInfoRead = $this->readKey($key . ".inf");
         if ($cacheInfoRead == null) {
             $this->addErrorlog("getKeyInfo: read key for info returned nothing");
             return [];
         }
         $this->addErrorlog("getKeyInfo: " . $key . " data: " . $cacheInfoRead);
+        $this->keyInfo[$key] = $cacheInfoRead;
         return json_decode($cacheInfoRead, true);
     }
 

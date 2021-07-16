@@ -4,7 +4,7 @@ namespace YAPF\Cache;
 
 abstract class CacheRequired
 {
-    protected bool $useErrorlog = true;
+    protected bool $useErrorlog = false;
 
     protected function addErrorlog(string $message): void
     {
@@ -17,7 +17,7 @@ abstract class CacheRequired
 
     abstract protected function hasKey(string $key): bool;
 
-    abstract protected function writeKeyReal(string $key, string $data, string $table, int $expiresUnixtime);
+    abstract protected function writeKeyReal(string $key, string $data, string $table, int $expiresUnixtime): bool;
 
     abstract protected function readKey(string $key): ?string;
 

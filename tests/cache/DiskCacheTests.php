@@ -232,6 +232,52 @@ not get hit until after this run has finished.
         $this->assertSame(null, $result, "Purged entry was found :(");
     }
 
+    /**
+     * @depends testCacheFinalPurge
+     */
+    public function testSpeed(): void
+    {
+        global $sql;
+        $time_start = microtime(true); 
+        $loop = 0;
+        while($loop < 1000)
+        {
+            $setObject = new CounttoonehundoSet();
+            $setObject->loadAll();
+            $loop++;
+        }
+        $time_end = microtime(true); 
+        $dif_time = $time_end - $time_start;
+        error_log("1000 load alls (No cache) = ".$dif_time);
+        $this->assertSame(1000,$sql->getSQLselectsCount(),"Incorrect number of reads from SQL");
+        $countto = new CounttoonehundoSet();
+        $cache = $this->getCache();
+        $cache->addTableToCache($countto->getTable(), 10, true);
+        $cache->start();
+        $countto->attachCache($cache);
+        $countto->loadAll();
+        $cache->shutdown();
+
+        $sql = new MysqliEnabled();
+        $cache = $this->getCache();
+        $cache->addTableToCache($countto->getTable(), 10, true);
+        $cache->start();
+        $time_start = microtime(true); 
+        $loop = 0;
+        while($loop < 1000)
+        {
+            $setObject = new CounttoonehundoSet();
+            $setObject->attachCache($cache);
+            $setObject->loadAll();
+            $loop++;
+        }
+        $this->assertSame(0,$sql->getSQLselectsCount(),"Incorrect number of reads from SQL");
+        $time_end = microtime(true); 
+        $dif_time = $time_end - $time_start;
+        error_log("1000 load alls (With disk cache) = ".$dif_time);
+        $this->assertSame(true,true,"Speed test failed");
+    }
+
 
     protected function getCacheHashId(Cache $cache): string
     {

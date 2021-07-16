@@ -26,12 +26,22 @@ class Disk extends Cache implements CacheInterface
 
     protected function hasKey(string $key): bool
     {
+        if (in_array($key, $this->seenKeys) == true) {
+            return true;
+        }
         $this->addErrorlog("Checking cache file: " . $key);
-        return file_exists($key);
+        $status = file_exists($key);
+        if ($status == true) {
+            $this->seenKeys[] = $key;
+        }
+        return $status;
     }
 
     protected function deleteKey(string $key): bool
     {
+        if (in_array($key, $this->seenKeys) == true) {
+            unset($this->seenKeys[$key]);
+        }
         if (file_exists($key) == true) {
             return unlink($key);
         }
@@ -116,7 +126,11 @@ class Disk extends Cache implements CacheInterface
      */
     public function getKeys(): ?array
     {
-        return $this->mapKeysInFolder($this->pathStarting);
+        $reply = $this->mapKeysInFolder($this->pathStarting);
+        if ($reply != null) {
+            $this->seenKeys = $reply;
+        }
+        return $reply;
     }
 
     /**

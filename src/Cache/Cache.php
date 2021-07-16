@@ -6,6 +6,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
 {
     protected $tempStorage = [];
     protected bool $allowCleanup = false;
+
     // writes cache to mem first, and then to disk at the end
     // saves unneeded writes if we make a change after loading.
     public function __destruct()
@@ -234,10 +235,15 @@ abstract class Cache extends CacheWorker implements CacheInterface
     public function readHash(string $tableName, string $hash): ?array
     {
         $this->addErrorlog("readHash: " . $tableName . " " . $hash);
-        $reply = $this->readKey($this->getkeyPath($tableName, $hash) . ".dat");
+        $key = $this->getkeyPath($tableName, $hash) . ".dat";
+        if (in_array($key, $this->keyData) == true) {
+            return json_decode($this->keyData[$key], true);
+        }
+        $reply = $this->readKey($key);
         if ($reply == null) {
             return null;
         }
+        $this->keyData[$key] = $reply;
         return json_decode($reply, true);
     }
 

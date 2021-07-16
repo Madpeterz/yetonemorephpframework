@@ -14,7 +14,7 @@ class Redis extends Cache implements CacheInterface
     // writes cache to mem first, and then to disk at the end
     // saves unneeded writes if we make a change after loading.
     protected ?RedisClient $client;
-    protected int $serverTimeout = 3;
+    protected int $serverTimeout = 2;
     protected array $connectionSettings = [];
     protected bool $enabled = false;
 
@@ -66,6 +66,7 @@ class Redis extends Cache implements CacheInterface
             $this->client = new RedisClient($this->connectionSettings);
             $this->client->connect();
             $this->enabled = true;
+            $this->client->pipeline();
             return true;
         } catch (ConnectionException $ex) {
             $this->addErrorlog("Redis failed: " . $ex->getMessage());
@@ -83,8 +84,12 @@ class Redis extends Cache implements CacheInterface
         if ($this->enabled == false) {
             return false;
         }
+        if (in_array($key, $this->seenKeys) == true) {
+            return true;
+        }
         try {
             if ($this->client->exists($key) == 1) {
+                $this->seenKeys[] = $key;
                 return true;
             }
         } catch (Exception $ex) {
@@ -102,6 +107,9 @@ class Redis extends Cache implements CacheInterface
         if ($this->hasKey($key) == false) {
             $this->addErrorlog("[deleteKey] Skipped " . $key . " its not found");
             return true;
+        }
+        if (in_array($key, $this->seenKeys) == true) {
+            unset($this->seenKeys[$key]);
         }
         try {
             if ($this->client->del($key) == 1) {
@@ -179,7 +187,11 @@ class Redis extends Cache implements CacheInterface
             return null;
         }
         try {
-            return $this->client->keys("*");
+            $reply = $this->client->keys("*");
+            if ($reply != null) {
+                $this->seenKeys = $reply;
+            }
+            return $reply;
         } catch (Exception $ex) {
             $this->addErrorlog("readKey error: " . $ex->getMessage());
         }
