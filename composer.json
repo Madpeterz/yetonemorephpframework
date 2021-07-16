@@ -19,11 +19,12 @@
     },
     "require": {
         "php": ">=7.4",
-        "guzzlehttp/guzzle": "^7.2"
+        "guzzlehttp/guzzle": "^7.2",
+        "predis/predis": "^1.1"
     },
     "require-dev": {
         "slevomat/coding-standard": "^6.4",
-        "phpunit/phpunit": "9",
+        "phpunit/phpunit": "8",
         "squizlabs/php_codesniffer": "*"
     },
     "authors": [
@@ -36,8 +37,8 @@
         "dev-test": [
             "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite All "
         ],
-        "dev-test-objects": [
-            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite Objects "
+        "dev-test-cache": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite cache "
         ],
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
