@@ -20,7 +20,7 @@ class Disk extends Cache implements CacheInterface
     {
         $this->addErrorlog("Cache folder:" . $this->pathStarting);
         if (is_dir($this->pathStarting) == false) {
-            mkdir($this->pathStarting, 0775, true);
+            mkdir($this->pathStarting, 0760, true);
         }
     }
 
@@ -61,7 +61,7 @@ class Disk extends Cache implements CacheInterface
             $ubit .= $addon;
             $ubit .= $bit;
             if (is_dir($ubit) == false) {
-                mkdir($ubit, 0775, true);
+                mkdir($ubit, 0760, true);
             }
             $addon = "/";
         }
