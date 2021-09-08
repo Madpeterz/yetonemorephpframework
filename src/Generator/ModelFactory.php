@@ -119,6 +119,16 @@ class ModelFactory extends GeneratorWriter
         $this->file_lines[] = 'return parent::getObjectByField($fieldname, $value);';
         $this->file_lines[] = [1];
         $this->file_lines[] = '}';
+        $this->file_lines[] = '/**';
+        $this->file_lines[] = ' * current';
+        $this->file_lines[] = ' * used by foreach to get the object should not be called directly';
+        $this->file_lines[] = ' */';
+        $this->file_lines[] = 'public function current(): ' . $class_name . '';
+        $this->file_lines[] = '{';
+        $this->file_lines[] = [2];
+        $this->file_lines[] = 'return parent::current();';
+        $this->file_lines[] = [1];
+        $this->file_lines[] = '}';
         $this->file_lines[] = [0];
         $this->file_lines[] = '}';
     }
