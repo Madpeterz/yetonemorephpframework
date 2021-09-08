@@ -2,6 +2,7 @@
 
 namespace YAPF\DbObjects\GenClass;
 
+use Exception;
 use YAPF\Cache\Cache;
 
 abstract class GenClassSet extends GenClassGet
@@ -141,5 +142,50 @@ abstract class GenClassSet extends GenClassGet
             }
         }
         return ["status" => true, "message" => "value set"];
+    }
+
+    /*
+        bulkChange
+        takes in a name => value pairs as an array
+        passes that to the set function
+
+        on failure rolls back any changes made.
+    */
+    public function bulkChange(array $namevaluepairs): bool
+    {
+        $rollback_savedataset = $this->save_dataset;
+        $rollback_dataset = $this->dataset;
+        $all_ok = true;
+        $why_failed = "";
+        try {
+            foreach ($namevaluepairs as $key => $value) {
+                $functionname = "set" . ucfirst($key);
+                if (method_exists($this, $functionname) == false) {
+                    $why_failed = "Unknown key " . $key;
+                    $all_ok = false;
+                    break;
+                }
+                $status = $this->$functionname($value);
+                if (is_array($status) == false) {
+                    $why_failed = "reply from function should be an array";
+                    $all_ok = false;
+                    break;
+                }
+                if ($status["status"] == false) {
+                    $why_failed = $status["message"];
+                    $all_ok = false;
+                    break;
+                }
+            }
+        } catch (Exception $e) {
+            $why_failed = $e->getMessage();
+            $all_ok = false;
+        }
+        if ($all_ok == false) {
+            $this->addError(__FILE__, __FUNCTION__, $why_failed);
+            $this->save_dataset = $rollback_savedataset;
+            $this->dataset = $rollback_dataset;
+        }
+        return $all_ok;
     }
 }
