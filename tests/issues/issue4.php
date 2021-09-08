@@ -39,6 +39,6 @@ class Issue4Test extends TestCase
         $this->assertSame(true, $save["status"], "failed to make changes");
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
-        $this->assertSame($countto->getCvalue(), 55, "value not changed vis bulkChange");
+        $this->assertSame($countto->getCvalue(), 55, "value not changed via bulkChange");
     }
 }
