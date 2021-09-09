@@ -11,18 +11,25 @@ class DbObjectsFactory extends ModelFactory
             $this->start();
         }
     }
+    public function setOutputToHTML(): void
+    {
+        $this->use_output = true;
+        $this->console_output = false;
+    }
     public function start(): void
     {
         global $GEN_DATABASES;
         if ($this->use_output == true) {
-            $this->output .=  '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/';
-            $this->output .=  'bootstrap/4.5.2/css/bootstrap.min.css"';
-            $this->output .=  ' integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"';
-            $this->output .=  ' crossorigin="anonymous">';
-            $this->output .=  '<link rel="stylesheet" ';
-            $this->output .=  'href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"';
-            $this->output .=  ' integrity="sha384-nNK9n28pDUDDgIiIqZ/MiyO3F4/9vsMtReZK39klb/MtkZI3/LtjSjlmyVPS3KdN"';
-            $this->output .=  ' crossorigin="anonymous">';
+            if ($this->console_output == false) {
+                $this->output .=  '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/';
+                $this->output .=  'bootstrap/4.5.2/css/bootstrap.min.css"';
+                $this->output .=  ' integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"';
+                $this->output .=  ' crossorigin="anonymous">';
+                $this->output .=  '<link rel="stylesheet" ';
+                $this->output .=  'href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"';
+                $this->output .=  ' integrity="sha384-nNK9n28pDUDDgIiIqZ/MiyO3F4/9vsMtReZK39klb/MtkZI3/LtjSjlmyVPS3KdN"';
+                $this->output .=  ' crossorigin="anonymous">';
+            }
         }
         if (isset($GEN_DATABASES) == true) {
             if (count($GEN_DATABASES) > 0) {
@@ -59,7 +66,7 @@ class DbObjectsFactory extends ModelFactory
         if ($results["status"] == false) {
             if ($this->use_output == true) {
                 if ($this->console_output == true) {
-                    echo "Error: Unable to get tables from DB\n";
+                    echo "\033[31mError: Unable to get tables from DB\033[0m\n";
                 } else {
                     $this->output .= "<tr><td>Error</td><td>Unable to get tables</td><td>from db</td></tr>";
                 }

@@ -62,7 +62,9 @@ class GeneratorTest extends TestCase
     {
         global $sql;
         $sql = $this->sql;
-        $this->db_objects_factory = new DbObjectsFactory();
+        $this->db_objects_factory = new DbObjectsFactory(false);
+        $this->db_objects_factory->setOutputToHTML();
+        $this->db_objects_factory->start();
         $this->assertSame($this->db_objects_factory->getLastErrorBasic(), "");
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
         $this->assertSame($this->db_objects_factory->getModelsCreated(), 26);
@@ -74,6 +76,7 @@ class GeneratorTest extends TestCase
         $this->sql->sqlSave(true);
         $this->sql->dbUser = "test2";
         $this->db_objects_factory = new DbObjectsFactory(false);
+        $this->db_objects_factory->setOutputToHTML();
         $this->db_objects_factory->reconnectSql($this->sql);
         $this->db_objects_factory->start();
         $this->assertSame($this->db_objects_factory->getLastErrorBasic(), "Error ~ Unable to get tables for test");
