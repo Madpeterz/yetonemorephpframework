@@ -137,7 +137,6 @@ class ModelFactory extends GeneratorWriter
             $target_table,
             $results,
             "array",
-            "//@return mixed[] [status =>  bool, count => integer, message =>  string]",
             true
         );
         $this->file_lines[] = [0];
@@ -187,7 +186,6 @@ class ModelFactory extends GeneratorWriter
         string $target_table,
         array $data_two,
         string $returnType = "bool",
-        string $returnHint = "",
         bool $enableLimits = false
     ): void {
         $this->file_lines[] = "// Loaders";
@@ -202,15 +200,21 @@ class ModelFactory extends GeneratorWriter
                 if ($use_type == "str") {
                     $use_type = "string";
                 }
-                $load_function = 'public function loadBy' . ucfirst($row_two["COLUMN_NAME"]);
+                $functionloadname = 'loadBy' . ucfirst($row_two["COLUMN_NAME"]);
+                $load_function = 'public function ' . $functionloadname;
                 $functionSetup = '(' . $use_type . ' $' . $row_two["COLUMN_NAME"] . '): ' . $returnType . '';
                 if ($enableLimits == true) {
                     $functionSetup = '(' . $use_type . ' $' . $row_two["COLUMN_NAME"]
-                    . ', int $limit=0, string $orderBy="id", string $orderDir="DESC"): ' . $returnType;
+                    . ', int $limit = 0, string $orderBy="id", string $orderDir="DESC"): ' . $returnType;
                 }
                 $load_function .= $functionSetup;
                 if ($returnType == "array") {
-                    $this->file_lines[] = $returnHint;
+                    $this->file_lines[] = "/**";
+                    $this->file_lines[] = " * " . $functionloadname;
+                    $joined = " * " . "@return mixed[] ";
+                    $joined .= "[status =>  bool, count => integer, message =>  string]";
+                    $this->file_lines[] = $joined;
+                    $this->file_lines[] = "*/";
                 }
                 $this->file_lines[] = $load_function;
                 $this->file_lines[] = '{';
