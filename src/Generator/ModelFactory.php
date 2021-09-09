@@ -34,7 +34,11 @@ class ModelFactory extends GeneratorWriter
         $this->found_id = false;
         $class_name = ucfirst(strtolower($target_table));
         if ($this->use_output == true) {
-            $this->output .=  "<tr><td>" . $class_name . "</td>";
+            if ($this->console_output == true) {
+                echo "starting class " . $class_name;
+            } else {
+                $this->output .=  "<tr><td>" . $class_name . "</td>";
+            }
         }
         $results = $this->getTableColumns($target_table, $target_database);
         if ($results != null) {
@@ -42,11 +46,19 @@ class ModelFactory extends GeneratorWriter
             $this->createCollectionSetFile($class_name, $target_database, $target_table, $results);
             $create_file = $GEN_SAVE_SET_MODELS_TO . $class_name . "Set.php";
             if ($this->use_output == true) {
-                $this->output .=  "<td>";
+                if ($this->console_output == true) {
+                    echo " - Set: ";
+                } else {
+                    $this->output .=  "<td>";
+                }
             }
             $this->writeModelFile($create_file);
             if ($this->use_output == true) {
-                $this->output .=  "</td>";
+                if ($this->console_output == true) {
+                    echo " - Single: ";
+                } else {
+                    $this->output .=  "</td>";
+                }
             }
             $this->file_lines = [];
             $this->createModelHeader($class_name, $target_database, $target_table);
@@ -57,11 +69,19 @@ class ModelFactory extends GeneratorWriter
             $this->createModelFooter();
             $create_file = $GEN_SAVE_MODELS_TO . $class_name . ".php";
             if ($this->use_output == true) {
-                $this->output .=  "<td>";
+                if ($this->console_output == true) {
+                    echo " - ";
+                } else {
+                    $this->output .=  "<td>";
+                }
             }
             $this->writeModelFile($create_file);
             if ($this->use_output == true) {
-                $this->output .=  "</td></tr>";
+                if ($this->console_output == true) {
+                    echo " \n ";
+                } else {
+                    $this->output .=  "</td></tr>";
+                }
             }
         }
     }

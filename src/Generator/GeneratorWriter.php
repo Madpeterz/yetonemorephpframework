@@ -33,7 +33,11 @@ class GeneratorWriter extends GeneratorDefaults
             $this->counter_models_failed--;
             $this->counter_models_created++;
             if ($this->use_output == true) {
-                $this->output .=  " <font color=\"#00FF00\">Ok</font>";
+                if ($this->console_output == true) {
+                    echo "\u001B[32m Ok \u001B[37m";
+                } else {
+                    $this->output .=  " <font color=\"#00FF00\">Ok</font>";
+                }
             }
         }
     }

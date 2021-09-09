@@ -37,9 +37,13 @@ class DbObjectsFactory extends ModelFactory
         global $GEN_SELECTED_TABLES_ONLY;
         $this->sql->dbName = $target_database;
         if ($this->use_output == true) {
-            $this->output .= "<h4>database: " . $target_database . "</h4>";
-            $this->output .= "<table class=\"table\"><thead><tr><th>Table</th>";
-            $this->output .= "<th>Set</th><th>Single</th></tr></thead><tbody>";
+            if ($this->console_output == true) {
+                echo "Starting database: " . $target_database . "\n";
+            } else {
+                $this->output .= "<h4>database: " . $target_database . "</h4>";
+                $this->output .= "<table class=\"table\"><thead><tr><th>Table</th>";
+                $this->output .= "<th>Set</th><th>Single</th></tr></thead><tbody>";
+            }
         }
         $where_config = [
             "fields" => ["TABLE_SCHEMA"],
@@ -54,7 +58,11 @@ class DbObjectsFactory extends ModelFactory
         $results = $this->sql->selectV2($basic_config, null, $where_config);
         if ($results["status"] == false) {
             if ($this->use_output == true) {
-                $this->output .= "<tr><td>Error</td><td>Unable to get tables</td><td>from db</td></tr>";
+                if ($this->console_output == true) {
+                    echo "Error: Unable to get tables from DB\n";
+                } else {
+                    $this->output .= "<tr><td>Error</td><td>Unable to get tables</td><td>from db</td></tr>";
+                }
             }
             $error_msg = "Error ~ Unable to get tables for " . $target_database . "";
             $this->addError(__FILE__, __FUNCTION__, $error_msg);
@@ -70,11 +78,19 @@ class DbObjectsFactory extends ModelFactory
             if ($process == true) {
                 $this->CreateModel($row["TABLE_NAME"], $target_database);
             } else {
-                $this->output .= "<tr><td>" . $row["TABLE_NAME"] . "</td><td>Skipped</td><td>Skipped</td></tr>";
+                if ($this->console_output == true) {
+                    echo "Skipped table: " . $row["TABLE_NAME"] . "\n";
+                } else {
+                    $this->output .= "<tr><td>" . $row["TABLE_NAME"] . "</td><td>Skipped</td><td>Skipped</td></tr>";
+                }
             }
         }
         if ($this->use_output == true) {
-            $this->output .= "</tbody></table>";
+            if ($this->console_output == true) {
+                echo "finished database \n";
+            } else {
+                $this->output .= "</tbody></table>";
+            }
         }
     }
 }
