@@ -13,6 +13,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     protected int $counter_miss_expired = 0;
     protected int $counter_miss_notfound = 0;
     protected int $counter_miss_changed = 0;
+    protected string $driverName = "NoDriver";
 
     public function getStatusConnected(): bool
     {
@@ -26,6 +27,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     public function getStatusCounters(): array
     {
         return [
+            "driver" => $this->driverName,
             "reads" => $this->counter_reads,
             "writes" => $this->counter_writes,
             "expired" => $this->counter_miss_expired,
