@@ -86,7 +86,12 @@ abstract class Cache extends CacheWorker implements CacheInterface
                 $this->addErrorlog("Skipping writing: " . json_encode($dataset) . " version has changed");
                 continue; // skipped write, table changed from read
             }
-            $this->writeKeyReal($dataset["key"], $dataset["data"], $dataset["table"], $dataset["expires"]);
+            $status = $this->writeKeyReal($dataset["key"], $dataset["data"], $dataset["table"], $dataset["expires"]);
+            if ($status == false) {
+                break;
+            }
+            $this->counter_writes++;
+            $this->connected = true;
         }
         $this->tempStorage = [];
     }
@@ -322,10 +327,6 @@ abstract class Cache extends CacheWorker implements CacheInterface
             $this->removeKey($path . ".inf");
             $this->removeKey($path . ".dat");
             return false;
-        }
-        if ($writeOne == true) {
-            $this->counter_writes++;
-            $this->connected = true;
         }
         return $writeOne;
     }
