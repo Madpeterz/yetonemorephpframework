@@ -323,8 +323,10 @@ abstract class Cache extends CacheWorker implements CacheInterface
             $this->removeKey($path . ".dat");
             return false;
         }
-        $this->counter_writes++;
-        $this->connected = true;
+        if ($writeOne == true) {
+            $this->counter_writes++;
+            $this->connected = true;
+        }
         return $writeOne;
     }
 
