@@ -143,10 +143,7 @@ class Redis extends Cache implements CacheInterface
         try {
             $reply = $this->client->setex($key, $expiresUnixtime - time(), $data);
             $this->addErrorlog("writeKeyReal: " . $reply . " for " . $key);
-            if ($reply == "OK") {
-                $this->connected = true; // mark redis as connected
-                return true;
-            }
+            $this->markConnected();
         } catch (Exception $ex) {
             $this->addErrorlog("Marking cache as disconnected (failed to write key) " . $ex->getMessage() . " Details\n Table: "
             . $table . " Key: " . $key . " Data: " . $data);

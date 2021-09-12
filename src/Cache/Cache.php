@@ -7,7 +7,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     protected $tempStorage = [];
     protected bool $allowCleanup = false;
 
-    protected bool $connected = false; // set to true when a read/write passes ok
+
     protected int $counter_reads = 0;
     protected int $counter_writes = 0;
     protected int $counter_miss_expired = 0;
@@ -319,7 +319,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         $this->addErrorlog("readHash: " . $tableName . " " . $hash);
         $key = $this->getkeyPath($tableName, $hash) . ".dat";
         if (in_array($key, $this->keyData) == true) {
-            $this->connected = true;
+            $this->markConnected();
             return json_decode($this->keyData[$key], true);
         }
         $reply = $this->readKey($key);
@@ -328,7 +328,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         }
         $this->counter_reads++;
         $this->keyData[$key] = $reply;
-        $this->connected = true;
+        $this->markConnected();
         return json_decode($reply, true);
     }
 
