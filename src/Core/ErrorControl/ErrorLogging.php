@@ -9,17 +9,21 @@ abstract class ErrorLogging
     /**
      * addError
      * see getLastError()
-     * $fl = file error happened on
-     * $fn = function name
-     * $er = sent error message
-     * $ext = extended return fields (not processed out to error logs)
+     * $flileHint = file error happened on [send __FILE__]
+     * $functionHint = function name [send __FUNCTION__]
+     * $errorMessage = sent error message
+     * $arrayAddon = extended return fields (not processed out to error logs)
      * @return mixed[] [status =>  false, message =>  string]
      */
-    protected function addError(string $fl = "", string $fn = "", string $er = "", array $ext = []): array
-    {
-        $this->myLastError = "File: " . $fl . " Function: " . $fn . " info: " . $er . "";
-        $this->myLastErrorBasic = $er;
-        return array_merge($ext, ["status" => false, "message" => $er]);
+    protected function addError(
+        string $flileHint = "",
+        string $functionHint = "",
+        string $errorMessage = "",
+        array $arrayAddon = []
+    ): array {
+        $this->myLastError = "File: " . $flileHint . " Function: " . $functionHint . " info: " . $errorMessage . "";
+        $this->myLastErrorBasic = $errorMessage;
+        return array_merge($arrayAddon, ["status" => false, "message" => $errorMessage]);
     }
     public function getLastErrorBasic(): string
     {
