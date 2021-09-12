@@ -289,6 +289,26 @@ abstract class GenClassControl extends SqlConnectedClass
         if (count($this->dataset) != count($this->save_dataset)) {
             $this->save_dataset = $this->dataset;
         }
+        $check = $this->checkUpdateField($fieldname, $value, $ignore_set_id_warning);
+        if ($check["status"] == false) {
+            return $check;
+        }
+        $this->dataset[$fieldname]["value"] = $value;
+        if ($this->getFieldType($fieldname) == "bool") {
+            $this->dataset[$fieldname]["value"] = 0;
+        }
+        if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
+            $this->dataset[$fieldname]["value"] = 1;
+        }
+        return ["status" => true, "message" => "value set"];
+    }
+    /**
+     * checkUpdateField
+     * checks if the update field request can be accepted
+     * @return mixed[] [status =>  bool, message =>  string] or just [status => bool] if success
+     */
+    protected function checkUpdateField(string $fieldname, $value, bool $ignore_set_id_warning = false): array
+    {
         if (is_object($value) == true) {
             $errored_on = "System error: Attempt to put a object onto field: " . $fieldname;
             return $this->addError(__FILE__, __FUNCTION__, $errored_on);
@@ -313,14 +333,7 @@ abstract class GenClassControl extends SqlConnectedClass
             $errored_on = "Sorry this object does not allow you to set the id field!";
             return $this->addError(__FILE__, __FUNCTION__, $errored_on);
         }
-        $this->dataset[$fieldname]["value"] = $value;
-        if ($this->getFieldType($fieldname) == "bool") {
-            $this->dataset[$fieldname]["value"] = 0;
-            if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
-                $this->dataset[$fieldname]["value"] = 1;
-            }
-        }
-        return ["status" => true, "message" => "value set"];
+        return ["status" => true];
     }
 
     /*
