@@ -68,7 +68,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->rebuildIndex();
     }
 
-    protected $fast_get_object_array_indexs = [];
+    protected $fastObjectArrayIndex = [];
     protected $fast_get_object_array_dataset = [];
     /**
      * buildObjectGetIndex
@@ -89,10 +89,10 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function buildObjectGetIndex(string $fieldname, bool $force_rebuild = false): void
     {
         $this->makeWorker();
-        if ((in_array($fieldname, $this->fast_get_object_array_indexs) == false) || ($force_rebuild == true)) {
+        if ((in_array($fieldname, $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
             $loadstring = "get" . ucfirst($fieldname);
             if (method_exists($this->worker, $loadstring)) {
-                $this->fast_get_object_array_indexs[] = $fieldname;
+                $this->fastObjectArrayIndex[] = $fieldname;
                 $index = [];
                 foreach ($this->collected as $key => $object) {
                     $indexValue = $object->$loadstring();
