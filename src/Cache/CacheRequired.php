@@ -13,6 +13,11 @@ abstract class CacheRequired
         }
     }
 
+    public function enableErrorLog(): void
+    {
+        $this->useErrorlog = true;
+    }
+
     abstract protected function setupCache(): bool;
 
     abstract protected function hasKey(string $key): bool;
