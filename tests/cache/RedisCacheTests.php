@@ -421,6 +421,37 @@ not get hit until after this run has finished.
         $cache->shutdown();
     }
 
+    /**
+     * @depends testLimitedMode
+     */
+    public function testCountinDb()
+    {
+        global $sql;
+        $cache = $this->getCache();
+        $testing = new LiketestsSet();
+        $cache->addTableToCache($testing->getTable(), 15, false, true);
+        $cache->start();
+        $testing->attachCache($cache);
+        $reply = $testing->countInDB();
+        $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
+        $this->assertSame($expectedSQL,$sql->getLastSql(),"SQL is not what was expected");
+        $this->assertSame(4,$reply,"incorrect count reply");
+        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one due to the miss");
+        $cache->shutdown();
+
+        $cache = $this->getCache();
+        $testing = new LiketestsSet();
+        $cache->addTableToCache($testing->getTable(), 15, false, true);
+        $cache->start();
+        $testing->attachCache($cache);
+        $reply = $testing->countInDB();
+        $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
+        $this->assertSame($expectedSQL,$sql->getLastSql(),"SQL is not what was expected");
+        $this->assertSame(4,$reply,"incorrect count reply");
+        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should still be one due to the hit");
+        $cache->shutdown();
+    }
+
 
     protected function getCacheHashId(Cache $cache): string
     {

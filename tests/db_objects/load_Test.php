@@ -197,6 +197,16 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($result["message"], "getMissing is not supported on worker");
     }
 
+    public function testCountinDb()
+    {
+        global $sql;
+        $testing = new LiketestsSet();
+        $reply = $testing->countInDB();
+        $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
+        $this->assertSame($expectedSQL,$sql->getLastSql(),"SQL is not what was expected");
+        $this->assertSame(4,$reply,"incorrect count reply");
+    }
+
     public function testLimitedMode()
     {
         $testing = new LiketestsSet();
