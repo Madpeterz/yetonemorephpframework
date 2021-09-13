@@ -2,6 +2,7 @@
 
 namespace YAPF\DbObjects\CollectionSet;
 
+use Error;
 use YAPF\Cache\Cache;
 use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 use YAPF\DbObjects\GenClass\GenClass;
@@ -34,6 +35,52 @@ abstract class CollectionSetCore extends SqlConnectedClass
         }
         $this->worker_class = $worker_class;
         parent::__construct();
+    }
+
+    /**
+     * countInDB
+     * $where_config: see selectV2.readme
+     * Requires a id field
+     * @return ?int  returns the count or null if failed
+     */
+    public function countInDB(?array $whereConfig = null): ?int
+    {
+        $this->makeWorker();
+        // Cache support
+        $hitCache = false;
+        $hashme = "";
+        if ($this->cache != null) {
+            $hashme = $this->cache->getHash(
+                $whereConfig,
+                ["countDB" => "yep"],
+                ["countDB" => "yep"],
+                ["countDB" => "yep"],
+                $this->worker->getTable(),
+                count($this->worker->getFields())
+            );
+            $hitCache = $this->cache->cacheVaild($this->worker->getTable(), $hashme);
+        }
+
+        $reply = [];
+        $loadedFromCache = false;
+        if ($hitCache == true) {
+            $reply = $this->cache->readHash($this->worker->getTable(), $hashme);
+            if (is_array($reply) == true) {
+                $loadedFromCache = true;
+            }
+        }
+        if ($loadedFromCache == false) {
+            $reply = $this->sql->basicCountV2($this->worker->getTable(), $whereConfig);
+            if (($this->cache != null) && ($reply["status"] == true)) {
+                // push data to cache so we can avoid reading from DB as much
+                $this->cache->writeHash($this->worker->getTable(), $hashme, $reply, false);
+            }
+        }
+        if ($reply["status"] == false) {
+            $this->addError(__FILE__, __FUNCTION__, $reply["message"]);
+            return null;
+        }
+        return $reply["count"];
     }
 
     public function limitFields(array $fields): void
