@@ -15,6 +15,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected ?Cache $cache = null;
     protected bool $cacheAllowChanged = false;
 
+    protected bool $disableUpdates = false;
+    protected ?array $limitedFields = null;
+
     /**
      * __construct
      * sets up the worker class
@@ -31,6 +34,20 @@ abstract class CollectionSetCore extends SqlConnectedClass
         }
         $this->worker_class = $worker_class;
         parent::__construct();
+    }
+
+    public function limitFields(array $fields): void
+    {
+        $this->makeWorker();
+        if (in_array($this->worker->use_id_field, $fields) == false) {
+            $fields = array_merge([$this->worker->use_id_field], $fields);
+        }
+        $this->limitedFields = $fields;
+        $this->disableUpdates = true;
+    }
+    public function getUpdatesStatus(): bool
+    {
+        return $this->disableUpdates;
     }
 
     protected function rebuildIndex(): void

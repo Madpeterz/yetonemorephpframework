@@ -16,6 +16,28 @@ abstract class GenClassControl extends SqlConnectedClass
     protected $allow_set_field = true;
     public $bad_id = false;
     public $use_id_field = "id";
+
+    protected bool $disableUpdates = false;
+    protected ?array $limitedFields = null;
+
+    public function limitFields(array $fields): void
+    {
+        if (in_array($this->use_id_field, $fields) == false) {
+            $fields = array_merge([$this->use_id_field], $fields);
+        }
+        $this->limitedFields = $fields;
+        $this->noUpdates();
+    }
+
+    public function getUpdatesStatus(): bool
+    {
+        return $this->disableUpdates;
+    }
+    public function noUpdates(): void
+    {
+        $this->disableUpdates = true;
+    }
+
     /**
      * createUID
      * public alias of overloadCreateUID
@@ -260,6 +282,9 @@ abstract class GenClassControl extends SqlConnectedClass
      */
     public function setId(int $newvalue): array
     {
+        if ($this->disableUpdates == true) {
+            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+        }
         if ($this->bad_id == false) {
             $this->addError(__FILE__, __FUNCTION__, "Warning: setId called. if you expected this please ignore");
             return $this->updateField($this->use_id_field, $newvalue, true);
@@ -286,6 +311,9 @@ abstract class GenClassControl extends SqlConnectedClass
      */
     protected function updateField(string $fieldname, $value, bool $ignore_set_id_warning = false): array
     {
+        if ($this->disableUpdates == true) {
+            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+        }
         if (count($this->dataset) != count($this->save_dataset)) {
             $this->save_dataset = $this->dataset;
         }
@@ -345,6 +373,10 @@ abstract class GenClassControl extends SqlConnectedClass
     */
     public function bulkChange(array $namevaluepairs): bool
     {
+        if ($this->disableUpdates == true) {
+            $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            return false;
+        }
         $rollback_savedataset = $this->save_dataset;
         $rollback_dataset = $this->dataset;
         $all_ok = true;
@@ -391,6 +423,10 @@ abstract class GenClassControl extends SqlConnectedClass
     */
     public function defaultValues(array $excludeFields = []): bool
     {
+        if ($this->disableUpdates == true) {
+            $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            return false;
+        }
         $rollback_savedataset = $this->save_dataset;
         $rollback_dataset = $this->dataset;
         $excludeFields[] = "id";
