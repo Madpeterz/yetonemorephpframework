@@ -291,7 +291,7 @@ class ModelFactory extends GeneratorWriter
         $this->file_lines[] = 'protected $fields = [';
         $this->file_lines[] = [2];
         foreach ($data_two as $row_two) {
-            $this->file_lines[] = '"' . $row_two["COLUMN_NAME"] . '", ';
+            $this->file_lines[] = '"' . $row_two["COLUMN_NAME"] . '",';
         }
         $this->file_lines[] = [1];
         $this->file_lines[] = '];';
