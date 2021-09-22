@@ -244,7 +244,7 @@ abstract class CollectionSet extends CollectionSetBulk
         }
         $typecheck = $this->worker->getFieldType($fieldname, true);
         if ($typecheck == null) {
-            $this->addError(__FILE__, __FUNCTION__, "Unable to find field: " . $fieldname . " in worker");
+            $this->addError(__FILE__, __FUNCTION__, "Unable to find field: " . $fieldname . " in worker reported error: " . $this->worker->getLastError());
             return [
                 "status" => false,
                 "count" => 0,
