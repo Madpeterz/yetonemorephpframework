@@ -244,10 +244,11 @@ abstract class CollectionSet extends CollectionSetBulk
         }
         $typecheck = $this->worker->getFieldType($fieldname, true);
         if ($typecheck == null) {
+            $this->addError(__FILE__, __FUNCTION__, "Unable to find field: " . $fieldname . " in worker");
             return [
                 "status" => false,
                 "count" => 0,
-                "message" => "Invaild field",
+                "message" => "Invaild field: " . $fieldname,
             ];
         }
         return $this->loadWithConfig([
