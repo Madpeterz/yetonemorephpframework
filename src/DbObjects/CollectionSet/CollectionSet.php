@@ -5,15 +5,13 @@ namespace YAPF\DbObjects\CollectionSet;
 abstract class CollectionSet extends CollectionSetBulk
 {
     /**
-     * loadIds
-     * alias of loadDataFromList
-     * preconfiged for ids but overrideable for other fields
+     * loadByValues
      * set ids_clean to false if you are unsure if there are repeated ids
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    public function loadIds(array $ids, string $field = "id", bool $ids_clean = true): array
+    public function loadByValues(array $ids, string $field = "id"): array
     {
-        return $this->loadDataFromList($field, $ids, $ids_clean);
+        return $this->loadDataFromList($field, $ids);
     }
     /**
      * loadOnFields
@@ -230,7 +228,7 @@ abstract class CollectionSet extends CollectionSetBulk
      * anything in the $values array
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    protected function loadDataFromList(string $fieldname = "id", array $values = []): array
+    public function loadDataFromList(string $fieldname = "id", array $values = []): array
     {
         $this->makeWorker();
         $uids = [];
@@ -244,7 +242,8 @@ abstract class CollectionSet extends CollectionSetBulk
         }
         $typecheck = $this->worker->getFieldType($fieldname, true);
         if ($typecheck == null) {
-            $this->addError(__FILE__, __FUNCTION__, "Unable to find field: " . $fieldname . " in worker reported error: " . $this->worker->getLastError());
+            $this->addError(__FILE__, __FUNCTION__, "Unable to find field: " .
+             $fieldname . " in worker reported error: " . $this->worker->getLastError());
             return [
                 "status" => false,
                 "count" => 0,
