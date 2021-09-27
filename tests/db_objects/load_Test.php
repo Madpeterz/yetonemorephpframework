@@ -138,11 +138,11 @@ class DbObjectsLoadTest extends TestCase
     public function testLoadSetByIds()
     {
         $countto = new CounttoonehundoSet();
-        $result = $countto->loadIds([1,2,3,4,5,6,7,8,9,19], "id", false);
+        $result = $countto->loadByValues([1,2,3,4,5,6,7,8,9,19], "id");
         $this->assertSame($result["status"], true);
         $this->assertSame($result["count"], 10);
         $this->assertSame($result["message"], "ok");
-        $result = $countto->loadIds([], "id", false);
+        $result = $countto->loadByValues([], "id");
         $this->assertSame($result["status"], false);
         $this->assertSame($result["count"], 0);
         $this->assertSame($result["message"], "No ids sent!");
