@@ -4,9 +4,11 @@ namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
+use YAPF\Junk\Models\Endoftestempty;
 use YAPF\Junk\Models\Liketests;
 use YAPF\Junk\Models\Weirdtable;
 use YAPF\Junk\Sets\CounttoonehundoSet;
+use YAPF\Junk\Sets\EndoftestemptySet;
 use YAPF\Junk\Sets\LiketestsSet;
 use YAPF\Junk\Sets\Twintables1Set;
 use YAPF\Junk\Sets\WeirdtableSet;
@@ -186,6 +188,27 @@ class DbObjectsLoadTest extends TestCase
         $errormsg = "YAPF\Junk\Sets\CounttoonehundoSet Unable to load data: ";
         $errormsg .= "Where config failed: count error fields <=> values";
         $this->assertSame($result["message"], $errormsg);
+    }
+
+    public function testLoadWithConfigOptional()
+    {
+        $countto = new Counttoonehundo();
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [91],
+        ];
+        $load_status = $countto->loadWithConfig($where_config);
+        $this->assertSame($load_status, true);
+        $this->assertSame($countto->getId(), 91);
+
+        $EndEmptySet = new CounttoonehundoSet();
+        $where_config = [
+            "fields" => ["cvalue"],
+            "values" => [8],
+        ];
+        $reply = $EndEmptySet->loadWithConfig($where_config);
+        $this->assertSame($reply["status"], true);
+        $this->assertSame($EndEmptySet->getCount(), 10);
     }
 
     public function testLoadOnFieldsMissingField()

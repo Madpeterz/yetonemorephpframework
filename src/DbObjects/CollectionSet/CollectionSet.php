@@ -167,7 +167,7 @@ abstract class CollectionSet extends CollectionSetBulk
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadWithConfig(
-        ?array $where_config = null,
+        ?array $whereConfig = null,
         ?array $order_config = null,
         ?array $options_config = null,
         ?array $join_tables = null
@@ -177,6 +177,7 @@ abstract class CollectionSet extends CollectionSetBulk
         if ($this->disableUpdates == true) {
             $basic_config["fields"] = $this->limitedFields;
         }
+        $whereConfig = $this->worker->extendWhereConfig($whereConfig);
         // Cache support
         $hitCache = false;
         $hashme = "";
@@ -186,7 +187,7 @@ abstract class CollectionSet extends CollectionSetBulk
                 $mergeddata = array_merge($basic_config, $join_tables);
             }
             $hashme = $this->cache->getHash(
-                $where_config,
+                $whereConfig,
                 $order_config,
                 $options_config,
                 $mergeddata,
@@ -203,11 +204,10 @@ abstract class CollectionSet extends CollectionSetBulk
             }
         }
         // Cache missed, read from the DB
-
         $load_data = $this->sql->selectV2(
             $basic_config,
             $order_config,
-            $where_config,
+            $whereConfig,
             $options_config,
             $join_tables
         );
