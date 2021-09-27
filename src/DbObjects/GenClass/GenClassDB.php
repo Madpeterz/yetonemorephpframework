@@ -5,6 +5,20 @@ namespace YAPF\DbObjects\GenClass;
 abstract class GenClassDB extends GenClassControl
 {
     /**
+     * loadMatching
+     * a very limited loading system
+     * takes the keys as fields, and values as values
+     * then passes that to loadWithConfig.
+     */
+    public function loadMatching(array $input): bool
+    {
+        $whereConfig = [
+            "fields" => array_keys($input),
+            "values" => array_values($input),
+        ];
+        return $this->loadWithConfig($whereConfig);
+    }
+    /**
      * loadOnField
      * alias of loadByField
      * loads a object that matchs in the DB on the field and value

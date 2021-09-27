@@ -4,11 +4,9 @@ namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
-use YAPF\Junk\Models\Endoftestempty;
 use YAPF\Junk\Models\Liketests;
 use YAPF\Junk\Models\Weirdtable;
 use YAPF\Junk\Sets\CounttoonehundoSet;
-use YAPF\Junk\Sets\EndoftestemptySet;
 use YAPF\Junk\Sets\LiketestsSet;
 use YAPF\Junk\Sets\Twintables1Set;
 use YAPF\Junk\Sets\WeirdtableSet;
@@ -218,6 +216,14 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($result["status"], false);
         $this->assertSame($result["count"], 0);
         $this->assertSame($result["message"], "getMissing is not supported on worker");
+    }
+
+    public function testloadMatching()
+    {
+        $countto = new Counttoonehundo();
+        $result = $countto->loadMatching(["id"=>4,"cvalue"=>8]);
+        $this->assertSame($result, true);
+        $this->assertSame($countto->getCvalue(), 8);
     }
 
     public function testCountinDb()

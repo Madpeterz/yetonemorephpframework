@@ -5,6 +5,21 @@ namespace YAPF\DbObjects\CollectionSet;
 abstract class CollectionSet extends CollectionSetBulk
 {
     /**
+     * loadMatching
+     * a very limited loading system
+     * takes the keys as fields, and values as values
+     * then passes that to loadWithConfig.
+     * @return mixed[] [status =>  bool, count => integer, message =>  string]
+     */
+    public function loadMatching(array $input): array
+    {
+        $whereConfig = [
+            "fields" => array_keys($input),
+            "values" => array_values($input),
+        ];
+        return $this->loadWithConfig($whereConfig);
+    }
+    /**
      * loadByValues
      * set ids_clean to false if you are unsure if there are repeated ids
      * @return mixed[] [status =>  bool, count => integer, message =>  string]

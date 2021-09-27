@@ -241,4 +241,11 @@ class CollectionSetTest extends TestCase
         $reply = $Endoftestempty->getFieldType("id",true);
         $this->assertSame("i", $reply);
     }
+    public function testloadMatching()
+    {
+        $countto = new CounttoonehundoSet();
+        $result = $countto->loadMatching(["cvalue"=>16]);
+        $this->assertSame($result["status"], true);
+        $this->assertSame($countto->getCount(), 10);
+    }
 }
