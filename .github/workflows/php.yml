@@ -11,6 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+      - name: Verify SQL is dead
+        env:
+          PORT: 3306
+        run: |
+          while mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
+            sleep 2
+          done
+      - name: Set up MySQL
+        uses: haltuf/mysql-action@master
+        with:
+          host port: 3306 # mysql default port
+          mysql root password: ''
+          mysql database: 'test'
+          mysql user: 'testsuser' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
+          mysql password: 'testsuserPW' # Required if "mysql user" exists. The password for the "mysql user"
+      - name: Verify MariaDB connection
+        env:
+          PORT: 3306
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
+            sleep 5
+          done
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
