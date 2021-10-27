@@ -30,6 +30,14 @@ abstract class SqlConnectedClass extends ErrorLogging
     }
     public function reconnectSql(&$SetSQl): void
     {
+        if ($this->disabled == false) {
+            global $sql;
+            $this->sql = &$this->unref($sql);
+        }
         $this->sql = $SetSQl;
+    }
+    protected function &unref($var): ?MysqliConnector
+    {
+        return $var;
     }
 }
