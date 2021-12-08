@@ -67,5 +67,5 @@ interface CacheInterface
      * this will bypass the last changed system, please dont use this with
      * dbObjects or expect weirdness
     */
-    public function setKey(string $key, string $value, int $expires_in_secs): bool;
+    public function setKey(string $key, string $value, int $expiresUnixtime): bool;
 }

@@ -42,8 +42,8 @@ abstract class CacheRequired
         return $this->readKey($key);
     }
 
-    public function setKey(string $key, string $value, int $unixtime): bool
+    public function setKey(string $key, string $value, int $expiresUnixtime): bool
     {
-        return $this->writeKeyReal($key, $value, $unixtime);
+        return $this->writeKeyReal($key, $value, $expiresUnixtime);
     }
 }
