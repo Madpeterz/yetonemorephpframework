@@ -63,7 +63,7 @@ class RedisCacheTests extends TestCase
 
         $countto->attachCache($cache);
         $loadResult = $countto->loadAll();
-        $this->assertSame(1, $sql->getSQLselectsCount(), "Failed to read from the DB");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "Failed to read from the DB");
         $this->assertSame(true, $loadResult["status"], "Failed to load from DB");
         $cache->shutdown();
 
@@ -71,12 +71,12 @@ class RedisCacheTests extends TestCase
         $cache->addTableToCache($countto->getTable(), 10, true);
         $cache->start(true);
 
-        $this->assertSame(1, $sql->getSQLselectsCount(), "Incorrect number of DB reads");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "Incorrect number of DB reads");
         $countto = new CounttoonehundoSet();
         $countto->attachCache($cache);
         $loadResult = $countto->loadAll();
         $this->assertSame(true, $loadResult["status"], "Failed to read from DB (step 2)");
-        $this->assertSame(1, $sql->getSQLselectsCount(), "Incorrectly loaded from the DB and not from cache");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "Incorrectly loaded from the DB and not from cache");
     }
 
 /**
@@ -85,7 +85,7 @@ class RedisCacheTests extends TestCase
     public function testNewConnectionReadFromCache(): void
     {
         global $sql;
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
 
         $countto = new CounttoonehundoSet();
         $cache = $this->getCache();
@@ -95,7 +95,7 @@ class RedisCacheTests extends TestCase
         $loadResult = $countto->loadAll();
         $this->assertSame(true, $loadResult["status"], "Failed to read from DB (step 2)");
 
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
     }
 
 /**
@@ -105,14 +105,14 @@ class RedisCacheTests extends TestCase
     {
         global $sql;
 //$sql = new MysqliEnabled();
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
         $countto = new CounttoonehundoSet();
         $cache = $this->getCache();
         $cache->addTableToCache($countto->getTable(), 10, true);
         $cache->start();
         $countto->attachCache($cache);
         $loadResult = $countto->loadNewest(1);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one");
         $entry = $countto->getFirst();
         $entry->attachCache($cache);
         $entry->setCvalue($entry->getCvalue() + 1);
@@ -127,7 +127,7 @@ class RedisCacheTests extends TestCase
         $cache->start();
         $countto->attachCache($cache);
         $loadResult = $countto->loadNewest(1); // cache expired because of change
-        $this->assertSame(2, $sql->getSQLselectsCount(), "DB reads should be two");
+        $this->assertSame(2, $sql->getSQLstats()["selects"], "DB reads should be two");
     }
 
 /**
@@ -141,7 +141,7 @@ not get hit until after this run has finished.
     */
         global $sql;
 //$sql = new MysqliEnabled();
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
         $countto = new CounttoonehundoSet();
         $cache = $this->getCache();
         $cache->purge();
@@ -149,11 +149,11 @@ not get hit until after this run has finished.
         $cache->start();
         $countto->attachCache($cache);
         $countto->loadNewest(1);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one");
         $countto = new CounttoonehundoSet();
         $countto->attachCache($cache);
         $countto->loadNewest(1);
-        $this->assertSame(2, $sql->getSQLselectsCount(), "DB reads should be two");
+        $this->assertSame(2, $sql->getSQLstats()["selects"], "DB reads should be two");
     }
 
 
@@ -189,11 +189,11 @@ not get hit until after this run has finished.
         $cache->addTableToCache($countto->getTable(), 10, true);
         $cache->start();
 
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero as the cache was used");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero as the cache was used");
         $countto = new CounttoonehundoSet();
         $countto->attachCache($cache);
         $countto->loadNewest(1);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one as the cache should be expired");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one as the cache should be expired");
     }
 
 /**
@@ -241,7 +241,7 @@ not get hit until after this run has finished.
     public function testSingles(): void
     {
         global $sql;
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
         $countto = new Counttoonehundo();
         $cache = $this->getCache();
         $cache->purge();
@@ -249,7 +249,7 @@ not get hit until after this run has finished.
         $cache->start();
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one");
         $cache->shutdown();
 
         $countto = new Counttoonehundo();
@@ -258,7 +258,7 @@ not get hit until after this run has finished.
         $cache->start();
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one");
         $cache->shutdown();
     }
 
@@ -268,7 +268,7 @@ not get hit until after this run has finished.
     public function testSinglesAccountHash(): void
     {
         global $sql;
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
         $countto = new Counttoonehundo();
         $cache = $this->getCache();
         $cache->addTableToCache($countto->getTable(), 10, false,true);
@@ -276,7 +276,7 @@ not get hit until after this run has finished.
         $cache->setAccountHash("magic");
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one");
         $cache->shutdown();
 
         $countto = new Counttoonehundo();
@@ -286,7 +286,7 @@ not get hit until after this run has finished.
         $cache->setAccountHash("magic");
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one");
         $cache->shutdown();
     }
 
@@ -296,7 +296,7 @@ not get hit until after this run has finished.
     public function testSingleCacheHitButChanged(): void
     {
         global $sql;
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero");
         $countto = new Counttoonehundo();
         $cache = $this->getCache();
         $cache->addTableToCache($countto->getTable(), 10, false,true);
@@ -304,13 +304,13 @@ not get hit until after this run has finished.
         $cache->setAccountHash("magic");
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(0, $sql->getSQLselectsCount(), "DB reads should be zero (cache should be hit)");
+        $this->assertSame(0, $sql->getSQLstats()["selects"], "DB reads should be zero (cache should be hit)");
         $countto->setCvalue($countto->getCvalue()+1);
         $countto->updateEntry();
         $countto = new Counttoonehundo();
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one due to cache miss due to change live");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one due to cache miss due to change live");
         $cache->shutdown();
 
         $cache = $this->getCache();
@@ -319,11 +319,11 @@ not get hit until after this run has finished.
         $cache->setAccountHash("magic");
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one from the updated cache entry");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one from the updated cache entry");
         $countto = new Counttoonehundo();
         $countto->attachCache($cache);
         $countto->loadID(11);
-        $this->assertSame(2, $sql->getSQLselectsCount(), "DB reads should be two from the read");
+        $this->assertSame(2, $sql->getSQLstats()["selects"], "DB reads should be two from the read");
         $countto->setCvalue($countto->getCvalue()+1);
         $countto->updateEntry();
         $cache->shutdown();
@@ -334,7 +334,7 @@ not get hit until after this run has finished.
         $cache->setAccountHash("magic");
         $countto->attachCache($cache);
         $countto->loadID(44);
-        $this->assertSame(3, $sql->getSQLselectsCount(), "DB reads should be three due to the cache table having changes");
+        $this->assertSame(3, $sql->getSQLstats()["selects"], "DB reads should be three due to the cache table having changes");
     }
 
 
@@ -349,7 +349,7 @@ not get hit until after this run has finished.
         $countto = new Counttoonehundo();
         $countto->attachCache($cache);
         $countto->loadID(11);
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one from the failed read");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one from the failed read");
         $this->assertSame(false,$cache->getStatusConnected(),"Cache should not be connected");
     }
 
@@ -366,7 +366,7 @@ not get hit until after this run has finished.
         $LiketestsSet->limitFields(["name"]);
         $LiketestsSet->attachCache($cache);
         $LiketestsSet->loadAll();
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one due to cache miss");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one due to cache miss");
         $cache->shutdown();
         $reply = $LiketestsSet->updateFieldInCollection("value","failme");
         $this->assertSame(false,$reply["status"],"bulk set value incorrectly");
@@ -378,7 +378,7 @@ not get hit until after this run has finished.
         $LiketestsSet->limitFields(["name"]);
         $LiketestsSet->attachCache($cache);
         $LiketestsSet->loadAll();
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should still be one due to the hit");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should still be one due to the hit");
         $cache->shutdown();
         $reply = $LiketestsSet->updateFieldInCollection("value","failme");
         $this->assertSame(false,$reply["status"],"bulk set value incorrectly");
@@ -400,7 +400,7 @@ not get hit until after this run has finished.
         $this->assertSame($sqlExpected,$testing->getLastSql(),"SQL is not what was expected");
         $this->assertSame("redpondblue 1",$testing->getName(),"Value is not set as expected");
         $this->assertSame(null,$testing->getValue(),"Value is not what is expected");
-        $this->assertSame(2, $sql->getSQLselectsCount(), "DB reads should be two due to the miss");
+        $this->assertSame(2, $sql->getSQLstats()["selects"], "DB reads should be two due to the miss");
         $cache->shutdown();
 
 
@@ -416,7 +416,7 @@ not get hit until after this run has finished.
         $this->assertSame($sqlExpected,$testing->getLastSql(),"SQL is not what was expected");
         $this->assertSame("redpondblue 1",$testing->getName(),"Value is not set as expected");
         $this->assertSame(null,$testing->getValue(),"Value is not what is expected");
-        $this->assertSame(2, $sql->getSQLselectsCount(), "DB reads should still be two due to the hit");
+        $this->assertSame(2, $sql->getSQLstats()["selects"], "DB reads should still be two due to the hit");
         $cache->shutdown();
     }
 
@@ -435,7 +435,7 @@ not get hit until after this run has finished.
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
         $this->assertSame($expectedSQL,$sql->getLastSql(),"SQL is not what was expected");
         $this->assertSame(4,$reply,"incorrect count reply");
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should be one due to the miss");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should be one due to the miss");
         $cache->shutdown();
 
         $cache = $this->getCache();
@@ -447,8 +447,18 @@ not get hit until after this run has finished.
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
         $this->assertSame($expectedSQL,$sql->getLastSql(),"SQL is not what was expected");
         $this->assertSame(4,$reply,"incorrect count reply");
-        $this->assertSame(1, $sql->getSQLselectsCount(), "DB reads should still be one due to the hit");
+        $this->assertSame(1, $sql->getSQLstats()["selects"], "DB reads should still be one due to the hit");
         $cache->shutdown();
+    }
+
+    /**
+     * @depends testCountinDb
+     */
+    public function testDirectReadWriteCache()
+    {
+        $cache = $this->getCache();
+        $this->assertSame(true,$cache->setKey("directAdd","magic",time()+120),"Failed to directly write a key");
+        $this->assertSame("magic",$cache->getKey("directAdd"),"Failed to directly read a key");
     }
 
 
