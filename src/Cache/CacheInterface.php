@@ -54,4 +54,18 @@ interface CacheInterface
      * @return mixed[] [id => [key => value,...], ...]
     */
     public function readHash(string $tableName, string $hash): ?array;
+
+    /**
+     * getKey
+     * Directly reads a key from cache avoiding the objects Hash system
+    */
+    public function getKey(string $key): ?string;
+
+    /**
+     * setKey
+     * Directly sets a key in the cache avoiding the objects Hash system
+     * this will bypass the last changed system, please dont use this with
+     * dbObjects or expect weirdness
+    */
+    public function setKey(string $key, string $value, int $expires_in_secs): bool;
 }

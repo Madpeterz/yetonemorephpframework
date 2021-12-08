@@ -31,6 +31,10 @@ class Disk extends Cache implements CacheInterface
 
     protected function hasKey(string $key): bool
     {
+        $bits = explode("/", $key);
+        if (count($bits) == 1) {
+            $key = $this->pathStarting . "/" . $key;
+        }
         if (in_array($key, $this->seenKeys) == true) {
             return true;
         }
@@ -53,12 +57,16 @@ class Disk extends Cache implements CacheInterface
         return true;
     }
 
-    protected function writeKeyReal(string $key, string $data, string $table, int $expiresUnixtime): bool
+    protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool
     {
         if ($this->deleteKey($key) == false) {
             return false;
         }
         $bits = explode("/", $key);
+        if (count($bits) == 1) {
+            $key = $this->pathStarting . "/" . $key;
+            $bits = [$this->pathStarting,$bits[0]];
+        }
         array_pop($bits);
         $ubit = "";
         $addon = "";
@@ -81,6 +89,10 @@ class Disk extends Cache implements CacheInterface
 
     protected function readKey(string $key): ?string
     {
+        $bits = explode("/", $key);
+        if (count($bits) == 1) {
+            $key = $this->pathStarting . "/" . $key;
+        }
         if ($this->hasKey($key) == true) {
             $this->addErrorlog("readKey: " . $key);
             return file_get_contents($key);

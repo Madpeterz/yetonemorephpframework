@@ -113,7 +113,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
                 $this->addErrorlog("Skipping writing: " . json_encode($dataset) . " version has changed");
                 continue; // skipped write, table changed from read
             }
-            $status = $this->writeKeyReal($dataset["key"], $dataset["data"], $dataset["table"], $dataset["expires"]);
+            $status = $this->writeKeyReal($dataset["key"], $dataset["data"], $dataset["expires"]);
             if ($status == false) {
                 $this->disconnected = true;
                 $this->addErrorlog("Marking cache as disconnected (failed to write)");
@@ -137,8 +137,8 @@ abstract class Cache extends CacheWorker implements CacheInterface
         }
         $this->addErrorlog("Warning calling forceWrite is a bad idea unless your in testing!");
         $key = $this->getkeyPath($tableName, $hash);
-        $this->writeKeyReal($key . ".dat", $data, $tableName, $expires);
-        $this->writeKeyReal($key . ".inf", $info, $tableName, $expires);
+        $this->writeKeyReal($key . ".dat", $data, $expires);
+        $this->writeKeyReal($key . ".inf", $info, $expires);
     }
 
     public function getChangeID(string $tableName): int

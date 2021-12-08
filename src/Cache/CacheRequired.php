@@ -31,9 +31,19 @@ abstract class CacheRequired
 
     abstract protected function hasKey(string $key): bool;
 
-    abstract protected function writeKeyReal(string $key, string $data, string $table, int $expiresUnixtime): bool;
+    abstract protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool;
 
     abstract protected function readKey(string $key): ?string;
 
     abstract protected function deleteKey(string $key): bool;
+
+    public function getKey(string $key): ?string
+    {
+        return $this->readKey($key);
+    }
+
+    public function setKey(string $key, string $value, int $unixtime): bool
+    {
+        return $this->writeKeyReal($key, $value, $unixtime);
+    }
 }

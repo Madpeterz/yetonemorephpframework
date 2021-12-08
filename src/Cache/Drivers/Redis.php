@@ -131,7 +131,7 @@ class Redis extends Cache implements CacheInterface
         return false;
     }
 
-    protected function writeKeyReal(string $key, string $data, string $table, int $expiresUnixtime): bool
+    protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool
     {
         if ($this->disconnected == true) {
             $this->addErrorlog("writeKeyReal: redis is marked is gone");
@@ -147,8 +147,7 @@ class Redis extends Cache implements CacheInterface
             $this->markConnected();
             return true;
         } catch (Exception $ex) {
-            $this->addErrorlog("Marking cache as disconnected (failed to write key) " . $ex->getMessage() . " Details\n Table: "
-            . $table . " Key: " . $key . " Data: " . $data);
+            $this->addErrorlog("Marking cache as disconnected (failed to write key) " . $ex->getMessage() . " Details\n Key: " . $key . " Data: " . $data);
             $this->disconnected = true;
         }
         return false;
