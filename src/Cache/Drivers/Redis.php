@@ -147,7 +147,8 @@ class Redis extends Cache implements CacheInterface
             $this->markConnected();
             return true;
         } catch (Exception $ex) {
-            $this->addErrorlog("Marking cache as disconnected (failed to write key) " . $ex->getMessage() . " Details\n Key: " . $key . " Data: " . $data);
+            $this->addErrorlog("Marking cache as disconnected (failed to write key) " .
+             $ex->getMessage() . " Details\n Key: " . $key . " Data: " . $data);
             $this->disconnected = true;
         }
         return false;
