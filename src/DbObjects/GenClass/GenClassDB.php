@@ -19,9 +19,9 @@ abstract class GenClassDB extends GenClassControl
         return $this->loadWithConfig($whereConfig);
     }
     /**
+     * @deprecated
      * loadOnField
-     * alias of loadByField
-     * loads a object that matchs in the DB on the field and value
+     * please use loadByField
      */
     public function loadOnField(string $field_name, $field_value): bool
     {
