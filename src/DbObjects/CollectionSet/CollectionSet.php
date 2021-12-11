@@ -22,17 +22,18 @@ abstract class CollectionSet extends CollectionSetBulk
     /**
      * @deprecated
      * loadIds
-     * Please use loadByValues
+     * Please use loadDataFromList
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadIds(array $ids, string $field = "id"): array
     {
-        return $this->loadByValues($ids, $field);
+        return $this->loadDataFromList($field, $ids);
     }
 
     /**
+     * @deprecated
      * loadByValues
-     * set ids_clean to false if you are unsure if there are repeated ids
+     * lease use loadDataFromList
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadByValues(array $ids, string $field = "id"): array
