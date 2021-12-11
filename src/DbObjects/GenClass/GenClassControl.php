@@ -34,6 +34,7 @@ abstract class GenClassControl extends SqlConnectedClass
     {
         return $this->disableUpdates;
     }
+
     public function noUpdates(): void
     {
         $this->disableUpdates = true;
