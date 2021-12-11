@@ -265,7 +265,7 @@ class ModelFactory extends GeneratorWriter
                 ucfirst($row_two["COLUMN_NAME"]) . 's(array $values): array';
                 $this->file_lines[] = '{';
                     $this->file_lines[] = [2];
-                    $this->file_lines[] = 'return $this->loadDataFromList("' . $row_two["COLUMN_NAME"] . '", $values);';
+                    $this->file_lines[] = 'return $this->loadIndexs("' . $row_two["COLUMN_NAME"] . '", $values);';
                 $this->file_lines[] = [1];
                 $this->file_lines[] = '}';
             }

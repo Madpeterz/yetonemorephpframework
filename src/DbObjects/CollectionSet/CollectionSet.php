@@ -21,24 +21,24 @@ abstract class CollectionSet extends CollectionSetBulk
     }
     /**
      * @deprecated
+     * @see loadDataFromList
      * loadIds
-     * Please use loadDataFromList
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadIds(array $ids, string $field = "id"): array
     {
-        return $this->loadDataFromList($field, $ids);
+        return $this->loadIndexs($field, $ids);
     }
 
     /**
      * @deprecated
+     * @see loadDataFromList
      * loadByValues
-     * lease use loadDataFromList
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadByValues(array $ids, string $field = "id"): array
     {
-        return $this->loadDataFromList($field, $ids);
+        return $this->loadIndexs($field, $ids);
     }
     /**
      * loadOnFields
@@ -248,14 +248,26 @@ abstract class CollectionSet extends CollectionSetBulk
         }
         return $this->processLoad($load_data);
     }
+
+
+
     /**
      * loadDataFromList
-     * using the magic of IN we load all objects
-     * with the selected field that their value matchs
-     * anything in the $values array
+     * @deprecated
+     * see class generated loadFrom{Fieldname}s function
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadDataFromList(string $fieldname = "id", array $values = []): array
+    {
+        return $this->loadIndexs($fieldname, $values);
+    }
+
+    /**
+     * loadIndexs
+     * returns where fieldname value for the row is IN $values
+     * @return mixed[] [status =>  bool, count => integer, message =>  string]
+     */
+    protected function loadIndexs(string $fieldname = "id", array $values = []): array
     {
         $this->makeWorker();
         $uids = [];
