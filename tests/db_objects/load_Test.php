@@ -109,14 +109,14 @@ class DbObjectsLoadTest extends TestCase
     public function testLoadSingleLoadExtendedTests()
     {
         $countto = new Counttoonehundo();
-        $result = $countto->loadOnField("id", 44);
+        $result = $countto->loadByField("id", 44);
         $this->assertSame($result, true);
         $countto = new Counttoonehundo();
         $countto->makedisabled();
-        $result = $countto->loadOnField("id", 44);
+        $result = $countto->loadByField("id", 44);
         $this->assertSame($result, false);
         $weird = new Weirdtable();
-        $result = $weird->loadOnField("weirdb", 3);
+        $result = $weird->loadByField("weirdb", 3);
         $this->assertSame($weird->getId(), null);
         $this->assertSame($result, false);
         $countto = new Counttoonehundo();
@@ -137,11 +137,11 @@ class DbObjectsLoadTest extends TestCase
     public function testLoadSetByIds()
     {
         $countto = new CounttoonehundoSet();
-        $result = $countto->loadByValues([1,2,3,4,5,6,7,8,9,19], "id");
+        $result = $countto->loadDataFromIds([1,2,3,4,5,6,7,8,9,19]);
         $this->assertSame($result["status"], true);
         $this->assertSame($result["count"], 10);
         $this->assertSame($result["message"], "ok");
-        $result = $countto->loadByValues([], "id");
+        $result = $countto->loadDataFromList("id",[]);
         $this->assertSame($result["status"], false);
         $this->assertSame($result["count"], 0);
         $this->assertSame($result["message"], "No ids sent!");
@@ -264,6 +264,5 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($sqlExpected,$testing->getLastSql(),"SQL is not what was expected");
         $this->assertSame("redpondblue 1",$testing->getName(),"Value is not set as expected");
         $this->assertSame(null,$testing->getValue(),"Value is not what is expected");
-
     }
 }

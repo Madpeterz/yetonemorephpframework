@@ -243,7 +243,7 @@ class CollectionSetTest extends TestCase
     public function testloadByValuesandGetFieldType()
     {
         $endoftest = new EndoftestemptySet();
-        $status = $endoftest->loadByValues([4]);
+        $status = $endoftest->loadDataFromList("id",[4]);
         $this->assertSame("ok", $status["message"]);
         $this->assertSame(true, $status["status"]);
         $this->assertSame(1, $status["count"]);
