@@ -261,7 +261,7 @@ class ModelFactory extends GeneratorWriter
                 $this->file_lines[] = '* loadDataFrom' . ucfirst($row_two["COLUMN_NAME"]) . 's';
                 $this->file_lines[] = '* @return mixed[] [status =>  bool, count => integer, message =>  string]';
                 $this->file_lines[] = "*/";
-                $this->file_lines[] = 'public function loadDataFrom' .
+                $this->file_lines[] = 'public function loadFrom' .
                 ucfirst($row_two["COLUMN_NAME"]) . 's(array $values): array';
                 $this->file_lines[] = '{';
                     $this->file_lines[] = [2];
