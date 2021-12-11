@@ -227,9 +227,9 @@ class ModelFactory extends GeneratorWriter
                 $functionSetup = '(' . $use_type . ' $' . $row_two["COLUMN_NAME"] . '): ' . $returnType . '';
                 if ($enableLimits == true) {
                     $functionSetup = '(
-        ' . $use_type . ' $' . $row_two["COLUMN_NAME"] . ', 
-        int $limit = 0, 
-        string $orderBy = "id", 
+        ' . $use_type . ' $' . $row_two["COLUMN_NAME"] . ',
+        int $limit = 0,
+        string $orderBy = "id",
         string $orderDir = "DESC"
     ): ' . $returnType;
                 }
