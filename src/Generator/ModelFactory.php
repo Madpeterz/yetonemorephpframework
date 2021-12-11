@@ -157,6 +157,7 @@ class ModelFactory extends GeneratorWriter
             $target_table,
             $results,
             "array",
+            true,
             true
         );
         $this->file_lines[] = [0];
@@ -206,7 +207,8 @@ class ModelFactory extends GeneratorWriter
         string $target_table,
         array $data_two,
         string $returnType = "bool",
-        bool $enableLimits = false
+        bool $enableLimits = false,
+        bool $includeListLoaders = false
     ): void {
         $this->file_lines[] = "// Loaders";
         foreach ($data_two as $row_two) {
@@ -251,6 +253,19 @@ class ModelFactory extends GeneratorWriter
                 }
                 $finalLine .= ');';
                 $this->file_lines[] = $finalLine;
+                $this->file_lines[] = [1];
+                $this->file_lines[] = '}';
+            }
+            if ($includeListLoaders == true) {
+                $this->file_lines[] = "/**";
+                $this->file_lines[] = '* loadDataFrom' . ucfirst($row_two["COLUMN_NAME"]) . 's';
+                $this->file_lines[] = '* @return mixed[] [status =>  bool, count => integer, message =>  string]';
+                $this->file_lines[] = "*/";
+                $this->file_lines[] = 'public function loadDataFrom' .
+                ucfirst($row_two["COLUMN_NAME"]) . 's(array $values): array';
+                $this->file_lines[] = '{';
+                    $this->file_lines[] = [2];
+                    $this->file_lines[] = 'return $this->loadDataFromList("' . $row_two["COLUMN_NAME"] . '", $values);';
                 $this->file_lines[] = [1];
                 $this->file_lines[] = '}';
             }
