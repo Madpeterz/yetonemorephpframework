@@ -242,7 +242,7 @@ class ModelFactory extends GeneratorWriter
                     $this->file_lines[] = $joined;
                     $this->file_lines[] = "*/";
                 }
-                $this->file_lines[] = $load_function . " { ";
+                $this->file_lines[] = $load_function . " {";
                 $this->file_lines[] = [2];
                 $finalLine = 'return $this->loadByField("' . $row_two["COLUMN_NAME"] . '", $' . $row_two["COLUMN_NAME"];
                 if ($enableLimits == true) {
