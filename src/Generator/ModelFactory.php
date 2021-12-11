@@ -244,14 +244,20 @@ class ModelFactory extends GeneratorWriter
                 }
                 $this->file_lines[] = $load_function . " {";
                 $this->file_lines[] = [2];
-                $finalLine = 'return $this->loadByField("' . $row_two["COLUMN_NAME"] . '", $' . $row_two["COLUMN_NAME"];
-                if ($enableLimits == true) {
-                    $finalLine .= ', $' . 'limit';
-                    $finalLine .= ', $' . 'orderBy';
-                    $finalLine .= ', $' . 'orderDir';
+                $this->file_lines[] = 'return $this->loadByField(';
+                $this->file_lines[] = [3];
+                $this->file_lines[] = '"' . $row_two["COLUMN_NAME"] . '", ';
+                if ($enableLimits == false) {
+                    $this->file_lines[] = '$' . $row_two["COLUMN_NAME"] . '';
                 }
-                $finalLine .= ');';
-                $this->file_lines[] = $finalLine;
+                if ($enableLimits == true) {
+                    $this->file_lines[] = '$' . $row_two["COLUMN_NAME"] . ', ';
+                    $this->file_lines[] = '$' . 'limit, ';
+                    $this->file_lines[] = '$' . 'orderBy, ';
+                    $this->file_lines[] = '$' . 'orderDir';
+                }
+                $this->file_lines[] = [2];
+                $this->file_lines[] =  ');';
                 $this->file_lines[] = [1];
                 $this->file_lines[] = '}';
             }
