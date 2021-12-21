@@ -21,7 +21,7 @@
         "php": ">=7.4",
         "guzzlehttp/guzzle": "^7.2",
         "predis/predis": "^1.1",
-        "madpeterz/yapfinputfilter": "^1.0"
+        "madpeterz/yapfcore": "^1.0"
     },
     "require-dev": {
         "slevomat/coding-standard": "^6.4",
