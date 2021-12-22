@@ -2,6 +2,4 @@ vendor/**
 composer.lock
 tmp/**
 .phpunit.result.cache
-src/Junk/Models/**
-src/Junk/Sets/**
 docs/coverage/**
