@@ -47,6 +47,15 @@ class CounttoonehundoSet extends CollectionSet
         return parent::current();
     }
     /**
+     * getUniqueIds
+     * returns unique values from the collection matching that field
+     * @return array<int>
+     */
+    public function getUniqueIds(): array
+    {
+        return parent::getUniqueArray("id");
+    }
+    /**
      * getUniqueCvalues
      * returns unique values from the collection matching that field
      * @return array<int>

@@ -47,6 +47,15 @@ class RelationtestingbSet extends CollectionSet
         return parent::current();
     }
     /**
+     * getUniqueIds
+     * returns unique values from the collection matching that field
+     * @return array<int>
+     */
+    public function getUniqueIds(): array
+    {
+        return parent::getUniqueArray("id");
+    }
+    /**
      * getUniqueExtended1s
      * returns unique values from the collection matching that field
      * @return array<string>
@@ -183,4 +192,11 @@ class RelationtestingbSet extends CollectionSet
         return $this->loadIndexs("extended3", $values);
     }
     // Related loaders
+    public function loadRelatedRelationtestinga(): RelationtestingaSet
+    {
+        $ids = $this->getUniqueIds();
+        $collection = new RelationtestingaSet();
+        $collection->loadFromLinkids($ids);
+        return $collection;
+    }
 }
