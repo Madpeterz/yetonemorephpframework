@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
 use YAPF\Junk\Models\Relationtestinga;
+use YAPF\Junk\Models\Relationtestingb;
 use YAPF\Junk\Models\Weirdtable;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 use YAPF\Junk\Sets\LiketestsSet;
@@ -280,5 +281,15 @@ class DbObjectsLoadTest extends TestCase
         $groupA->loadID(1);
         $groupB = $groupA->loadRelatedRelationtestingb();
         $this->assertSame(1, $groupB->getCount(), "Incorrect number of B loaded");
+
+        $A = new Relationtestinga();
+        $A->loadID(1);
+        $B = $A->loadRelatedRelationtestingb();
+        $this->assertSame(1, $B->getCount(), "Incorrect number of B loaded");
+
+        $B = new Relationtestingb();
+        $B->loadID(1);
+        $A = $B->loadRelatedRelationtestinga();
+        $this->assertSame(1, $A->getCount(), "Incorrect number of B loaded");
     }
 }
