@@ -92,7 +92,7 @@ class SetModelFactory extends SingleModelFactory
             if ($use_type == "str") {
                 $use_type = "string";
             }
-            $functionName = "getUnique" . ucfirst($row_two["COLUMN_NAME"]) . "s";
+            $functionName = "unique" . ucfirst($row_two["COLUMN_NAME"]) . "s";
             $this->file_lines[] = '/**';
             $this->file_lines[] = ' * ' . $functionName . '';
             $this->file_lines[] = ' * returns unique values from the collection matching that field';
@@ -101,7 +101,7 @@ class SetModelFactory extends SingleModelFactory
             $this->file_lines[] = 'public function ' . $functionName . '(): array';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
-            $this->file_lines[] = 'return parent::getUniqueArray("' . $row_two["COLUMN_NAME"] . '");';
+            $this->file_lines[] = 'return parent::uniqueArray("' . $row_two["COLUMN_NAME"] . '");';
             $this->file_lines[] = [1];
             $this->file_lines[] = '}';
         }
@@ -190,10 +190,10 @@ class SetModelFactory extends SingleModelFactory
             }
 
             $seenRelated[] = $targetclassname;
-            $this->file_lines[] = 'public function loadRelated' . $targetclass . '(): ' . $targetclassname . '';
+            $this->file_lines[] = 'public function fetchRelated' . $targetclass . 'Set(): ' . $targetclassname . '';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
-            $this->file_lines[] = '$ids = $this->getUnique' . $fromField . 's();';
+            $this->file_lines[] = '$ids = $this->unique' . $fromField . 's();';
             $this->file_lines[] = '$collection = new ' . $targetclassname . '();';
             $this->file_lines[] = '$collection->loadFrom' . $loadField . 's($ids);';
             $this->file_lines[] = 'return $collection;';

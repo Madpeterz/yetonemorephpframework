@@ -93,6 +93,7 @@ abstract class CollectionSet extends CollectionSetBulk
      * alias of loadOnField
      * uses one field to load from the database with
      * for full control please use the method loadWithConfig
+     * @deprecated public -> protected soon(TM)
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadByField(
@@ -108,6 +109,7 @@ abstract class CollectionSet extends CollectionSetBulk
      * loadOnField
      * uses one field to load from the database with
      * for full control please use the method loadWithConfig
+     * @deprecated public -> protected soon(TM)
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadOnField(
