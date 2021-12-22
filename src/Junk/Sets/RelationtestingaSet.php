@@ -156,7 +156,7 @@ class RelationtestingaSet extends CollectionSet
         return $this->loadIndexs("linkid", $values);
     }
     // Related loaders
-    public function fetchRelatedRelationtestingbSet(): RelationtestingbSet
+    public function relatedRelationtestingb(): RelationtestingbSet
     {
         $ids = $this->uniqueLinkids();
         $collection = new RelationtestingbSet();
