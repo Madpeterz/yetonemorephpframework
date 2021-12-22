@@ -269,27 +269,27 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame(null,$testing->getValue(),"Value is not what is expected");
     }
 
-    public function test_loadRelated()
+    public function test_fetchRelated()
     {
         $groupA = new RelationtestingaSet();
         $groupA->loadAll();
         $this->assertSame(2, $groupA->getCount(), "Incorrect number of A loaded");
-        $groupB = $groupA->loadRelatedRelationtestingb();
+        $groupB = $groupA->relatedRelationtestingb();
         $this->assertSame(2, $groupB->getCount(), "Incorrect number of B loaded");
 
         $groupA = new Relationtestinga();
         $groupA->loadID(1);
-        $groupB = $groupA->loadRelatedRelationtestingb();
+        $groupB = $groupA->relatedRelationtestingb();
         $this->assertSame(1, $groupB->getCount(), "Incorrect number of B loaded");
 
         $A = new Relationtestinga();
         $A->loadID(1);
-        $B = $A->loadRelatedRelationtestingb();
+        $B = $A->relatedRelationtestingb();
         $this->assertSame(1, $B->getCount(), "Incorrect number of B loaded");
 
         $B = new Relationtestingb();
         $B->loadID(1);
-        $A = $B->loadRelatedRelationtestinga();
+        $A = $B->relatedRelationtestinga();
         $this->assertSame(1, $A->getCount(), "Incorrect number of B loaded");
     }
 }

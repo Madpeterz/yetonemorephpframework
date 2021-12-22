@@ -243,7 +243,7 @@ class CollectionSetTest extends TestCase
     public function testloadByValuesandGetFieldType()
     {
         $endoftest = new EndoftestemptySet();
-        $status = $endoftest->loadDataFromList("id",[4]);
+        $status = $endoftest->loadFromIds([4]);
         $this->assertSame("ok", $status["message"]);
         $this->assertSame(true, $status["status"]);
         $this->assertSame(1, $status["count"]);
@@ -266,7 +266,7 @@ class CollectionSetTest extends TestCase
     {
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
-        $values = $countto->getUniqueCvalues();
+        $values = $countto->uniqueCvalues();
         $this->assertSame(count($values), 10, "Expected numbers are not correct");
     }
 }
