@@ -47,49 +47,49 @@ class AlltypestableSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueStringfields
+     * uniqueStringfields
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueStringfields(): array
+    public function uniqueStringfields(): array
     {
-        return parent::getUniqueArray("stringfield");
+        return parent::uniqueArray("stringfield");
     }
     /**
-     * getUniqueIntfields
+     * uniqueIntfields
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIntfields(): array
+    public function uniqueIntfields(): array
     {
-        return parent::getUniqueArray("intfield");
+        return parent::uniqueArray("intfield");
     }
     /**
-     * getUniqueFloatfields
+     * uniqueFloatfields
      * returns unique values from the collection matching that field
      * @return array<float>
      */
-    public function getUniqueFloatfields(): array
+    public function uniqueFloatfields(): array
     {
-        return parent::getUniqueArray("floatfield");
+        return parent::uniqueArray("floatfield");
     }
     /**
-     * getUniqueBoolfields
+     * uniqueBoolfields
      * returns unique values from the collection matching that field
      * @return array<bool>
      */
-    public function getUniqueBoolfields(): array
+    public function uniqueBoolfields(): array
     {
-        return parent::getUniqueArray("boolfield");
+        return parent::uniqueArray("boolfield");
     }
     // Loaders
     /**

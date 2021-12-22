@@ -47,40 +47,40 @@ class EndoftestwithupdatesSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueUsernames
+     * uniqueUsernames
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueUsernames(): array
+    public function uniqueUsernames(): array
     {
-        return parent::getUniqueArray("username");
+        return parent::uniqueArray("username");
     }
     /**
-     * getUniqueOldusernames
+     * uniqueOldusernames
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueOldusernames(): array
+    public function uniqueOldusernames(): array
     {
-        return parent::getUniqueArray("oldusername");
+        return parent::uniqueArray("oldusername");
     }
     /**
-     * getUniqueBanneds
+     * uniqueBanneds
      * returns unique values from the collection matching that field
      * @return array<bool>
      */
-    public function getUniqueBanneds(): array
+    public function uniqueBanneds(): array
     {
-        return parent::getUniqueArray("banned");
+        return parent::uniqueArray("banned");
     }
     // Loaders
     /**

@@ -47,31 +47,31 @@ class Twintables2Set extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueTitles
+     * uniqueTitles
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueTitles(): array
+    public function uniqueTitles(): array
     {
-        return parent::getUniqueArray("title");
+        return parent::uniqueArray("title");
     }
     /**
-     * getUniqueMessages
+     * uniqueMessages
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueMessages(): array
+    public function uniqueMessages(): array
     {
-        return parent::getUniqueArray("message");
+        return parent::uniqueArray("message");
     }
     // Loaders
     /**

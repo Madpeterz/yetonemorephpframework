@@ -47,31 +47,31 @@ class RelationtestingaSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueNames
+     * uniqueNames
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueNames(): array
+    public function uniqueNames(): array
     {
-        return parent::getUniqueArray("name");
+        return parent::uniqueArray("name");
     }
     /**
-     * getUniqueLinkids
+     * uniqueLinkids
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueLinkids(): array
+    public function uniqueLinkids(): array
     {
-        return parent::getUniqueArray("linkid");
+        return parent::uniqueArray("linkid");
     }
     // Loaders
     /**
@@ -156,9 +156,9 @@ class RelationtestingaSet extends CollectionSet
         return $this->loadIndexs("linkid", $values);
     }
     // Related loaders
-    public function loadRelatedRelationtestingb(): RelationtestingbSet
+    public function fetchRelatedRelationtestingbSet(): RelationtestingbSet
     {
-        $ids = $this->getUniqueLinkids();
+        $ids = $this->uniqueLinkids();
         $collection = new RelationtestingbSet();
         $collection->loadFromIds($ids);
         return $collection;

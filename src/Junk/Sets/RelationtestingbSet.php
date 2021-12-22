@@ -47,40 +47,40 @@ class RelationtestingbSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueExtended1s
+     * uniqueExtended1s
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueExtended1s(): array
+    public function uniqueExtended1s(): array
     {
-        return parent::getUniqueArray("extended1");
+        return parent::uniqueArray("extended1");
     }
     /**
-     * getUniqueExtended2s
+     * uniqueExtended2s
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueExtended2s(): array
+    public function uniqueExtended2s(): array
     {
-        return parent::getUniqueArray("extended2");
+        return parent::uniqueArray("extended2");
     }
     /**
-     * getUniqueExtended3s
+     * uniqueExtended3s
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueExtended3s(): array
+    public function uniqueExtended3s(): array
     {
-        return parent::getUniqueArray("extended3");
+        return parent::uniqueArray("extended3");
     }
     // Loaders
     /**
@@ -192,9 +192,9 @@ class RelationtestingbSet extends CollectionSet
         return $this->loadIndexs("extended3", $values);
     }
     // Related loaders
-    public function loadRelatedRelationtestinga(): RelationtestingaSet
+    public function fetchRelatedRelationtestingaSet(): RelationtestingaSet
     {
-        $ids = $this->getUniqueIds();
+        $ids = $this->uniqueIds();
         $collection = new RelationtestingaSet();
         $collection->loadFromLinkids($ids);
         return $collection;

@@ -82,7 +82,7 @@ class Relationtestingb extends genClass
             $extended3
         );
     }
-    public function loadRelatedRelationtestinga(): RelationtestingaSet
+    public function fetchRelatedRelationtestingaSet(): RelationtestingaSet
     {
         $ids = [$this->getId()];
         $collection = new RelationtestingaSet();

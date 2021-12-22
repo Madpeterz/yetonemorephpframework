@@ -47,31 +47,31 @@ class WeirdtableSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueWeirdas
+     * uniqueWeirdas
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueWeirdas(): array
+    public function uniqueWeirdas(): array
     {
-        return parent::getUniqueArray("weirda");
+        return parent::uniqueArray("weirda");
     }
     /**
-     * getUniqueWeirdbs
+     * uniqueWeirdbs
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueWeirdbs(): array
+    public function uniqueWeirdbs(): array
     {
-        return parent::getUniqueArray("weirdb");
+        return parent::uniqueArray("weirdb");
     }
     // Loaders
     /**

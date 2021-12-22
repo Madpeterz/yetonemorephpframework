@@ -47,22 +47,22 @@ class EndoftestwithfourentrysSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueValues
+     * uniqueValues
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueValues(): array
+    public function uniqueValues(): array
     {
-        return parent::getUniqueArray("value");
+        return parent::uniqueArray("value");
     }
     // Loaders
     /**

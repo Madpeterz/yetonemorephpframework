@@ -47,31 +47,31 @@ class RollbacktestSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueNames
+     * uniqueNames
      * returns unique values from the collection matching that field
      * @return array<string>
      */
-    public function getUniqueNames(): array
+    public function uniqueNames(): array
     {
-        return parent::getUniqueArray("name");
+        return parent::uniqueArray("name");
     }
     /**
-     * getUniqueValues
+     * uniqueValues
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueValues(): array
+    public function uniqueValues(): array
     {
-        return parent::getUniqueArray("value");
+        return parent::uniqueArray("value");
     }
     // Loaders
     /**

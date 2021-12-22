@@ -47,22 +47,22 @@ class CounttoonehundoSet extends CollectionSet
         return parent::current();
     }
     /**
-     * getUniqueIds
+     * uniqueIds
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueIds(): array
+    public function uniqueIds(): array
     {
-        return parent::getUniqueArray("id");
+        return parent::uniqueArray("id");
     }
     /**
-     * getUniqueCvalues
+     * uniqueCvalues
      * returns unique values from the collection matching that field
      * @return array<int>
      */
-    public function getUniqueCvalues(): array
+    public function uniqueCvalues(): array
     {
-        return parent::getUniqueArray("cvalue");
+        return parent::uniqueArray("cvalue");
     }
     // Loaders
     /**
