@@ -190,7 +190,7 @@ class SetModelFactory extends SingleModelFactory
             }
 
             $seenRelated[] = $targetclassname;
-            $this->file_lines[] = 'public function fetchRelated' . $targetclass . 'Set(): ' . $targetclassname . '';
+            $this->file_lines[] = 'public function related' . $targetclass . '(): ' . $targetclassname . '';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
             $this->file_lines[] = '$ids = $this->unique' . $fromField . 's();';
