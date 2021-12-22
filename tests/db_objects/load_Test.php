@@ -5,9 +5,11 @@ namespace YAPF\Junk;
 use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
+use YAPF\Junk\Models\Relationtestinga;
 use YAPF\Junk\Models\Weirdtable;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 use YAPF\Junk\Sets\LiketestsSet;
+use YAPF\Junk\Sets\RelationtestingaSet;
 use YAPF\Junk\Sets\Twintables1Set;
 use YAPF\Junk\Sets\WeirdtableSet;
 use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
@@ -264,5 +266,19 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($sqlExpected,$testing->getLastSql(),"SQL is not what was expected");
         $this->assertSame("redpondblue 1",$testing->getName(),"Value is not set as expected");
         $this->assertSame(null,$testing->getValue(),"Value is not what is expected");
+    }
+
+    public function test_loadRelated()
+    {
+        $groupA = new RelationtestingaSet();
+        $groupA->loadAll();
+        $this->assertSame(2, $groupA->getCount(), "Incorrect number of A loaded");
+        $groupB = $groupA->loadRelatedRelationtestingb();
+        $this->assertSame(2, $groupB->getCount(), "Incorrect number of B loaded");
+
+        $groupA = new Relationtestinga();
+        $groupA->loadID(1);
+        $groupB = $groupA->loadRelatedRelationtestingb();
+        $this->assertSame(1, $groupB->getCount(), "Incorrect number of B loaded");
     }
 }

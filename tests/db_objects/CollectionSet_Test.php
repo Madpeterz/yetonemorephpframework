@@ -262,4 +262,11 @@ class CollectionSetTest extends TestCase
         $this->assertSame($result["status"], true);
         $this->assertSame($countto->getCount(), 10);
     }
+    public function testGetUnique()
+    {
+        $countto = new CounttoonehundoSet();
+        $countto->loadAll();
+        $values = $countto->getUniqueCvalues();
+        $this->assertSame(count($values), 10, "Expected numbers are not correct");
+    }
 }
