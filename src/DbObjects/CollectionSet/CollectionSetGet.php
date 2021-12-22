@@ -95,9 +95,9 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      * getUniqueArray
      * gets a Unique array of values based on field_name from
      * the objects.
-     * @return mixed[] [value,...]
+     * @return array<mixed>
      */
-    public function getUniqueArray(string $field_name): array
+    protected function getUniqueArray(string $field_name): array
     {
         $found_values = [];
         $function = "get" . ucfirst($field_name);
