@@ -18,7 +18,6 @@ abstract class ModelFactoryShared
     protected string $table = "";
     protected array $cols = [];
     protected array $links = [];
-    protected array $headerPatcher = [];
     protected bool $addDbToTable = false;
 
     public function __construct(

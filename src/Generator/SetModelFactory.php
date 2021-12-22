@@ -83,9 +83,6 @@ class SetModelFactory extends SingleModelFactory
         $this->file_lines[] = '}';
 
         foreach ($this->cols as $row_two) {
-            if ($row_two["COLUMN_NAME"] == "id") {
-                continue;
-            }
             $use_type = $this->getColType(
                 $row_two["DATA_TYPE"],
                 $row_two["COLUMN_TYPE"],
@@ -171,19 +168,34 @@ class SetModelFactory extends SingleModelFactory
         $this->file_lines[] = '// Related loaders';
         $seenRelated = [];
         foreach ($this->links as $id => $entry) {
-            $targetclass = ucfirst(strtolower($entry["target_table"]));
+            $targetclass = "";
+            $fromField = "";
+            $loadField = "";
+            if ($entry["source_table"] == $this->table) {
+                $targetclass = ucfirst(strtolower($entry["target_table"]));
+                $fromField = ucfirst($entry["source_field"]);
+                $loadField = ucfirst($entry["target_field"]);
+            } elseif ($entry["target_table"] == $this->table) {
+                $targetclass = ucfirst(strtolower($entry["source_table"]));
+                $fromField = ucfirst($entry["target_field"]);
+                $loadField = ucfirst($entry["source_field"]);
+            }
+            if ($targetclass == "") {
+                continue;
+            }
+
             $targetclassname =  $targetclass . "Set";
             if (in_array($targetclassname, $seenRelated) == true) {
                 continue;
             }
+
             $seenRelated[] = $targetclassname;
-            $idsFetcher = '$this->getUnique' . ucFirst($entry["field_source"]) . 's();';
             $this->file_lines[] = 'public function loadRelated' . $targetclass . '(): ' . $targetclassname . '';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
-            $this->file_lines[] = '$ids = ' . $idsFetcher;
+            $this->file_lines[] = '$ids = $this->getUnique' . $fromField . 's();';
             $this->file_lines[] = '$collection = new ' . $targetclassname . '();';
-            $this->file_lines[] = '$collection->loadFrom' . ucfirst($entry["field_target"]) . 's($ids);';
+            $this->file_lines[] = '$collection->loadFrom' . $loadField . 's($ids);';
             $this->file_lines[] = 'return $collection;';
             $this->file_lines[] = [1];
             $this->file_lines[] = '}';

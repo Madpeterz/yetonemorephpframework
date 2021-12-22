@@ -39,6 +39,110 @@ class DbObjectsFactory extends ModelFactory
             }
         }
     }
+
+    /**
+     * getDBForeignKeys
+     * @return array<mixed>
+     */
+    protected function getDBForeignKeys(string $target_database): array
+    {
+        $where_config = [
+            "fields" => ["TABLE_SCHEMA","CONSTRAINT_TYPE"],
+            "matches" => ["=","="],
+            "values" => [$target_database,"FOREIGN KEY"],
+            "types" => ["s","s"],
+        ];
+        $basic_config = [
+            "table" => "information_schema.table_constraints",
+            "fields" => ["CONSTRAINT_NAME","TABLE_NAME"],
+        ];
+        return $this->sql->selectV2($basic_config, null, $where_config);
+    }
+
+    /**
+     * getDbFkInfo
+     * @return array<mixed>
+     */
+    protected function getDbFkInfo(string $target_database, array $fknames): array
+    {
+        $where_config = [
+            "fields" => ["N_COLS","ID","FOR_NAME"],
+            "matches" => ["=","IN","LIKE %"],
+            "values" => [1,$fknames,$target_database],
+            "types" => ["i","s","s"],
+        ];
+        $basic_config = [
+            "table" => "information_schema.INNODB_SYS_FOREIGN",
+            "fields" => ["ID","REF_NAME"],
+        ];
+
+        return $this->sql->selectV2($basic_config, null, $where_config);
+    }
+
+    /**
+     * getDbFkColInfo
+     * @return array<mixed>
+     */
+    protected function getDbFkColInfo(array $bnames): array
+    {
+        $where_config = [
+            "fields" => ["ID"],
+            "matches" => ["IN"],
+            "values" => [$bnames],
+            "types" => ["s"],
+        ];
+        $basic_config = [
+            "table" => "information_schema.INNODB_SYS_FOREIGN_COLS",
+            "fields" => ["ID","FOR_COL_NAME","REF_COL_NAME"],
+        ];
+        return $this->sql->selectV2($basic_config, null, $where_config);
+    }
+
+    /**
+     * createRelatedLoaders
+     * @return array<string>
+     */
+    protected function getLinks(string $target_database): array
+    {
+        $fk = $this->getDBForeignKeys($target_database);
+        $fknames = [];
+        $fkname2table = [];
+        foreach ($fk["dataset"] as $entry) {
+            $fname = $target_database . "/" . $entry["CONSTRAINT_NAME"];
+            $fknames[] = $fname;
+            $fkname2table[$fname] = $entry["TABLE_NAME"];
+        }
+        if (count($fknames) == 0) {
+            return [];
+        }
+        $packet = [];
+        $fkinfo = $this->getDbFkInfo($target_database, $fknames);
+        $bnames = [];
+        foreach ($fkinfo["dataset"] as $entry) {
+            // "ID","REF_NAME"
+            $bits = explode("/", $entry["REF_NAME"]);
+            if ($bits[0] == $target_database) {
+                $bnames[] = $entry["ID"];
+                $packet[$entry["ID"]] = [
+                    "source_table" => $fkname2table[$entry["ID"]],
+                    "source_field" => "",
+                    "target_table" => $bits[1],
+                    "target_field" => "",
+                ];
+            }
+        }
+        $fkcolinfo = $this->getDbFkColInfo($bnames);
+        foreach ($fkcolinfo["dataset"] as $entry) {
+            $id = $entry["ID"];
+            if (array_key_exists($id, $packet) == false) {
+                continue;
+            }
+            $packet[$id]["source_field"] = $entry["FOR_COL_NAME"];
+            $packet[$id]["target_field"] = $entry["REF_COL_NAME"];
+        }
+        return $packet;
+    }
+
     public function processDatabaseTables(string $target_database): void
     {
         global $GEN_SELECTED_TABLES_ONLY;
@@ -75,6 +179,7 @@ class DbObjectsFactory extends ModelFactory
             $this->addError(__FILE__, __FUNCTION__, $error_msg);
             return;
         }
+        $links = $this->getLinks($target_database);
         foreach ($results["dataset"] as $row) {
             $process = true;
             if (isset($GEN_SELECTED_TABLES_ONLY) == true) {
@@ -83,7 +188,7 @@ class DbObjectsFactory extends ModelFactory
                 }
             }
             if ($process == true) {
-                $this->createFromTable($target_database, $row["TABLE_NAME"]);
+                $this->createFromTable($target_database, $row["TABLE_NAME"], $links);
             } else {
                 if ($this->console_output == true) {
                     echo "Skipped table: " . $row["TABLE_NAME"] . "\n";
