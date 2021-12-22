@@ -6,7 +6,13 @@ class ModelFactory extends GeneratorWriter
 {
     protected function createFromTable(string $database, string $table, array $fkLink): void
     {
-
+        if ($this->use_output == true) {
+            if ($this->console_output == true) {
+                echo "Table: " . $table . " ~ ";
+            } else {
+                echo "<td>" . $table . "</td>";
+            }
+        }
         $cols = $this->getTableColumns($database, $table);
         if ($this->use_output == true) {
             if ($this->console_output == true) {
@@ -20,6 +26,11 @@ class ModelFactory extends GeneratorWriter
             }
         }
         $this->createSet($database, $table, $cols, $fkLink);
+        if ($this->use_output == true) {
+            if ($this->console_output == true) {
+                echo "\n";
+            }
+        }
     }
 
     protected function createSet(string $database, string $table, array $cols, array $links): void
