@@ -10,7 +10,7 @@ class ModelFactory extends GeneratorWriter
             if ($this->console_output == true) {
                 echo "Table: " . $table . " ~ ";
             } else {
-                echo "<td>" . $table . "</td>";
+                $this->output .= "<td>" . $table . "</td>";
             }
         }
         $cols = $this->getTableColumns($database, $table);

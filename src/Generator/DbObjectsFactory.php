@@ -108,7 +108,7 @@ class DbObjectsFactory extends ModelFactory
         $fknames = [];
         $fkname2table = [];
         foreach ($fk["dataset"] as $entry) {
-            $fname = $target_database . "/" . $entry["CONSTRAINT_NAME"];
+            $fname = strtolower($target_database . "/" . $entry["CONSTRAINT_NAME"]);
             $fknames[] = $fname;
             $fkname2table[$fname] = $entry["TABLE_NAME"];
         }
@@ -120,7 +120,8 @@ class DbObjectsFactory extends ModelFactory
         $bnames = [];
         foreach ($fkinfo["dataset"] as $entry) {
             // "ID","REF_NAME"
-            if (array_key_exists($entry["ID"], $fkname2table) == false) {
+            $idme = strtolower($entry["ID"]);
+            if (array_key_exists($idme, $fkname2table) == false) {
                 continue;
             }
             $bits = explode("/", $entry["REF_NAME"]);
@@ -128,7 +129,7 @@ class DbObjectsFactory extends ModelFactory
                 continue;
             }
             $bnames[] = $entry["ID"];
-            $packet[$entry["ID"]] = [
+            $packet[$idme] = [
                 "source_table" => $fkname2table[$entry["ID"]],
                 "source_field" => "",
                 "target_table" => $bits[1],
@@ -137,12 +138,12 @@ class DbObjectsFactory extends ModelFactory
         }
         $fkcolinfo = $this->getDbFkColInfo($bnames);
         foreach ($fkcolinfo["dataset"] as $entry) {
-            $id = $entry["ID"];
-            if (array_key_exists($id, $packet) == false) {
+            $idme = strtolower($entry["ID"]);
+            if (array_key_exists($idme, $packet) == false) {
                 continue;
             }
-            $packet[$id]["source_field"] = $entry["FOR_COL_NAME"];
-            $packet[$id]["target_field"] = $entry["REF_COL_NAME"];
+            $packet[$idme]["source_field"] = $entry["FOR_COL_NAME"];
+            $packet[$idme]["target_field"] = $entry["REF_COL_NAME"];
         }
         return $packet;
     }
