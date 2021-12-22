@@ -130,7 +130,7 @@ class DbObjectsFactory extends ModelFactory
             }
             $bnames[] = $entry["ID"];
             $packet[$idme] = [
-                "source_table" => $fkname2table[$entry["ID"]],
+                "source_table" => $fkname2table[$idme],
                 "source_field" => "",
                 "target_table" => $bits[1],
                 "target_field" => "",
