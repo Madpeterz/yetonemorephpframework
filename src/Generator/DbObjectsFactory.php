@@ -120,16 +120,20 @@ class DbObjectsFactory extends ModelFactory
         $bnames = [];
         foreach ($fkinfo["dataset"] as $entry) {
             // "ID","REF_NAME"
-            $bits = explode("/", $entry["REF_NAME"]);
-            if ($bits[0] == $target_database) {
-                $bnames[] = $entry["ID"];
-                $packet[$entry["ID"]] = [
-                    "source_table" => $fkname2table[$entry["ID"]],
-                    "source_field" => "",
-                    "target_table" => $bits[1],
-                    "target_field" => "",
-                ];
+            if (array_key_exists($entry["ID"], $fkname2table) == false) {
+                continue;
             }
+            $bits = explode("/", $entry["REF_NAME"]);
+            if ($bits[0] != $target_database) {
+                continue;
+            }
+            $bnames[] = $entry["ID"];
+            $packet[$entry["ID"]] = [
+                "source_table" => $fkname2table[$entry["ID"]],
+                "source_field" => "",
+                "target_table" => $bits[1],
+                "target_field" => "",
+            ];
         }
         $fkcolinfo = $this->getDbFkColInfo($bnames);
         foreach ($fkcolinfo["dataset"] as $entry) {
