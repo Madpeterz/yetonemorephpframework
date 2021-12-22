@@ -41,6 +41,9 @@
         "dev-test-cache": [
             "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite cache "
         ],
+        "dev-test-gen": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite gen "
+        ],
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
         "phpunit": "phpunit"
