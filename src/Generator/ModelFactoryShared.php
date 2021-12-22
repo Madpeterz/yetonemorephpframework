@@ -44,7 +44,6 @@ abstract class ModelFactoryShared
 
     public function createNow(): void
     {
-        $this->createLinks();
         $this->createModelHeader();
         $this->createModelDataset();
         $this->createModelSetters();
@@ -83,27 +82,6 @@ abstract class ModelFactoryShared
     public function getLines(): array
     {
         return $this->file_lines;
-    }
-
-        /**
-     * createLinks
-     * @return array<array<mixed>>
-     */
-    protected function createLinks(): void
-    {
-        $seenRelated = [];
-        foreach ($this->links as $id => $entry) {
-            if ($entry["good"] == false) {
-                continue;
-            }
-            $targetclass = ucfirst(strtolower($entry["target_table"]));
-            $targetclassname =  $targetclass . "Set";
-            if (in_array($targetclassname, $seenRelated) == true) {
-                continue;
-            }
-            $seenRelated[] = $targetclassname;
-            $this->headerPatcher[] = $targetclassname;
-        }
     }
 
    /**
