@@ -83,7 +83,7 @@ class DbObjectsFactory extends ModelFactory
                 }
             }
             if ($process == true) {
-                $this->CreateModel($row["TABLE_NAME"], $target_database);
+                $this->createFromTable($target_database, $row["TABLE_NAME"]);
             } else {
                 if ($this->console_output == true) {
                     echo "Skipped table: " . $row["TABLE_NAME"] . "\n";
