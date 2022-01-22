@@ -43,6 +43,7 @@ class GeneratorWriter extends GeneratorDefaults
         $this->counter_models_failed++;
 
         $status = file_put_contents($create_file, $file_content);
+        usleep((10 * 0.001) * 10000);  // wait for 100ms for the disk to finish
 
         if ($status !== false) {
             $this->counter_models_failed--;
