@@ -47,54 +47,17 @@ class DbObjectsFactory extends ModelFactory
     protected function getDBForeignKeys(string $target_database): array
     {
         $where_config = [
-            "fields" => ["TABLE_SCHEMA","CONSTRAINT_TYPE"],
-            "matches" => ["=","="],
-            "values" => [$target_database,"FOREIGN KEY"],
-            "types" => ["s","s"],
-        ];
-        $basic_config = [
-            "table" => "information_schema.TABLE_CONSTRAINTS",
-            "fields" => ["CONSTRAINT_NAME","TABLE_NAME"],
-        ];
-        return $this->sql->selectV2($basic_config, null, $where_config);
-    }
-
-    /**
-     * getDbFkInfo
-     * @return array<mixed>
-     */
-    protected function getDbFkInfo(string $target_database, array $fknames): array
-    {
-        $where_config = [
-            "fields" => ["N_COLS","ID","FOR_NAME"],
-            "matches" => ["=","IN","LIKE %"],
-            "values" => [1,$fknames,$target_database],
-            "types" => ["i","s","s"],
-        ];
-        $basic_config = [
-            "table" => "information_schema.INNODB_SYS_FOREIGN",
-            "fields" => ["ID","REF_NAME"],
+            "fields" => ["REFERENCED_TABLE_NAME","TABLE_SCHEMA","REFERENCED_TABLE_SCHEMA"],
+            "values" => [null,$target_database,$target_database],
+            "matches" => ["IS NOT","=","="],
+            "types" => ["s","s","s"],
         ];
 
-        return $this->sql->selectV2($basic_config, null, $where_config);
-    }
-
-    /**
-     * getDbFkColInfo
-     * @return array<mixed>
-     */
-    protected function getDbFkColInfo(array $bnames): array
-    {
-        $where_config = [
-            "fields" => ["ID"],
-            "matches" => ["IN"],
-            "values" => [$bnames],
-            "types" => ["s"],
-        ];
         $basic_config = [
-            "table" => "information_schema.INNODB_SYS_FOREIGN_COLS",
-            "fields" => ["ID","FOR_COL_NAME","REF_COL_NAME"],
+            "table" => "INFORMATION_SCHEMA.KEY_COLUMN_USAGE",
+            "fields" => ["TABLE_NAME","COLUMN_NAME","REFERENCED_COLUMN_NAME","REFERENCED_TABLE_NAME"],
         ];
+
         return $this->sql->selectV2($basic_config, null, $where_config);
     }
 
@@ -105,45 +68,19 @@ class DbObjectsFactory extends ModelFactory
     protected function getLinks(string $target_database): array
     {
         $fk = $this->getDBForeignKeys($target_database);
-        $fknames = [];
-        $fkname2table = [];
-        foreach ($fk["dataset"] as $entry) {
-            $fname = strtolower($target_database . "/" . $entry["CONSTRAINT_NAME"]);
-            $fknames[] = $fname;
-            $fkname2table[$fname] = $entry["TABLE_NAME"];
-        }
-        if (count($fknames) == 0) {
-            return [];
-        }
+
         $packet = [];
-        $fkinfo = $this->getDbFkInfo($target_database, $fknames);
-        $bnames = [];
-        foreach ($fkinfo["dataset"] as $entry) {
-            // "ID","REF_NAME"
-            $idme = strtolower($entry["ID"]);
-            if (array_key_exists($idme, $fkname2table) == false) {
+        foreach ($fk["dataset"] as $entry) {
+            $idme = strtolower($entry["TABLE_NAME"] . $entry["COLUMN_NAME"]);
+            if (array_key_exists($idme, $packet) == true) {
                 continue;
             }
-            $bits = explode("/", $entry["REF_NAME"]);
-            if ($bits[0] != $target_database) {
-                continue;
-            }
-            $bnames[] = $entry["ID"];
-            $packet[$idme] = [
-                "source_table" => $fkname2table[$idme],
-                "source_field" => "",
-                "target_table" => $bits[1],
-                "target_field" => "",
+            $packet[] = [
+                "source_table" => $entry["TABLE_NAME"],
+                "source_field" => $entry["COLUMN_NAME"],
+                "target_table" => $entry["REFERENCED_TABLE_NAME"],
+                "target_field" => $entry["REFERENCED_COLUMN_NAME"],
             ];
-        }
-        $fkcolinfo = $this->getDbFkColInfo($bnames);
-        foreach ($fkcolinfo["dataset"] as $entry) {
-            $idme = strtolower($entry["ID"]);
-            if (array_key_exists($idme, $packet) == false) {
-                continue;
-            }
-            $packet[$idme]["source_field"] = $entry["FOR_COL_NAME"];
-            $packet[$idme]["target_field"] = $entry["REF_COL_NAME"];
         }
         return $packet;
     }

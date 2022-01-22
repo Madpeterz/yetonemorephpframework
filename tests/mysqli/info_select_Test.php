@@ -19,19 +19,19 @@ class MysqliTestInfoSchema extends TestCase
     }
     public function testReadFromInformationSchema()
     {
-        $basic_config = [
-            "table" => "information_schema.INNODB_SYS_FOREIGN",
-            "fields" => ["ID","REF_NAME"],
+        $where_config = [
+            "fields" => ["REFERENCED_TABLE_NAME"],
+            "values" => [null],
+            "matches" => ["IS NOT"],
+            "types" => ["s"],
         ];
-        
-        $results = $this->sql->selectV2($basic_config, null);
-        $this->assertSame(true,$results["status"], "Unable to read from table with query: ".$this->sql->lastSql);
 
         $basic_config = [
-            "table" => "information_schema.INNODB_SYS_FOREIGN_COLS",
-            "fields" => ["ID","FOR_COL_NAME","REF_COL_NAME"],
+            "table" => "INFORMATION_SCHEMA.KEY_COLUMN_USAGE",
+            "fields" => ["TABLE_NAME","COLUMN_NAME","REFERENCED_COLUMN_NAME","REFERENCED_TABLE_NAME"],
         ];
-        $results = $this->sql->selectV2($basic_config);
+
+        $results = $this->sql->selectV2($basic_config, null, $where_config);
         $this->assertSame(true,$results["status"], "Unable to read from table with query: ".$this->sql->lastSql);
     }
 }
