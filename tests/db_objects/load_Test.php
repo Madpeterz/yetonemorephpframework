@@ -144,7 +144,7 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($result["status"], true);
         $this->assertSame($result["count"], 10);
         $this->assertSame($result["message"], "ok");
-        $result = $countto->loadDataFromList("id",[]);
+        $result = $countto->loadFromIds([]);
         $this->assertSame($result["status"], false);
         $this->assertSame($result["count"], 0);
         $this->assertSame($result["message"], "No ids sent!");
@@ -162,7 +162,7 @@ class DbObjectsLoadTest extends TestCase
     public function testLoadSetloadByField()
     {
         $countto = new CounttoonehundoSet();
-        $result = $countto->loadByField("cvalue", 32);
+        $result = $countto->loadByCvalue(32);
         $this->assertSame($result["status"], true);
         $this->assertSame($result["count"], 10);
         $this->assertSame($result["message"], "ok");
