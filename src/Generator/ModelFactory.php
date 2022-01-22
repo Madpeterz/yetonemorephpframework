@@ -51,6 +51,7 @@ class ModelFactory extends GeneratorWriter
         $filename = $class_name . "Set.php";
 
         $this->writeFile($this->lines2text($set->getLines()), $filename, $GEN_SAVE_SET_MODELS_TO);
+        $this->counter_models_related_actions += $set->getRelatedCounter();
     }
 
     protected function createSingle(string $database, string $table, array $cols, array $links): void
@@ -72,6 +73,7 @@ class ModelFactory extends GeneratorWriter
         $filename = $class_name . ".php";
 
         $this->writeFile($this->lines2text($single->getLines()), $filename, $GEN_SAVE_MODELS_TO);
+        $this->counter_models_related_actions += $single->getRelatedCounter();
     }
 
     /**

@@ -55,6 +55,7 @@ class GeneratorTest extends TestCase
         $this->assertSame($this->db_objects_factory->getLastErrorBasic(), "");
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
         $this->assertSame($this->db_objects_factory->getModelsCreated(), 26);
+        $this->assertSame($this->db_objects_factory->getTotalRelatedActions(), 4);
         $this->assertSame($this->db_objects_factory->getOutput(), "");
     }
 
@@ -68,6 +69,7 @@ class GeneratorTest extends TestCase
         $this->assertSame($this->db_objects_factory->getLastErrorBasic(), "");
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
         $this->assertSame($this->db_objects_factory->getModelsCreated(), 26);
+        $this->assertSame($this->db_objects_factory->getTotalRelatedActions(), 4);
         $this->assertGreaterThan(0, strlen($this->db_objects_factory->getOutput()));
     }
 

@@ -4,10 +4,14 @@ namespace YAPF\Generator;
 
 class SingleModelFactory extends ModelFactoryShared
 {
-
+    public function getRelatedCounter(): int
+    {
+        return count($this->seenRelated);
+    }
+    protected array $seenRelated = [];
     protected function createRelatedLoaders(): void
     {
-        $seenRelated = [];
+        $this->seenRelated = [];
 
         /*
                 $packet[$entry["ID"]] = [
@@ -35,11 +39,11 @@ class SingleModelFactory extends ModelFactoryShared
             }
 
             $targetclassname =  $targetclass . "Set";
-            if (in_array($targetclassname, $seenRelated) == true) {
+            if (in_array($targetclassname, $this->seenRelated) == true) {
                 continue;
             }
 
-            $seenRelated[] = $targetclassname;
+            $this->seenRelated[] = $targetclassname;
             $this->file_lines[] = 'public function related' . $targetclass . '(): ' . $targetclassname . '';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];

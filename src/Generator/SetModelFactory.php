@@ -166,7 +166,7 @@ class SetModelFactory extends SingleModelFactory
     protected function createRelatedLoaders(): void
     {
         $this->file_lines[] = '// Related loaders';
-        $seenRelated = [];
+        $this->seenRelated = [];
         foreach ($this->links as $id => $entry) {
             $targetclass = "";
             $fromField = "";
@@ -185,11 +185,11 @@ class SetModelFactory extends SingleModelFactory
             }
 
             $targetclassname =  $targetclass . "Set";
-            if (in_array($targetclassname, $seenRelated) == true) {
+            if (in_array($targetclassname, $this->seenRelated) == true) {
                 continue;
             }
 
-            $seenRelated[] = $targetclassname;
+            $this->seenRelated[] = $targetclassname;
             $this->file_lines[] = 'public function related' . $targetclass . '(): ' . $targetclassname . '';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
