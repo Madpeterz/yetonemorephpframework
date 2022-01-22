@@ -53,7 +53,7 @@ class DbObjectsFactory extends ModelFactory
             "types" => ["s","s"],
         ];
         $basic_config = [
-            "table" => "information_schema.table_constraints",
+            "table" => "information_schema.TABLE_CONSTRAINTS",
             "fields" => ["CONSTRAINT_NAME","TABLE_NAME"],
         ];
         return $this->sql->selectV2($basic_config, null, $where_config);
