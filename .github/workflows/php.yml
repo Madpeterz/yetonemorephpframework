@@ -23,6 +23,8 @@ jobs:
       - name: Set up MySQL
         uses: haltuf/mysql-action@master
         with:
+          mysql variant: 'mariadb'
+          mysql version: '10.4'
           host port: 3306 # mysql default port
           mysql root password: ''
           mysql database: 'test'

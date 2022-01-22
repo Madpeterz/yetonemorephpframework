@@ -168,7 +168,7 @@ class DbObjectsFactory extends ModelFactory
             "types" => ["s"],
         ];
         $basic_config = [
-            "table" => "information_schema.tables",
+            "table" => "information_schema.TABLES",
             "fields" => ["TABLE_NAME"],
         ];
         $results = $this->sql->selectV2($basic_config, null, $where_config);
