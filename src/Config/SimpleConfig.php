@@ -39,7 +39,7 @@ class SimpleConfig extends ErrorLogging
 
     public function __construct()
     {
-        if (class_exists("App\\Db", false) == false) {
+        if (class_exists("App\\Db", true) == false) {
             $offline = [
                 "status" => 0,
                 "message" => "- Service offline -<br/> DB config missing",
