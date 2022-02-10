@@ -2,6 +2,7 @@
 
 namespace YAPF\Config;
 
+use YAPF\Cache\Cache;
 use YAPF\Cache\Drivers\Disk;
 use YAPF\Cache\Drivers\Redis;
 use YAPF\Core\ErrorControl\ErrorLogging;
@@ -111,13 +112,23 @@ class SimpleConfig extends ErrorLogging
         $this->disk_cache_folder = $folder;
     }
 
-    public function startCache(): void
+    public function setupCache(): void
     {
         $this->Cache = null;
         if ($this->use_redis_cache == true) {
             $this->startRedisCache();
         } elseif ($this->use_disk_cache == true) {
             $this->startDiskCache();
+        }
+        return;
+    }
+
+    public function startCache(): void
+    {
+        if ($this->use_redis_cache == true) {
+            $this->Cache->start(false);
+        } elseif ($this->use_disk_cache == true) {
+            $this->Cache->start(true);
         }
         return;
     }
@@ -135,6 +146,6 @@ class SimpleConfig extends ErrorLogging
 
     protected function startDiskCache(): void
     {
-        $this->Cache = new Disk($this->rootfolder . "/" . $this->disk_cache_folder);
+        $this->Cache = new Disk($this->disk_cache_folder);
     }
 }
