@@ -1,6 +1,0 @@
-vendor/**
-composer.lock
-tmp/**
-.phpunit.result.cache
-docs/coverage/**
-src/Junk/**
