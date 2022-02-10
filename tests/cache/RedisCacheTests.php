@@ -176,7 +176,6 @@ not get hit until after this run has finished.
         ];
         $this->assertSame(true, $cache->cacheVaild("test.counttoonehundo", $hashid), "Exepected entry is missing");
         $reply = $cache->readHash("test.counttoonehundo", $hashid);
-        $cache->enableErrorLog();
         $cache->forceWrite(
             "test.counttoonehundo",
             $hashid,
@@ -184,7 +183,6 @@ not get hit until after this run has finished.
             json_encode($reply),
             time() + 1
         );
-        error_log("testing: ".$cache->getCacheUTimeID());
         $cache->shutdown();
         sleep(2);
 
@@ -195,8 +193,6 @@ not get hit until after this run has finished.
         $this->assertSame(0, $system->getSQL()->getSQLstats()["selects"], "DB reads should be zero");
         $countto = new CounttoonehundoSet();
         $countto->attachCache($cache);
-        
-        error_log("testing: ".$cache->getCacheUTimeID());
         $countto->loadNewest(1);
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "DB reads should be one");
     }
