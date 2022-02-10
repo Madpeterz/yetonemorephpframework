@@ -35,7 +35,6 @@ class SimpleConfig extends ErrorLogging
 
     // SQL connection
     protected ?MysqliEnabled $sql = null;
-    protected bool $systemDown = false;
 
     public function __construct()
     {
@@ -50,19 +49,19 @@ class SimpleConfig extends ErrorLogging
 
     public function shutdown(): void
     {
+        $this->sql->shutdown();
         $this->sql = null;
-        $this->systemDown = true;
+        $this->enableRestart = false;
     }
 
+    protected bool $enableRestart = true;
     /*
         SQL functions
     */
     public function &getSQL(): ?MysqliEnabled
     {
-        if ($this->systemDown == false) {
-            if ($this->sql == null) {
-                $this->sql = new MysqliEnabled();
-            }
+        if (($this->sql == null) && ($this->enableRestart == true)) {
+            $this->sql = new MysqliEnabled();
         }
         return $this->sql;
     }
@@ -72,6 +71,12 @@ class SimpleConfig extends ErrorLogging
     */
     public function &getCacheDriver(): ?Cache
     {
+        if (($this->Cache == null) && ($this->enableRestart == true)) {
+            $this->setupCache();
+            if ($this->Cache != null) {
+                $this->startCache();
+            }
+        }
         return $this->Cache;
     }
 
@@ -123,8 +128,16 @@ class SimpleConfig extends ErrorLogging
         return;
     }
 
+    /*
+        Tables to enable with cache
+    */
+    protected function setupCacheTables(): void
+    {
+    }
+
     public function startCache(): void
     {
+        $this->setupCacheTables();
         if ($this->use_redis_cache == true) {
             $this->Cache->start(false);
         } elseif ($this->use_disk_cache == true) {
