@@ -19,6 +19,9 @@
     </exclude>
   </coverage>
   <testsuites>
+    <testsuite name="config">
+      <file>tests/config/ConfigTests.php</file>
+    </testsuite>
     <testsuite name="gen">
       <file>tests/gen/gen_Test.php</file>
     </testsuite>
