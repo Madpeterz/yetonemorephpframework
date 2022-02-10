@@ -27,6 +27,7 @@ abstract class SqlConnectedClass extends ErrorLogging
         global $system;
         if ($this->disabled == false) {
             $this->sql = $system->getSQL();
+            $this->cache = $system->getCacheDriver();
         }
     }
 
