@@ -44,6 +44,9 @@
         "dev-test-gen": [
             "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite gen "
         ],
+        "dev-test-config": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite config " 
+        ],
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
         "phpunit": "phpunit"
