@@ -3,25 +3,22 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
+use YAPF\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Endoftestwithfourentrys;
 use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
-$sql = null;
 class DbObjectsCreateTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
+        global $system;
+        $system = new SimpleConfig();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
     }
     public function testCreate()
     {

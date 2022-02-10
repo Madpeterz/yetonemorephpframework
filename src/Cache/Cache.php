@@ -60,7 +60,19 @@ abstract class Cache extends CacheWorker implements CacheInterface
     // saves unneeded writes if we make a change after loading.
     public function __destruct()
     {
+        $this->addErrorlog("Shutting down:" . $this->getCacheUTimeID());
         $this->shutdown();
+    }
+
+    protected $myUtimeID = "";
+    public function __construct()
+    {
+        $this->myUtimeID = microtime() . " " . rand(200, 1000);
+    }
+
+    public function getCacheUTimeID(): string
+    {
+        return $this->myUtimeID;
     }
 
     /**
@@ -324,7 +336,8 @@ abstract class Cache extends CacheWorker implements CacheInterface
         }
         $this->markConnected();
         $this->counter_hit_check_cache++;
-        $this->addErrorlog("cacheVaild: ok");
+        $this->addErrorlog($this->driverName . " cacheVaild: ok [" . $info_file["expires"] . " vs " . time() . " dif: "
+        . (time() - $info_file["expires"]));
         return true; // cache is vaild
     }
 

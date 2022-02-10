@@ -131,7 +131,7 @@ class MysqliSupportTest extends TestCase
         // no SQL connection
         $this->sql->dbName = "invaild";
         $result = $this->sql->rawSQL("tests/mysqli/testRawSQL_Noending.sql");
-        $this->assertSame($this->sql->getLastErrorBasic(), "Unable to start SQL");
+        $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
         $this->assertSame($result["status"], false);
     }
 

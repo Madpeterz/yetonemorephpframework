@@ -3,26 +3,23 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
+use YAPF\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Relationtestingb;
 use YAPF\Junk\Sets\CounttoonehundoSet;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
-$sql = null;
 class DbObjectsRemoveTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
+        global $system;
+        $system = new SimpleConfig();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
     }
 
     public function testRemoveSingle()

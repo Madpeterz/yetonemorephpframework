@@ -1,21 +1,8 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-CREATE DATABASE IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `test`;
-
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS  `apirequests`, `apis`, `avatar`, `banlist`,
-`botconfig`, `detail`, `event`, `message`, `notecard`,
-`notice`, `noticenotecard`, `objects`, `package`,
-`region`, `rental`, `reseller`, `server`,
-`servertypes`, `slconfig`, `staff`, `stream`,
-`template`, `textureconfig`, `timezones`,
-`transactions`, `treevender`, `treevenderpackages`,
-`alltypestable`, `counttoonehundo`, `endoftestempty`, 
-`endoftestwithfourentrys`, `endoftestwithupdates`, `flagedvalues`, `liketests`, `relationtestinga`, 
-`relationtestingb`, `rollbacktest`, `twintables1`,
-`twintables2`, `weirdtable`, `notecardmail`, `eventsq`, `datatable`, `botcommandq`, `rentalnoticeptout`;
-
-
+DROP DATABASE IF EXISTS `test`;
+CREATE DATABASE `test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `test`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE `alltypestable` (

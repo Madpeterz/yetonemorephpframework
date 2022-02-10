@@ -8,7 +8,6 @@ use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 
 abstract class GenClassControl extends SqlConnectedClass
 {
-    protected ?Cache $cache = null;
     protected bool $cacheAllowChanged = false;
     protected $use_table = "";
     protected $save_dataset = [];
@@ -20,6 +19,25 @@ abstract class GenClassControl extends SqlConnectedClass
 
     protected bool $disableUpdates = false;
     protected ?array $limitedFields = null;
+
+    /**
+     * __construct
+     * [Optional] takes a key => value array
+     * where the key is the field
+     * and sets on the object with these values,
+     * you should avoid this and use the load[X] methods!
+     */
+    public function __construct(array $defaults = [])
+    {
+        if (count($defaults) > 0) {
+            $this->setup($defaults);
+        }
+        parent::__construct();
+        global $system;
+        if ($this->disabled == false) {
+            $this->cache = $system->getCacheDriver();
+        }
+    }
 
     public function limitFields(array $fields): void
     {
@@ -211,10 +229,6 @@ abstract class GenClassControl extends SqlConnectedClass
         return $this->use_table;
     }
 
-    public function attachCache(Cache $forceAttach): void
-    {
-        $this->cache = $forceAttach;
-    }
     public function setCacheAllowChanged(bool $status = true): void
     {
         $this->cacheAllowChanged = $status;
@@ -232,24 +246,6 @@ abstract class GenClassControl extends SqlConnectedClass
     public function disableAllowSetField(): void
     {
         $this->allow_set_field = false;
-    }
-    /**
-     * __construct
-     * [Optional] takes a key => value array
-     * where the key is the field
-     * and sets on the object with these values,
-     * you should avoid this and use the load[X] methods!
-     */
-    public function __construct(array $defaults = [])
-    {
-        global $cache;
-        if (count($defaults) > 0) {
-            $this->setup($defaults);
-        }
-        if (isset($cache) == true) {
-            $this->cache = $cache;
-        }
-        parent::__construct();
     }
     /**
      * setup

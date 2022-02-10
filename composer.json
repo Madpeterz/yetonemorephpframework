@@ -36,7 +36,7 @@
     ],
     "scripts": {
         "dev-test": [
-            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite All "
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite All"
         ],
         "dev-test-cache": [
             "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite cache "

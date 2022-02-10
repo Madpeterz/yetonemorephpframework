@@ -3,30 +3,27 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
+use YAPF\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Endoftestempty;
 use YAPF\Junk\Sets\LiketestsSet;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
-$sql = null;
 class DbObjectsUpdateTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
+        global $system;
+        $system = new SimpleConfig();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
+        $system = new SimpleConfig();
     }
 
     public function testUpdateSingle()
     {
-        global $sql;
         $target = new Endoftestempty();
         $result = $target->loadByField("name", "yes");
         $this->assertSame(true, $result, "Load by field failed");
@@ -34,8 +31,9 @@ class DbObjectsUpdateTest extends TestCase
         $this->assertSame(true, $result["status"], "Set field via helper failed");
         $result = $target->updateEntry();
         $this->assertSame($result["status"], true, "Update failed");
-        $this->tearDown();
-        $this->assertSame(null, $sql, "SQL did not go away"); // reset mysql connection
+        global $system;
+        $system->shutdown();
+        $this->assertSame(null, $system->getSQL(), "SQL did not go away"); // reset mysql connection
         $this->setUp();
         $target = new Endoftestempty();
         $result = $target->loadID(1);

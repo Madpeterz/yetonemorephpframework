@@ -3,6 +3,7 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
+use YAPF\Config\SimpleConfig;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
 use YAPF\Junk\Models\Relationtestinga;
@@ -13,28 +14,23 @@ use YAPF\Junk\Sets\LiketestsSet;
 use YAPF\Junk\Sets\RelationtestingaSet;
 use YAPF\Junk\Sets\Twintables1Set;
 use YAPF\Junk\Sets\WeirdtableSet;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
 
-$sql = null;
 class DbObjectsLoadTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
+        global $system;
+        $system = new SimpleConfig();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
     }
     public function testResetDbFirst()
     {
-        global $sql;
-        $results = $sql->rawSQL("tests/testdataset.sql");
+        global $system;
+        $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results["status"], true);
         $this->assertSame($results["message"], "56 commands run");
@@ -230,11 +226,10 @@ class DbObjectsLoadTest extends TestCase
 
     public function testCountinDb()
     {
-        global $sql;
         $testing = new LiketestsSet();
         $reply = $testing->countInDB();
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
-        $this->assertSame($expectedSQL,$sql->getLastSql(),"SQL is not what was expected");
+        $this->assertSame($expectedSQL,$testing->getLastSql(),"SQL is not what was expected");
         $this->assertSame(4,$reply,"incorrect count reply");
     }
 

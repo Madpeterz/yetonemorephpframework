@@ -3,7 +3,7 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Config\SimpleConfig;
 use YAPF\DbObjects\GenClass\GenClass as GenClass;
 use YAPF\DbObjects\CollectionSet\CollectionSet as CollectionSet;
 use YAPF\Junk\Models\Counttoonehundo;
@@ -32,27 +32,23 @@ class BrokenDbObjectMassiveSet extends CollectionSet
     }
 }
 
-$sql = null;
 class CollectionSetTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
+        global $system;
+        $system = new SimpleConfig();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
     }
 
     public function testResetDbFirst()
     {
-        global $sql;
-        $results = $sql->rawSQL("tests/testdataset.sql");
+        global $system;
+        $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results["status"], true);
         $this->assertSame($results["message"], "56 commands run");

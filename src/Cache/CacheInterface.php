@@ -8,6 +8,8 @@ interface CacheInterface
 {
     public function __destruct();
 
+    public function getCacheUTimeID(): string;
+
     public function start(bool $selfCleanup = false): void;
 
     public function cleanup(int $max_counter = 5): void;

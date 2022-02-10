@@ -3,12 +3,10 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Config\SimpleConfig;
 use YAPF\DbObjects\GenClass\GenClass as GenClass;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
-
-$sql = null;
 
 class BrokenObjectThatSetsWhatever extends genClass
 {
@@ -29,24 +27,18 @@ class BrokenObjectThatSetsWhatever extends genClass
 }
 class DbObjectsSupportTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
+        global $system;
+        $system = new SimpleConfig();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        if ($sql != null) {
-            $sql->sqlSave(true);
-        }
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
     }
     public function testLastSql()
     {
-        global $sql;
         $testing = new Liketests();
         $this->assertSame($testing->getLastSql(), "");
         $testing->loadID(1);
@@ -54,8 +46,8 @@ class DbObjectsSupportTest extends TestCase
     }
     public function testLastSQlWithNullGlobalSql()
     {
-        global $sql;
-        $sql = null;
+        global $system;
+        $system = new SimpleConfig();
         $testing = new liketests();
         $this->assertSame($testing->getLastSql(), "");
     }

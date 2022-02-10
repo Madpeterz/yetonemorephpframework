@@ -14,6 +14,7 @@ class Disk extends Cache implements CacheInterface
         $this->allowCleanup = true;
         $this->splitter = "/";
         $this->pathStarting = $cacheFolder;
+        parent::__construct();
     }
 
     protected function setupCache(): bool
