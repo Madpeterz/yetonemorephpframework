@@ -4,3 +4,4 @@ docs/coverage
 vendor
 tmp
 src/Junk
+composer.lock
