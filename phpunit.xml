@@ -49,7 +49,7 @@
       <file>tests/issues/issue3.php</file>
       <file>tests/issues/issue4.php</file>
       <file>tests/issues/issue5.php</file>
-      <file>tests/config/configTest.php</file>
+      <file>tests/config/ConfigTests.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

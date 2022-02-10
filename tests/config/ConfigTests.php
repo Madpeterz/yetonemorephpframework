@@ -11,7 +11,10 @@ use YAPF\Junk\Models\Liketests;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 use YAPF\Junk\Sets\LiketestsSet;
 
-class RedisCacheTests extends TestCase
+class ConfigTests extends TestCase
 {
-    
+    public function test_yep(): void
+    {
+        $this->assertSame(true,true,"...");
+    }
 }
