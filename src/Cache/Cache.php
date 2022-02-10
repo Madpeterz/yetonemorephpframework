@@ -21,6 +21,11 @@ abstract class Cache extends CacheWorker implements CacheInterface
     protected int $counter_hash_fetchs = 0;
     protected string $driverName = "NoDriver";
 
+    public function getDriverName(): string
+    {
+        return $this->driverName;
+    }
+
     protected bool $disconnected = false;
 
     public function getStatusConnected(): bool
