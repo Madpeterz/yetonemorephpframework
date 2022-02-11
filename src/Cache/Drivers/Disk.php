@@ -1,9 +1,9 @@
 <?php
 
-namespace YAPF\Cache\Drivers;
+namespace YAPF\Framework\Cache\Drivers;
 
-use YAPF\Cache\Cache;
-use YAPF\Cache\CacheInterface;
+use YAPF\Framework\Cache\Cache;
+use YAPF\Framework\Cache\CacheInterface;
 
 class Disk extends Cache implements CacheInterface
 {

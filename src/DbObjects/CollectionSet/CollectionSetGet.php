@@ -1,9 +1,9 @@
 <?php
 
-namespace YAPF\DbObjects\CollectionSet;
+namespace YAPF\Framework\DbObjects\CollectionSet;
 
 use Iterator;
-use YAPF\DbObjects\GenClass\GenClass;
+use YAPF\Framework\DbObjects\GenClass\GenClass;
 
 abstract class CollectionSetGet extends CollectionSetCore implements Iterator
 {

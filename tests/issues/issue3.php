@@ -4,13 +4,13 @@ namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
 
 $sql = null;
 class Issue3Test extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
+    /* @var YAPF\Framework\MySQLi\MysqliEnabled $sql */
     protected $sql = null;
     protected function setUp(): void
     {

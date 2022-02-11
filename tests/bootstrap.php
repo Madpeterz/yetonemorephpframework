@@ -2,7 +2,7 @@
 
 namespace YAPFtest;
 
-use YAPF\Config\SimpleConfig;
+use YAPF\Framework\Config\SimpleConfig;
 
 /*
     See spec.txt

@@ -1,10 +1,9 @@
 <?php
 
-namespace YAPF\Generator;
+namespace YAPF\Framework\Generator;
 
 class GeneratorDefaults extends GeneratorTypes
 {
-
     protected $tab_lookup = [];
     protected $file_lines = [];
     protected $output = "";

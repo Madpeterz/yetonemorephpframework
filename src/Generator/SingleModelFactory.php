@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Generator;
+namespace YAPF\Framework\Generator;
 
 class SingleModelFactory extends ModelFactoryShared
 {
@@ -209,7 +209,7 @@ class SingleModelFactory extends ModelFactoryShared
         $this->file_lines[] = '';
         $this->file_lines[] = 'namespace ' . $this->namespaceSingle . ';';
         $this->file_lines[] = '';
-        $this->file_lines[] = 'use YAPF\DbObjects\GenClass\GenClass as GenClass;';
+        $this->file_lines[] = 'use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;';
 
         $seenUsing = [];
         foreach ($this->links as $id => $entry) {
@@ -228,7 +228,8 @@ class SingleModelFactory extends ModelFactoryShared
                 continue;
             }
             $seenUsing[] = $targetclassname;
-            $this->file_lines[] = 'use ' . $this->namespaceSet . '\\' . $targetclassname . ' as ' . $targetclassname . ';';
+            $this->file_lines[] = 'use ' . $this->namespaceSet . '\\'
+            . $targetclassname . ' as ' . $targetclassname . ';';
         }
 
         $this->file_lines[] = '';

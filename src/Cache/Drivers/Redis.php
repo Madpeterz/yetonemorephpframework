@@ -1,12 +1,12 @@
 <?php
 
-namespace YAPF\Cache\Drivers;
+namespace YAPF\Framework\Cache\Drivers;
 
 use Exception;
 use Predis\Client as RedisClient;
 use Predis\Connection\ConnectionException;
-use YAPF\Cache\Cache;
-use YAPF\Cache\CacheInterface;
+use YAPF\Framework\Cache\Cache;
+use YAPF\Framework\Cache\CacheInterface;
 
 class Redis extends Cache implements CacheInterface
 {

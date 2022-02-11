@@ -1,10 +1,10 @@
 <?php
 
-namespace YAPF\Core\SQLi;
+namespace YAPF\Framework\Core\SQLi;
 
-use YAPF\Cache\Cache;
+use YAPF\Framework\Cache\Cache;
 use YAPF\Core\ErrorControl\ErrorLogging;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
 abstract class SqlConnectedClass extends ErrorLogging
 {

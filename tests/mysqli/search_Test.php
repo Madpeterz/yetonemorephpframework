@@ -3,7 +3,7 @@
 namespace YAPFtest;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
 class MysqliSearchTest extends TestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\MySQLi;
+namespace YAPF\Framework\MySQLi;
 
 use Exception;
 use App\Db as Db;

@@ -1,10 +1,10 @@
 <?php
 
-namespace YAPF\DbObjects\CollectionSet;
+namespace YAPF\Framework\DbObjects\CollectionSet;
 
 use Error;
-use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
-use YAPF\DbObjects\GenClass\GenClass;
+use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
+use YAPF\Framework\DbObjects\GenClass\GenClass;
 
 abstract class CollectionSetCore extends SqlConnectedClass
 {

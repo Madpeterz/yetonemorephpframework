@@ -3,8 +3,8 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\Config\SimpleConfig;
-use YAPF\DbObjects\GenClass\GenClass as GenClass;
+use YAPF\Framework\Config\SimpleConfig;
+use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Counttoonehundo;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Helpers;
+namespace YAPF\Framework\Helpers;
 
 /*
     YAPF/Helpers/FunctionHelper.php

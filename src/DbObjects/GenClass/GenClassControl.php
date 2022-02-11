@@ -1,10 +1,10 @@
 <?php
 
-namespace YAPF\DbObjects\GenClass;
+namespace YAPF\Framework\DbObjects\GenClass;
 
 use Exception;
-use YAPF\Cache\Cache;
-use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
+use YAPF\Framework\Cache\Cache;
+use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 
 abstract class GenClassControl extends SqlConnectedClass
 {

@@ -3,10 +3,10 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\Config\SimpleConfig;
+use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Endoftestwithfourentrys;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
 class DbObjectsCreateTest extends TestCase
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace YAPF\Generator;
+namespace YAPF\Framework\Generator;
 
-use YAPF\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
+use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 
 abstract class GeneratorTypes extends SqlConnectedClass
 {

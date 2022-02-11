@@ -3,7 +3,7 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\Config\SimpleConfig;
+use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 
 class ConfigTests extends TestCase

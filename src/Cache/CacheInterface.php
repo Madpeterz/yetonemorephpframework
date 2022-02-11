@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Cache;
+namespace YAPF\Framework\Cache;
 
 // Sadly this is not PSR-6
 

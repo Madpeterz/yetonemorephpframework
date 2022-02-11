@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Generator;
+namespace YAPF\Framework\Generator;
 
 class ModelFactory extends GeneratorWriter
 {

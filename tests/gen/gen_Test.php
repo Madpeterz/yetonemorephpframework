@@ -3,12 +3,12 @@
 namespace YAPFtest;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
-use YAPF\Generator\DbObjectsFactory as DbObjectsFactory;
+use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Framework\Generator\DbObjectsFactory as DbObjectsFactory;
 
 class GeneratorTest extends TestCase
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
+    /* @var YAPF\Framework\MySQLi\MysqliEnabled $sql */
     protected ?MysqliConnector $sql;
     protected $db_objects_factory = null;
     protected function setUp(): void

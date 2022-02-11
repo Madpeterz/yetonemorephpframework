@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Generator;
+namespace YAPF\Framework\Generator;
 
 class SetModelFactory extends SingleModelFactory
 {
@@ -10,7 +10,7 @@ class SetModelFactory extends SingleModelFactory
         $this->file_lines[] = '';
         $this->file_lines[] = 'namespace ' . $this->namespaceSet . ';';
         $this->file_lines[] = '';
-        $this->file_lines[] = 'use YAPF\DbObjects\CollectionSet\CollectionSet as CollectionSet;';
+        $this->file_lines[] = 'use YAPF\Framework\DbObjects\CollectionSet\CollectionSet as CollectionSet;';
         $this->file_lines[] = 'use ' . $this->namespaceSingle . '\\'
         . $this->classname . ' as ' . $this->classname . ';';
         $this->file_lines[] = '';

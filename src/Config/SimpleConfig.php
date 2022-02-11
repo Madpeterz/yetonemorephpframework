@@ -1,12 +1,12 @@
 <?php
 
-namespace YAPF\Config;
+namespace YAPF\Framework\Config;
 
-use YAPF\Cache\Cache;
-use YAPF\Cache\Drivers\Disk;
-use YAPF\Cache\Drivers\Redis;
+use YAPF\Framework\Cache\Cache;
+use YAPF\Framework\Cache\Drivers\Disk;
+use YAPF\Framework\Cache\Drivers\Redis;
 use YAPF\Core\ErrorControl\ErrorLogging;
-use YAPF\MySQLi\MysqliEnabled;
+use YAPF\Framework\MySQLi\MysqliEnabled;
 
 class SimpleConfig extends ErrorLogging
 {

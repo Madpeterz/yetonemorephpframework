@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Generator;
+namespace YAPF\Framework\Generator;
 
 class DbObjectsFactory extends ModelFactory
 {
@@ -19,17 +19,15 @@ class DbObjectsFactory extends ModelFactory
     public function start(): void
     {
         global $GEN_DATABASES;
-        if ($this->use_output == true) {
-            if ($this->console_output == false) {
-                $this->output .=  '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/';
-                $this->output .=  'bootstrap/4.5.2/css/bootstrap.min.css"';
-                $this->output .=  ' integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"';
-                $this->output .=  ' crossorigin="anonymous">';
-                $this->output .=  '<link rel="stylesheet" ';
-                $this->output .=  'href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"';
-                $this->output .=  ' integrity="sha384-nNK9n28pDUDDgIiIqZ/MiyO3F4/9vsMtReZK39klb/MtkZI3/LtjSjlmyVPS3KdN"';
-                $this->output .=  ' crossorigin="anonymous">';
-            }
+        if (($this->use_output == true) && ($this->console_output == false)) {
+            $this->output .=  '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/';
+            $this->output .=  'bootstrap/4.5.2/css/bootstrap.min.css"';
+            $this->output .=  ' integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"';
+            $this->output .=  ' crossorigin="anonymous">';
+            $this->output .=  '<link rel="stylesheet" ';
+            $this->output .=  'href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"';
+            $this->output .=  ' integrity="sha384-nNK9n28pDUDDgIiIqZ/MiyO3F4/9vsMtReZK39klb/MtkZI3/LtjSjlmyVPS3KdN"';
+            $this->output .=  ' crossorigin="anonymous">';
         }
         if (isset($GEN_DATABASES) == true) {
             if (count($GEN_DATABASES) > 0) {
