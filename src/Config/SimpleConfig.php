@@ -49,8 +49,14 @@ class SimpleConfig extends ErrorLogging
 
     public function shutdown(): void
     {
-        $this->sql->shutdown();
-        $this->sql = null;
+        if ($this->sql != null) {
+            $this->sql->shutdown();
+            $this->sql = null;
+        }
+        if ($this->Cache != null) {
+            $this->Cache->shutdown();
+            $this->Cache = null;
+        }
         $this->enableRestart = false;
     }
 
