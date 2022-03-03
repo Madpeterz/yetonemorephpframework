@@ -218,7 +218,7 @@ abstract class MysqliWhere extends MysqliFunctions
             if ($failed == true) {
                 break;
             }
-            if (count($where_config["join_with"]) >= $loop) {
+            if (array_key_exists($loop, $where_config["join_with"]) == true) {
                 if (in_array($where_config["join_with"][$loop], $start_group_before) == true) {
                     $this->open_groups++;
                     $current_where_code .= "(";
