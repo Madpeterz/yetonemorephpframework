@@ -327,10 +327,6 @@ abstract class MysqliFunctions extends Db
             }
             return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
         }
-        $result = $stmt->store_result();
-        if ($result === false) {
-            return ["status" => false, "message" => "Unable to store result", "stmt" => $stmt];
-        }
         return ["status" => true, "message" => "ok", "stmt" => $stmt];
     }
     /**
