@@ -298,7 +298,10 @@ abstract class MysqliFunctions extends Db
         }
         if (count($bind_args) > 0) {
             try {
-                mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
+                $result = mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
+                if ($result === false) {
+                    throw new Exception("mysqli_stmt_bind_param has failed :" . json_encode($stmt->error_list), 911, null);
+                }
             } catch (Exception $e) {
                 $stmt->free_result();
                 $stmt->close();
