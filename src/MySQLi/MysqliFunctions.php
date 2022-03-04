@@ -4,11 +4,12 @@ namespace YAPF\Framework\MySQLi;
 
 use Exception;
 use App\Db as Db;
+use mysqli;
 
 abstract class MysqliFunctions extends Db
 {
     public bool $fullSqlErrors = false;
-    protected $sqlConnection = null;
+    protected ?mysqli $sqlConnection = null;
     protected $hadErrors = false;
     protected $needToSave = false;
     public $lastSql = "";
