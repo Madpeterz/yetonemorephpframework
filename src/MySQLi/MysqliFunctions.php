@@ -300,6 +300,7 @@ abstract class MysqliFunctions extends Db
             try {
                 mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
             } catch (Exception $e) {
+                $stmt->free_result();
                 $stmt->close();
                 $error_msg = "Unable to bind to statement";
                 if ($this->fullSqlErrors == true) {
@@ -316,6 +317,7 @@ abstract class MysqliFunctions extends Db
         $execute_result = $stmt->execute();
         if ($execute_result == false) {
             $error_msg = "unable to execute because: " . $stmt->error;
+            $stmt->free_result();
             $stmt->close();
             if ($this->ExpectedErrorFlag == true) {
                 return ["status" => false, "message" => $error_msg, "stmt" => null];
