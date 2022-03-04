@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\MySQLi;
 
+use mysqli_stmt;
+
 abstract class MysqliQuery extends MysqliChange
 {
     protected int $sql_selects = 0;
@@ -63,6 +65,7 @@ abstract class MysqliQuery extends MysqliChange
         if ($JustDoIt["status"] == false) {
             return $JustDoIt;
         }
+        /** @var mysqli_stmt $stmt */
         $stmt = $JustDoIt["stmt"];
         $result = $stmt->get_result();
         $readFailed = false;
@@ -71,7 +74,7 @@ abstract class MysqliQuery extends MysqliChange
             $readFailed = true;
             $stmErrorList = $stmt->error_list;
         }
-
+        $stmt->free_result();
         $stmt->close();
         if ($readFailed == true) {
             return ["status" => false, "dataset" => [],
