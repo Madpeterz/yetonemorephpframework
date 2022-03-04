@@ -65,14 +65,17 @@ abstract class MysqliQuery extends MysqliChange
         }
         $stmt = $JustDoIt["stmt"];
         $result = $stmt->get_result();
-        $readFailed = true;
-        if ($result !== false) {
-            $readFailed = false;
+        $readFailed = false;
+        $stmErrorList = [];
+        if ($result === false) {
+            $readFailed = true;
+            $stmErrorList = $stmt->error_list;
         }
+
         $stmt->close();
         if ($readFailed == true) {
             return ["status" => false, "dataset" => [],
-            "message" => "statement failed due to error: " . json_encode($this->sqlConnection->error_list)];
+            "message" => "statement failed due to error: " . json_encode($stmErrorList)];
         }
         $dataset = $this->buildDataset($clean_ids, $result);
         $this->sql_selects++;
