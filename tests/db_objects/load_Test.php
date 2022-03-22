@@ -287,4 +287,32 @@ class DbObjectsLoadTest extends TestCase
         $A = $B->relatedRelationtestinga();
         $this->assertSame(1, $A->getCount(), "Incorrect number of B loaded");
     }
+
+    public function testForeachOverSingle()
+    {
+        $testing = new Relationtestinga();
+        $testing->loadID(2);
+        $countExpectedFields = 0;
+        foreach($testing as $fieldname => $fieldvalue)
+        {
+            if($fieldname == "id") {
+                $this->assertSame(2, $fieldvalue, "id is incorrect");
+                $countExpectedFields++;
+            } elseif($fieldname == "name") {
+                $this->assertSame("group2", $fieldvalue, "name is incorrect");
+                $countExpectedFields++;
+            } elseif($fieldname == "linkid") {
+                $this->assertSame(4, $fieldvalue, "linkid is incorrect");
+                $countExpectedFields++;
+            }
+        }
+        $this->AssertSame(3,$countExpectedFields, "incorrect number of foreach loops");
+        $countExpectedFields = 0;
+        $loop = 0;
+        foreach($testing as $fieldvalue)
+        {
+            $countExpectedFields++;
+        }
+        $this->AssertSame(3,$countExpectedFields, "incorrect number of foreach loops");
+    }
 }
