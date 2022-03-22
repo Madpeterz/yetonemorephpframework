@@ -56,7 +56,7 @@ class DbObjectsLoadTest extends TestCase
     public function testLoadRange()
     {
         $countto = new CounttoonehundoSet();
-        $load_status = $countto->loadLimited(44, "id", "DESC", [], [], "AND", 1);
+        $load_status = $countto->loadLimited(44, 1, "id", "DESC");
         $this->assertSame($load_status["message"], "ok");
         $this->assertSame($load_status["status"], true);
         $this->assertSame($load_status["count"], 44);
@@ -146,15 +146,6 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($result["message"], "No ids sent!");
     }
 
-    public function testLoadSetloadOnFields()
-    {
-        $countto = new CounttoonehundoSet();
-        $result = $countto->loadOnFields(["cvalue","id"], [10,50], [">=","<="]);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["count"], 30);
-        $this->assertSame($result["message"], "ok");
-    }
-
     public function testLoadSetloadByField()
     {
         $countto = new CounttoonehundoSet();
@@ -205,15 +196,6 @@ class DbObjectsLoadTest extends TestCase
         $reply = $EndEmptySet->loadWithConfig($where_config);
         $this->assertSame($reply["status"], true);
         $this->assertSame($EndEmptySet->getCount(), 10);
-    }
-
-    public function testLoadOnFieldsMissingField()
-    {
-        $countto = new CounttoonehundoSet();
-        $result = $countto->loadOnFields(["missing"], [1], ["="]);
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["count"], 0);
-        $this->assertSame($result["message"], "getMissing is not supported on worker");
     }
 
     public function testloadMatching()

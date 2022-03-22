@@ -450,13 +450,7 @@ not get hit until after this run has finished.
 
     protected function getCacheHashId(Cache $cache): string
     {
-        $where_config = [
-            "join_with" => "AND",
-            "fields" => [],
-            "matches" => [],
-            "values" => [],
-            "types" => [],
-        ];
+        $where_config = null;
         $basic_config = ["table" => "test.counttoonehundo"];
         $order_config = ["ordering_enabled" => true,"order_field" => "id","order_dir" => "DESC"];
         $limit_config = ["page_number" => 0,"max_entrys" => 1];

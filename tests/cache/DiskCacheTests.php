@@ -172,7 +172,7 @@ not get hit until after this run has finished.
         "allowChanged" => false,
         "tableName" => "test.counttoonehundo",
         ];
-        $this->assertSame(true, $cache->cacheVaild("test.counttoonehundo", $hashid), "Exepected entry is missing");
+        $this->assertSame(true, $cache->cacheVaild("test.counttoonehundo", $hashid), "Exepected entry is missing with hash: ".$hashid);
         $reply = $cache->readHash("test.counttoonehundo", $hashid);
         $cache->forceWrite(
             "test.counttoonehundo",
@@ -445,13 +445,7 @@ not get hit until after this run has finished.
 
     protected function getCacheHashId(Cache $cache): string
     {
-        $where_config = [
-            "join_with" => "AND",
-             "fields" => [],
-             "matches" => [],
-             "values" => [],
-             "types" => [],
-        ];
+        $where_config = null;
         $basic_config = ["table" => "test.counttoonehundo"];
         $order_config = ["ordering_enabled" => true,"order_field" => "id","order_dir" => "DESC"];
         $limit_config = ["page_number" => 0,"max_entrys" => 1];
