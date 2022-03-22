@@ -108,16 +108,20 @@ abstract class GenClassControl extends SqlConnectedClass
         }
         return hash("sha256", implode("||", $bits));
     }
+
     /**
-     * objectToMappedArray
-     * returns an key => value array for all fields and their values
-     * @return mixed[] [mixed => mixed,...]
-     */
-    public function objectToMappedArray(array $ignoreFields = []): array
+     * This function returns an array of the object's fields, with the fields that are in the
+     * array excluded
+     *
+     * @param array ignoreFields an array of field names to ignore.
+     * @param bool invertIgnore if true only fields in ignoreFields will be returned.
+     * @return mixed[] string "field" => "field value"
+    */
+    public function objectToMappedArray(array $ignoreFields = [], bool $invertIgnore = false): array
     {
         $reply = [];
         foreach ($this->fields as $fieldname) {
-            if (in_array($fieldname, $ignoreFields) == false) {
+            if (in_array($fieldname, $ignoreFields) == $invertIgnore) {
                 $reply[$fieldname] = $this->getField($fieldname);
             }
         }

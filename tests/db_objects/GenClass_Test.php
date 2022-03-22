@@ -231,8 +231,12 @@ class DbObjectsGenClassTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $countto->loadID(44);
-        $mapped = $countto->objectToMappedArray();
+        $mapped = $countto->objectToMappedArray(["cvalue"]);
+        $this->assertSame(false, array_key_exists("cvalue",$mapped) ,"only the id should be set");
         $this->assertSame($mapped["id"], 44);
+
+        $mapped = $countto->objectToMappedArray(["cvalue"],true);
+        $this->assertSame(false, array_key_exists("id",$mapped) ,"only the cvalue should be set");
     }
     public function testObjectToValueArray()
     {
