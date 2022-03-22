@@ -68,6 +68,15 @@ abstract class MysqliWhere extends MysqliFunctions
             $failed_on = "where_config join_with count error";
             return false;
         }
+
+        if (array_key_exists("asFunction", $where_config) == false) {
+            $where_config["asFunction"] = [];
+        }
+
+        while (count($where_config["asFunction"]) < count($where_config["fields"])) {
+            $where_config["asFunction"][] = 0;
+        }
+
         $failed_on = "Passed";
         $this->buildWhere($sql, $bind_text, $bind_args, $where_config, $failed, $failed_on);
         if ($failed == true) {
@@ -153,6 +162,7 @@ abstract class MysqliWhere extends MysqliFunctions
         array &$bind_args,
         $value,
         string $type,
+        int $asFunction,
         string &$sql,
         bool &$failed,
         string &$failed_on
@@ -184,7 +194,11 @@ abstract class MysqliWhere extends MysqliFunctions
         } elseif (in_array($match, ["IN","NOT IN"]) == true) {
             $this->buildWhereCaseIn($current_where_code, $field, $match, $bind_text, $bind_args, $value, $type, $sql);
         } else {
-            $current_where_code .= "`" . $field . "` " . $match . " ?";
+            $whereString = "`" . $field . "` " . $match . " ?";
+            if ($asFunction == 1) {
+                $whereString = $field . " " . $match . " ?";
+            }
+            $current_where_code .= $whereString;
             $bind_text .= $type;
             $bind_args[] = $this->convertIfBool($value);
         }
@@ -260,8 +274,6 @@ abstract class MysqliWhere extends MysqliFunctions
         bool &$failed,
         string &$failed_on
     ): void {
-        $match = $where_config["matches"][$loop];
-        $type = $where_config["types"][$loop];
         $value = $where_config["values"][$loop];
         if ($value === "null") {
             $value = null;
@@ -270,11 +282,12 @@ abstract class MysqliWhere extends MysqliFunctions
         $this->whereCaseProcessor(
             $current_where_code,
             $field,
-            $match,
+            $where_config["matches"][$loop],
             $bind_text,
             $bind_args,
             $value,
-            $type,
+            $where_config["types"][$loop],
+            $where_config["asFunction"][$loop],
             $sql,
             $failed,
             $failed_on

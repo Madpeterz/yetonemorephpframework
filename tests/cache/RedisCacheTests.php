@@ -8,8 +8,10 @@ use YAPF\Framework\Cache\Drivers\Redis;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
+use YAPF\Junk\Models\Relationtestinga;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 use YAPF\Junk\Sets\LiketestsSet;
+use YAPF\Junk\Sets\RelationtestingaSet;
 
 class RedisCacheTests extends TestCase
 {
@@ -450,10 +452,10 @@ not get hit until after this run has finished.
     {
         $where_config = [
             "join_with" => "AND",
-             "fields" => [],
-             "matches" => [],
-             "values" => [],
-             "types" => [],
+            "fields" => [],
+            "matches" => [],
+            "values" => [],
+            "types" => [],
         ];
         $basic_config = ["table" => "test.counttoonehundo"];
         $order_config = ["ordering_enabled" => true,"order_field" => "id","order_dir" => "DESC"];
@@ -466,5 +468,26 @@ not get hit until after this run has finished.
             "test.counttoonehundo",
             2
         );
+    }
+
+    public function testWithFunctionWhere()
+    {
+        $whereConfig = [
+            "fields" => ["CHAR_LENGTH(name)","linkid"],
+            "values" => [3,4],
+            "types" => ["i","i"],
+            "matches" => [">=","!="],
+            "asFunction" => [1]
+        ];
+        $cache = $this->getCache();
+        $retestA = new RelationtestingaSet();
+        $cache->addTableToCache($retestA->getTable(), 15, false, true);
+        $cache->start();
+        $retestA->attachCache($cache);
+        $result = $retestA->loadWithConfig($whereConfig);
+        $this->assertSame($result["message"], "ok");
+        $this->assertSame($retestA->getCount(), 1);
+        $this->assertSame($result["status"], true);
+        $this->assertSame("group1", $retestA->getFirst()->getName(),"incorrect group value returned");
     }
 }

@@ -419,4 +419,22 @@ class MysqliSelectTest extends TestCase
         $this->assertSame(count($result["dataset"]), 0);
         $this->assertSame($result["status"], false);
     }
+
+    public function testSelectWithFunctionWhere()
+    {
+        $basic_config = ["table" => "relationtestinga"];
+        $whereConfig = [
+            "fields" => ["CHAR_LENGTH(name)","linkid"],
+            "values" => [3,4],
+            "types" => ["i","i"],
+            "matches" => [">=","!="],
+            "asFunction" => [1]
+        ];
+        $result = $this->sql->selectV2($basic_config,null,$whereConfig);
+        $this->assertSame($result["message"], "ok");
+        $this->assertSame(count($result["dataset"]), 1);
+        $this->assertSame($result["status"], true);
+        $this->assertSame("group1", $result["dataset"][0]["name"],"incorrect group value returned");
+    }
 }
+
