@@ -95,7 +95,7 @@ abstract class CollectionSet extends CollectionSetBulk
         string $by_direction = "ASC",
         ?array $whereConfig = null
     ): array {
-        return $this->loadNewest($limit, $page, $order_by, $by_direction, $whereConfg);
+        return $this->loadNewest($limit, $page, $order_by, $by_direction, $whereConfig);
     }
     /**
      * loadNewest
