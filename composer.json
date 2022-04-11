@@ -15,17 +15,14 @@
     },
     "config": {
         "platform": {
-            "php": "7.4"
-        },
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": false
+            "php": "8.1"
         }
     },
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.1",
         "guzzlehttp/guzzle": "^7.2",
         "predis/predis": "^1.1",
-        "madpeterz/yapfcore": "^1.0"
+        "madpeterz/yapfcore": "^2.0"
     },
     "authors": [
         {

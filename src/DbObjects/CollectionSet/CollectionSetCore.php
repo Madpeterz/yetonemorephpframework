@@ -57,35 +57,31 @@ abstract class CollectionSetCore extends SqlConnectedClass
                 count($this->worker->getFields())
             );
             $hitCache = $this->cache->cacheVaild($this->worker->getTable(), $hashme);
+            if ($hitCache == true) {
+                $reply = $this->cache->readHash($this->worker->getTable(), $hashme);
+                if (is_array($reply) == true) {
+                    return $reply["count"];
+                }
+            }
         }
 
-        $reply = [];
-        $loadedFromCache = false;
-        if ($hitCache == true) {
-            $reply = $this->cache->readHash($this->worker->getTable(), $hashme);
-            if (is_array($reply) == true) {
-                $loadedFromCache = true;
-            }
-        }
-        if ($loadedFromCache == false) {
-            $reply = $this->sql->basicCountV2($this->worker->getTable(), $whereConfig);
-            if (($this->cache != null) && ($reply["status"] == true)) {
-                // push data to cache so we can avoid reading from DB as much
-                $this->cache->writeHash($this->worker->getTable(), $hashme, $reply, false);
-            }
-        }
-        if ($reply["status"] == false) {
-            $this->addError(__FILE__, __FUNCTION__, $reply["message"]);
+        $reply = $this->sql->basicCountV2($this->worker->getTable(), $whereConfig);
+        if ($reply->status == false) {
+            $this->addError($reply["message"]);
             return null;
         }
-        return $reply["count"];
+        if (($this->cache != null) && ($reply->status == true)) {
+            // push data to cache so we can avoid reading from DB as much
+            $this->cache->writeHash($this->worker->getTable(), $hashme, ["count" => $reply->entrys], false);
+        }
+        return $reply->entrys;
     }
 
     public function limitFields(array $fields): void
     {
         $this->makeWorker();
-        if (in_array($this->worker->use_id_field, $fields) == false) {
-            $fields = array_merge([$this->worker->use_id_field], $fields);
+        if (in_array("id", $fields) == false) {
+            $fields = array_merge(["id"], $fields);
         }
         $this->limitedFields = $fields;
         $this->disableUpdates = true;
@@ -164,11 +160,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
                     if (array_key_exists($indexValue, $index) == false) {
                         $index[$indexValue] = [];
                     }
-                    $storeitem = $object;
-                    if ($this->worker->bad_id == false) {
-                        $storeitem = $object->getId();
-                    }
-                    $index[$indexValue][] = $storeitem;
+                    $index[$indexValue][] = $object->getId();
                 }
                 $this->fast_get_object_array_dataset[$fieldname] = $index;
             }
@@ -184,20 +176,23 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->makeWorker();
         $this->buildObjectGetIndex($fieldname);
         $return_objects = [];
-        if (array_key_exists($fieldname, $this->fast_get_object_array_dataset) == true) {
-            $loadstring = "get" . ucfirst($fieldname);
-            if (method_exists($this->worker, $loadstring)) {
-                if (array_key_exists($fieldvalue, $this->fast_get_object_array_dataset[$fieldname]) == true) {
-                    $return_objects = $this->fast_get_object_array_dataset[$fieldname][$fieldvalue];
-                    if ($this->worker->bad_id == false) {
-                        $return_objects = [];
-                        foreach ($this->fast_get_object_array_dataset[$fieldname][$fieldvalue] as $objectid) {
-                            if (array_key_exists($objectid, $this->collected) == true) {
-                                $return_objects[] = $this->collected[$objectid];
-                            }
-                        }
-                    }
-                }
+        if (array_key_exists($fieldname, $this->fast_get_object_array_dataset) == false) {
+            $this->addError("Field was not found as part of search array dataset");
+            return [];
+        }
+        $loadstring = "get" . ucfirst($fieldname);
+        if (method_exists($this->worker, $loadstring) == false) {
+            $this->addError("get function is not supported");
+            return [];
+        }
+        if (array_key_exists($fieldvalue, $this->fast_get_object_array_dataset[$fieldname]) == false) {
+            $this->addError("value does not match dataset search");
+            return [];
+        }
+        $return_objects = [];
+        foreach ($this->fast_get_object_array_dataset[$fieldname][$fieldvalue] as $objectid) {
+            if (array_key_exists($objectid, $this->collected) == true) {
+                $return_objects[] = $this->collected[$objectid];
             }
         }
         return $return_objects;

@@ -95,8 +95,8 @@ class ModelFactory extends GeneratorWriter
         ];
         $results = $this->sql->selectV2($basic_config, null, $where_config);
         $returndata = null;
-        if ($results["status"] == true) {
-            $returndata = $results["dataset"];
+        if ($results->status == true) {
+            $returndata = $results->dataset;
         }
         return $returndata;
     }

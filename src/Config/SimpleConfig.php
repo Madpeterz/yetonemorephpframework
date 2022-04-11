@@ -38,6 +38,7 @@ class SimpleConfig extends ErrorLogging
 
     public function __construct()
     {
+        mysqli_report(MYSQLI_REPORT_OFF);
         if (class_exists("App\\Db", true) == false) {
             $offline = [
                 "status" => 0,

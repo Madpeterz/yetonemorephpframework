@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\Generator;
 
+use YAPF\Framework\Responses\MySQLi\SelectReply;
+
 class DbObjectsFactory extends ModelFactory
 {
     public function __construct($autoStart = true)
@@ -40,9 +42,8 @@ class DbObjectsFactory extends ModelFactory
 
     /**
      * getDBForeignKeys
-     * @return array<mixed>
      */
-    protected function getDBForeignKeys(string $target_database): array
+    protected function getDBForeignKeys(string $target_database): SelectReply
     {
         $where_config = [
             "fields" => ["REFERENCED_TABLE_NAME","TABLE_SCHEMA","REFERENCED_TABLE_SCHEMA"],
@@ -68,7 +69,7 @@ class DbObjectsFactory extends ModelFactory
         $fk = $this->getDBForeignKeys($target_database);
 
         $packet = [];
-        foreach ($fk["dataset"] as $entry) {
+        foreach ($fk->dataset as $entry) {
             $idme = strtolower($entry["TABLE_NAME"] . $entry["COLUMN_NAME"]);
             if (array_key_exists($idme, $packet) == true) {
                 continue;
@@ -107,7 +108,7 @@ class DbObjectsFactory extends ModelFactory
             "fields" => ["TABLE_NAME"],
         ];
         $results = $this->sql->selectV2($basic_config, null, $where_config);
-        if ($results["status"] == false) {
+        if ($results->status == false) {
             if ($this->use_output == true) {
                 if ($this->console_output == true) {
                     echo "\033[31mError: Unable to get tables from DB\033[0m\n";
@@ -116,11 +117,11 @@ class DbObjectsFactory extends ModelFactory
                 }
             }
             $error_msg = "Error ~ Unable to get tables for " . $target_database . "";
-            $this->addError(__FILE__, __FUNCTION__, $error_msg);
+            $this->addError($error_msg);
             return;
         }
         $links = $this->getLinks($target_database);
-        foreach ($results["dataset"] as $row) {
+        foreach ($results->dataset as $row) {
             $process = true;
             if (isset($GEN_SELECTED_TABLES_ONLY) == true) {
                 if (is_array($GEN_SELECTED_TABLES_ONLY) == true) {

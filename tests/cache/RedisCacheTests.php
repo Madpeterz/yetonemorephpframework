@@ -65,8 +65,8 @@ class RedisCacheTests extends TestCase
         $cache->start(true);
         $countto->attachCache($cache);
         $loadResult = $countto->loadAll();
-        $this->assertSame("ok", $loadResult["message"], "Failed to load from DB");
-        $this->assertSame(true, $loadResult["status"], "Failed to load from DB");
+        $this->assertSame("ok", $loadResult->message, "Failed to load from DB");
+        $this->assertSame(true, $loadResult->status, "Failed to load from DB");
         $this->assertSame(100, $countto->getCount(), "Incorrect number of entrys");
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "Failed to read from the DB");
         $cache->shutdown();
@@ -79,7 +79,7 @@ class RedisCacheTests extends TestCase
         $countto = new CounttoonehundoSet();
         $countto->attachCache($cache);
         $loadResult = $countto->loadAll();
-        $this->assertSame(true, $loadResult["status"], "Failed to read from DB (step 2)");
+        $this->assertSame(true, $loadResult->status, "Failed to read from DB (step 2)");
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "Incorrectly loaded from the DB and not from cache");
     }
 
@@ -97,7 +97,7 @@ class RedisCacheTests extends TestCase
         $cache->start();
         $countto->attachCache($cache);
         $loadResult = $countto->loadAll();
-        $this->assertSame(true, $loadResult["status"], "Failed to read from DB (step 2)");
+        $this->assertSame(true, $loadResult->status, "Failed to read from DB (step 2)");
 
         $this->assertSame(0, $system->getSQL()->getSQLstats()["selects"], "DB reads should be zero");
     }
@@ -120,7 +120,7 @@ class RedisCacheTests extends TestCase
         $entry->attachCache($cache);
         $entry->setCvalue($entry->getCvalue() + 1);
         $result = $entry->updateEntry();
-        $this->assertSame(true, $result["status"], "Failed to update entry");
+        $this->assertSame(true, $result->status, "Failed to update entry");
         $system->getSQL()->sqlSave();
         $cache->shutdown();
 
@@ -356,7 +356,7 @@ not get hit until after this run has finished.
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "DB reads should be one due to cache miss");
         $cache->shutdown();
         $reply = $LiketestsSet->updateFieldInCollection("value","failme");
-        $this->assertSame(false,$reply["status"],"bulk set value incorrectly");
+        $this->assertSame(false,$reply->status,"bulk set value incorrectly");
 
         $cache = $this->getCache();
         $LiketestsSet = new LiketestsSet();
@@ -368,7 +368,7 @@ not get hit until after this run has finished.
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "DB reads should still be one due to the hit");
         $cache->shutdown();
         $reply = $LiketestsSet->updateFieldInCollection("value","failme");
-        $this->assertSame(false,$reply["status"],"bulk set value incorrectly");
+        $this->assertSame(false,$reply->status,"bulk set value incorrectly");
 
         $obj = $LiketestsSet->getObjectByID(1);
         $this->assertSame("redpondblue 1",$obj->getName(),"Value is not set as expected");
@@ -479,9 +479,9 @@ not get hit until after this run has finished.
         $cache->start();
         $retestA->attachCache($cache);
         $result = $retestA->loadWithConfig($whereConfig);
-        $this->assertSame($result["message"], "ok");
+        $this->assertSame($result->message, "ok");
         $this->assertSame($retestA->getCount(), 1);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->status, true);
         $this->assertSame("group1", $retestA->getFirst()->getName(),"incorrect group value returned");
     }
 }

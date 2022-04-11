@@ -19,10 +19,11 @@ abstract class GenClass extends GenClassDB
             "matches" => [">="],
         ];
         $reply = $this->sql->basicCountV2($this->getTable(), $where_config);
-        if ($reply["status"] == true) {
-            if ($reply["count"] > 0) {
-                return true;
-            }
+        if ($reply->status == false) {
+            return false;
+        }
+        if ($reply->entrys > 0) {
+            return true;
         }
         return false;
     }

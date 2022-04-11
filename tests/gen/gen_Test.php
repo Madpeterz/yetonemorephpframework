@@ -41,8 +41,8 @@ class GeneratorTest extends TestCase
     {
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
 
     public function testCreateModels()

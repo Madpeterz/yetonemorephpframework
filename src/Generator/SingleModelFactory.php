@@ -83,10 +83,9 @@ class SingleModelFactory extends ModelFactoryShared
             $return_type_addon = "?" . $use_type . "";
             $this->file_lines[] = "/**";
             $this->file_lines[] = "* set" . ucfirst($row_two["COLUMN_NAME"]);
-            $this->file_lines[] = "* @return mixed[] [status =>  bool, message =>  string]";
             $this->file_lines[] = "*/";
             $set_function = 'public function set' . ucfirst($row_two["COLUMN_NAME"]);
-            $set_function .= '(' . $return_type_addon . ' $newvalue): array';
+            $set_function .= '(' . $return_type_addon . ' $newvalue): UpdateReply';
             $this->file_lines[] = $set_function;
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
@@ -210,6 +209,7 @@ class SingleModelFactory extends ModelFactoryShared
         $this->file_lines[] = 'namespace ' . $this->namespaceSingle . ';';
         $this->file_lines[] = '';
         $this->file_lines[] = 'use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;';
+        $this->file_lines[] = 'use YAPF\Framework\Responses\DbObjects\UpdateReply as UpdateReply;';
 
         $seenUsing = [];
         foreach ($this->links as $id => $entry) {

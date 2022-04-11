@@ -2,9 +2,9 @@
 
 namespace YAPF\Framework\Cache\Drivers;
 
-use Exception;
 use Predis\Client as RedisClient;
 use Predis\Connection\ConnectionException;
+use Throwable;
 use YAPF\Framework\Cache\Cache;
 use YAPF\Framework\Cache\CacheInterface;
 
@@ -69,7 +69,7 @@ class Redis extends Cache implements CacheInterface
             $this->enabled = true;
             $this->client->pipeline();
             return true;
-        } catch (ConnectionException $ex) {
+        } catch (Throwable $ex) {
             $this->addErrorlog("Marking cache as disconnected (failed to connect) " . $ex->getMessage());
             $this->disconnected = true;
             $this->enabled = false;
@@ -96,7 +96,7 @@ class Redis extends Cache implements CacheInterface
                 $this->seenKeys[] = $key;
                 return true;
             }
-        } catch (Exception $ex) {
+        } catch (Throwable $ex) {
             $this->addErrorlog("hasKey error: " . $ex->getMessage());
         }
         return false;
@@ -124,7 +124,7 @@ class Redis extends Cache implements CacheInterface
                 return true;
             }
             $this->addErrorlog("[deleteKey] failed to remove " . $key . " from server");
-        } catch (Exception $ex) {
+        } catch (Throwable $ex) {
             $this->disconnected = true;
             $this->addErrorlog("Marking cache as disconnected (failed to delete key) " . $ex->getMessage());
         }
@@ -146,7 +146,7 @@ class Redis extends Cache implements CacheInterface
             $this->addErrorlog("writeKeyReal: " . $reply . " for " . $key);
             $this->markConnected();
             return true;
-        } catch (Exception $ex) {
+        } catch (Throwable $ex) {
             $this->addErrorlog("Marking cache as disconnected (failed to write key) " .
             $ex->getMessage() . " Details\n Key: " . $key . " Data: " . $data);
             $this->disconnected = true;
@@ -164,7 +164,7 @@ class Redis extends Cache implements CacheInterface
         }
         try {
             return $this->client->get($key);
-        } catch (Exception $ex) {
+        } catch (Throwable $ex) {
             $this->addErrorlog("Marking cache as disconnected (failed to read key) " . $ex->getMessage());
             $this->disconnected = true;
         }
@@ -209,7 +209,7 @@ class Redis extends Cache implements CacheInterface
                 $this->seenKeys = $reply;
             }
             return $reply;
-        } catch (Exception $ex) {
+        } catch (Throwable $ex) {
             $this->addErrorlog("readKey error: " . $ex->getMessage());
         }
         return [];

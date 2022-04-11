@@ -11,17 +11,13 @@ $sql = null;
 class Issue5Test extends TestCase
 {
     /* @var YAPF\Framework\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
     protected function setUp(): void
     {
-        global $sql;
-        $sql = new MysqliConnector();
     }
     protected function tearDown(): void
     {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
+        global $system;
+        $system->getSQL()->sqlSave(true);
     }
 
     public function testIssue5()
@@ -33,10 +29,10 @@ class Issue5Test extends TestCase
         $this->assertSame($countto->getId(), 44);
         $this->assertSame($countto->getCvalue(), 55);
         $status = $countto->defaultValues();
-        $this->assertSame(true, $status, "defaultValues failed");
+        $this->assertSame(true, $status, "defaultValues failed: ".$countto->getLastErrorBasic());
         $save = $countto->updateEntry();
-        $this->assertSame("ok", $save["message"], "failed to make changes");
-        $this->assertSame(true, $save["status"], "failed to make changes");
+        $this->assertSame("ok", $save->message, "failed to make changes");
+        $this->assertSame(true, $save->status, "failed to make changes");
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
         $this->assertSame($countto->getCvalue(), 1, "value not changed via defaultValues");

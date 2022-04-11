@@ -2,9 +2,11 @@
 
 namespace YAPF\Framework\MySQLi;
 
-use Exception;
 use App\Db as Db;
 use mysqli;
+use mysqli_stmt;
+use Throwable;
+use YAPF\Framework\Responses\MySQLi\RawReply;
 
 abstract class MysqliFunctions extends Db
 {
@@ -12,6 +14,12 @@ abstract class MysqliFunctions extends Db
     protected ?mysqli $sqlConnection = null;
     protected $hadErrors = false;
     protected $needToSave = false;
+
+    public function getNeedsCommit(): bool
+    {
+        return $this->needToSave;
+    }
+
     public $lastSql = "";
     protected string $charSet = "utf8mb4";
 
@@ -131,21 +139,22 @@ abstract class MysqliFunctions extends Db
     /**
      * RawSQL
      * runs a stored sql file from disk
-     * @return mixed[] [status =>  bool, message =>  string]
      */
-    public function rawSQL(string $path_to_file): array
+    public function rawSQL(string $path_to_file): RawReply
     {
         if (file_exists($path_to_file) == false) {
-            return $this->addError(__FILE__, __FUNCTION__, "Unable to see file to read");
+            $this->addError("Unable to see file to read");
+            return new RawReply($this->myLastErrorBasic);
         }
         if ($this->sqlStart() == false) {
-            return ["status" => false,"message" => $this->getLastError()];
+            return new RawReply($this->myLastErrorBasic);
         }
 
         $commands = [];
         $lines = file($path_to_file);
         if (count($lines) == 0) {
-            return $this->addError(__FILE__, __FUNCTION__, "File is empty");
+            $this->addError("File is empty");
+            return new RawReply($this->myLastErrorBasic);
         }
 
         $current_command = "";
@@ -168,33 +177,37 @@ abstract class MysqliFunctions extends Db
 
         $current_command = trim($current_command);
         if ($current_command != "") {
-            $this->addError($path_to_file, __FUNCTION__, "Warning: raw sql has no ending ;");
+            $this->addError("Warning: raw sql has no ending ;");
             $commands[] = $current_command . ";";
         }
         if (count($commands) == 0) {
-            return $this->addError(__FILE__, __FUNCTION__, "No commands processed from file");
+            $this->addError("No commands processed from file");
+            return new RawReply($this->myLastErrorBasic);
         }
 
         $had_error = false;
         $commands_run = 0;
         foreach ($commands as $command) {
             $this->lastSql = $command;
-            if ($this->sqlConnection->real_query($command) == true) {
-                    $commands_run++;
-            } else {
+            try {
+                if ($this->sqlConnection->real_query($command) == false) {
+                    $had_error = true;
+                    break;
+                }
+                $this->sqlConnection->store_result();
+                $commands_run++;
+            } catch (Throwable $e) {
                 $had_error = true;
                 break;
             }
         }
 
         if ($had_error == true) {
-            $error_msg = "raw sql failed in some way maybe error message can help: \n";
-            $error_msg .= $this->sqlConnection->error;
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg);
+            $this->addError($this->sqlConnection->error);
+            return new RawReply($this->myLastErrorBasic);
         }
-
         $this->needToSave = true;
-        return ["status" => true,"message" => "" . $commands_run . " commands run"];
+        return new RawReply("ok", true, $commands_run);
     }
     protected function selectBuildJoins(?array $join_tables, string &$sql, bool &$failed, string &$failed_on): void
     {
@@ -277,32 +290,37 @@ abstract class MysqliFunctions extends Db
      * shared by Add,Remove,Select and Update
      * this runs the code on the database after all needed
      * checks have finished.
-     * @return mixed[] [status => bool, message => string, "stm" => false|statement object]
      */
     protected function SQLprepairBindExecute(
-        array $error_addon,
         string &$sql,
         array &$bind_args,
         string &$bind_text
-    ): array {
+    ): ?mysqli_stmt {
         $sql = strtr($sql, ["  " => " "]);
         $sql = trim($sql);
         $this->lastSql = $sql;
-        $stmt = $this->sqlConnection->prepare($sql);
+        $stmt = null;
+        try {
+            $stmt = $this->sqlConnection->prepare($sql);
+        } catch (Throwable $e) {
+            $this->addError("Unable to prepair: " . $e->getMessage());
+            return null;
+        }
         if ($stmt == false) {
-            $error_msg = "unable to prepair: " . $this->sqlConnection->error;
-            if ($this->ExpectedErrorFlag == true) {
-                return ["status" => false, "message" => $error_msg, "stmt" => null];
-            }
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("Unable to prepair: " . $this->sqlConnection->error);
+            return null;
         }
         if (count($bind_args) > 0) {
             try {
                 $result = mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
                 if ($result === false) {
-                    throw new Exception("mysqli_stmt_bind_param has failed :" . json_encode($stmt->error_list), 911, null);
+                    throw new Throwable(
+                        "mysqli_stmt_bind_param has failed :" . json_encode($stmt->error_list),
+                        911,
+                        null
+                    );
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $stmt->free_result();
                 $stmt->close();
                 $error_msg = "Unable to bind to statement";
@@ -310,24 +328,25 @@ abstract class MysqliFunctions extends Db
                     $error_msg .= ": ";
                     $error_msg .= $e->getMessage();
                 }
-                if ($this->ExpectedErrorFlag == true) {
-                    return ["status" => false, "message" => $error_msg, "stmt" => null];
-                }
-                return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+                $this->addError($error_msg);
+                return null;
             }
         }
-
-        $execute_result = $stmt->execute();
-        if ($execute_result == false) {
-            $error_msg = "unable to execute because: " . $stmt->error;
-            $stmt->free_result();
-            $stmt->close();
-            if ($this->ExpectedErrorFlag == true) {
-                return ["status" => false, "message" => $error_msg, "stmt" => null];
+        try {
+            $execute_result = $stmt->execute();
+            if ($execute_result == false) {
+                $error_msg = "Unable to execute because: " . $stmt->error;
+                $stmt->free_result();
+                $stmt->close();
+                $this->addError($error_msg);
+                return null;
             }
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return $stmt;
+        } catch (Throwable $e) {
+            $error_msg = "Unable to execute because: " . $e->getMessage();
+            $this->addError($error_msg);
+            return null;
         }
-        return ["status" => true, "message" => "ok", "stmt" => $stmt];
     }
     /**
      * hasDbConfig
@@ -378,11 +397,11 @@ abstract class MysqliFunctions extends Db
                 }
             }
             return $status;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if ($this->fullSqlErrors == true) {
-                $this->addError(__FILE__, __FUNCTION__, "SQL connection error: " . $e->getMessage());
+                $this->addError("SQL connection error: " . $e->getMessage());
             } else {
-                $this->addError(__FILE__, __FUNCTION__, "Connect attempt died in a fire");
+                $this->addError("Connect attempt died in a fire");
             }
             return false;
         }
@@ -413,7 +432,7 @@ abstract class MysqliFunctions extends Db
             return $this->endSQL($stop, true);
         }
         if ($this->hadErrors == true) {
-            $this->addError(__FILE__, __FUNCTION__, "Unable to save there are reported errors - attempting rollback");
+            $this->addError("Unable to save there are reported errors - attempting rollback");
             $this->sqlRollBack();
             return $this->endSQL($stop, false);
         }
@@ -421,7 +440,7 @@ abstract class MysqliFunctions extends Db
         if ($commit_status == false) {
             $this->myLastErrorBasic = "Commit error";
             $error_msg = "SQL error [Commit]: " . $this->sqlConnection->error;
-            $this->addError(__FILE__, __FUNCTION__, $error_msg);
+            $this->addError($error_msg);
         }
         return $this->endSQL($stop, $commit_status);
     }
@@ -453,12 +472,12 @@ abstract class MysqliFunctions extends Db
         }
         if ($this->hasDbConfig() == false) {
             $error_msg = "DB config is not vaild to start!";
-            $this->addError(__FILE__, __FUNCTION__, $error_msg);
+            $this->addError($error_msg);
             return false;
         }
         if ($this->dbPass === null) {
             $error_msg = "DB config password is null!";
-            $this->addError(__FILE__, __FUNCTION__, $error_msg);
+            $this->addError($error_msg);
             $this->dbPass = "";
         }
         $status = $this->sqlStartConnection($this->dbUser, $this->dbPass, $this->dbName, false, $this->dbHost, 5);

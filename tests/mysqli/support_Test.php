@@ -34,10 +34,9 @@ class MysqliSupportTest extends TestCase
     public function testAddv2MissingKey()
     {
         $result = $this->sql->addV2();
-        $this->assertSame($result["message"], "Required key: table is missing");
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["newID"], null);
-        $this->assertSame($result["rowsAdded"], 0);
+        $this->assertSame($result->message, "Required key: table is missing");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->newid, null);
     }
 
     public function testAddv2IncorrectFieldstoValues()
@@ -49,10 +48,9 @@ class MysqliSupportTest extends TestCase
             "types" => ["s"]
         ];
         $result = $this->sql->addV2($config);
-        $this->assertSame($result["message"], "fields and values counts do not match!");
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["newID"], null);
-        $this->assertSame($result["rowsAdded"], 0);
+        $this->assertSame($result->message, "fields and values counts do not match!");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->newid, null);
     }
     public function testAddv2IncorrectValuesToTypes()
     {
@@ -63,10 +61,9 @@ class MysqliSupportTest extends TestCase
             "types" => ["s","asdasda"]
         ];
         $result = $this->sql->addV2($config);
-        $this->assertSame($result["message"], "values and types counts do not match!");
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["newID"], null);
-        $this->assertSame($result["rowsAdded"], 0);
+        $this->assertSame($result->message, "values and types counts do not match!");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->newid, null);
     }
 
     public function testAddv2SqlStartupError()
@@ -80,10 +77,9 @@ class MysqliSupportTest extends TestCase
             "types" => ["s"]
         ];
         $result = $this->sql->addV2($config);
-        $this->assertSame($result["message"], "Connect attempt died in a fire");
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["newID"], null);
-        $this->assertSame($result["rowsAdded"], 0);
+        $this->assertSame($result->message, "Connect attempt died in a fire");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->newid, null);
     }
 
     public function testMysqliCoreDestruct()
@@ -104,35 +100,40 @@ class MysqliSupportTest extends TestCase
         $result = $this->sql->rawSQL("tests/mysqli/testRawSQL_Commentsonly.sql");
         $this->assertSame($this->sql->getLastSQl(), "");
         $this->assertSame($this->sql->getLastErrorBasic(), "No commands processed from file");
-        $this->assertSame($result["status"], false);
+        $this->assertSame(false, $this->sql->getNeedsCommit(), "The Commit flag is incorrectly set!");
+        $this->assertSame($result->status, false);
         $this->sql->sqlSave(true);
         // missing ; on end
+        $this->assertSame(false, $this->sql->getNeedsCommit(), "The Commit flag is incorrectly set!");
         $result = $this->sql->rawSQL("tests/mysqli/testRawSQL_Noending.sql");
         $this->assertSame($this->sql->getLastErrorBasic(), "Warning: raw sql has no ending ;");
-        $this->assertSame($result["status"], true);
+        $this->assertSame(true, $result->status, "this should give a warning but still run");
+        $this->assertSame(true, $this->sql->getNeedsCommit(), "The Commit flag is incorrectly set!");
         $this->sql->sqlSave(true);
         // empty
         $result = $this->sql->rawSQL("tests/mysqli/testRawSQL_Empty.sql");
         $this->assertSame($this->sql->getLastErrorBasic(), "File is empty");
-        $this->assertSame($result["status"], false);
+        $this->assertSame(false, $result->status, "This has failed");
+        $this->assertSame(false, $this->sql->getNeedsCommit(), "The Commit flag is incorrectly set!");
         $this->sql->sqlSave(true);
         // very broken
         $result = $this->sql->rawSQL("tests/mysqli/testRawSQL_Malformed.sql");
-        $error_msg = "raw sql failed in some way maybe error message can help: \n";
-        $error_msg .= "You have an error in your SQL syntax; check the manual ";
+        $error_msg = "You have an error in your SQL syntax; check the manual ";
         $error_msg .= "that corresponds to your MariaDB server version for the right ";
         $error_msg .= "syntax to use near 'WHERE id != 4' at line 1";
         if (strpos($this->sql->getLastErrorBasic(), "MariaDB") === false) {
             $error_msg = strtr($error_msg, ["MariaDB" => "MySQL"]);
         }
         $this->assertSame($this->sql->getLastErrorBasic(), $error_msg);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->status, false);
+        $this->assertSame(false, $this->sql->getNeedsCommit(), "The Commit flag is incorrectly set!");
         $this->sql->sqlSave(true);
         // no SQL connection
         $this->sql->dbName = "invaild";
         $result = $this->sql->rawSQL("tests/mysqli/testRawSQL_Noending.sql");
         $this->assertSame($this->sql->getLastErrorBasic(), "Connect attempt died in a fire");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->status, false);
+        $this->assertSame(false, $this->sql->getNeedsCommit(), "The Commit flag is incorrectly set!");
     }
 
     public function testMysqliCountNoData()
@@ -144,16 +145,16 @@ class MysqliSupportTest extends TestCase
             "matches" => ["<="],
         ];
         $result = $this->sql->basicCountV2("alltypestable", $where_config);
-        $this->assertSame($result["count"], 0);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->status, true);
     }
 
     public function testFlagErrorRollback()
     {
-        $result = $this->sql->basicCountV2("rollbacktest");
-        $this->assertSame($result["count"], 0);
-        $this->assertSame($result["status"], true);
+        $results = $this->sql->basicCountV2("rollbacktest");
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->status, true);
         $config = [
             "table" => "rollbacktest",
             "fields" => ["name","value"],
@@ -161,24 +162,22 @@ class MysqliSupportTest extends TestCase
             "types" => ["s","i"],
         ];
         $results = $this->sql->addV2($config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsAdded"], 1);
-        $this->assertSame($results["message"], "ok");
-        $this->assertSame($results["newID"], 1);
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->message, "ok");
+        $this->assertSame($results->newid, 1);
         $this->sql->flagError();
         $this->sql->sqlSave(); // reject save due to error and rollback
-        $result = $this->sql->basicCountV2("rollbacktest");
-        $this->assertSame($result["count"], 0);
-        $this->assertSame($result["status"], true);
+        $results = $this->sql->basicCountV2("rollbacktest");
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->status, true);
         $results = $this->sql->addV2($config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsAdded"], 1);
-        $this->assertSame($results["message"], "ok");
-        $this->assertSame($results["newID"], 2);
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->message, "ok");
+        $this->assertSame($results->newid, 2);
         $this->sql->sqlRollBack(); // force a rollback now
-        $result = $this->sql->basicCountV2("rollbacktest");
-        $this->assertSame($result["count"], 0);
-        $this->assertSame($result["status"], true);
+        $results = $this->sql->basicCountV2("rollbacktest");
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->status, true);
     }
 
     public function testConnectOtherhost()
@@ -195,15 +194,13 @@ class MysqliSupportTest extends TestCase
         $this->sql->fullSqlErrors = true;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "fakedbname", true, "127.0.0.1", 1);
         $this->assertSame($result, false);
-        $error_msg = "";
+        $error_msg = "SQL connection error: mysqli_real_connect(): ";
+        $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
         if (strpos($this->sql->getLastErrorBasic(), "HY000/1049") === false) {
             $error_msg = "SQL connection error: mysqli_real_connect(): ";
             $error_msg .= "(HY000/1044): Access denied for user 'testsuser'@'%' to database 'fakedbname'";
-        } else {
-            $error_msg = "SQL connection error: mysqli_real_connect(): ";
-            $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
         }
-        $this->assertSame($this->sql->getLastErrorBasic(), $error_msg);
+        $this->assertSame($error_msg, $this->sql->getLastErrorBasic(), "Wrong error message");
         // good host / good details / good DB
         $this->sql->fullSqlErrors = false;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "information_schema", true);
@@ -235,28 +232,28 @@ class MysqliSupportTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Unable to bind to statement");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Unable to bind to statement");
+        $this->assertSame($result->status, false);
         $this->sql->fullSqlErrors = true;
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $full_bind_error = "Unable to bind to statement: mysqli_stmt_bind_param(): Number of elements ";
-        $full_bind_error .= "in type definition string doesn't match number of bind variables";
-        $this->assertSame($result["message"], $full_bind_error);
-        $this->assertSame($result["status"], false);
+        $full_bind_error = "Unable to bind to statement: The number of elements ";
+        $full_bind_error .= "in the type definition string must match the number of bind variables";
+        $this->assertSame($full_bind_error, $result->message);
+        $this->assertSame($result->status, false);
     }
 
     public function testSqlSelectEmptyWhereConfig()
     {
         $result = $this->sql->selectV2(["table" => "example"], null, []);
-        $this->assertSame($result["message"], "Where config failed: where_config is empty but not null!");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: where_config is empty but not null!");
+        $this->assertSame($result->status, false);
     }
     public function testSqlSelectWhereConfigMissingKeys()
     {
         $result = $this->sql->selectV2(["table" => "example"], null, ["fields" => ["lol"]]);
-        $this->assertSame($result["message"], "Where config failed: missing where keys:values,types,matches");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: missing where keys:values,types,matches");
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectWhereConfigFieldsToValueError()
@@ -270,9 +267,9 @@ class MysqliSupportTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Where config failed: count error fields <=> values");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: count error fields <=> values");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectWhereConfigValueToTypeError()
@@ -286,9 +283,9 @@ class MysqliSupportTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Where config failed: count error values <=> types");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: count error values <=> types");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectWhereConfigTypetoMatchsError()
@@ -302,9 +299,9 @@ class MysqliSupportTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Where config failed: count error types <=> matches");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: count error types <=> matches");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectWhereConfigExtraJoinWiths()
@@ -319,8 +316,8 @@ class MysqliSupportTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Where config failed: where_config join_with count error");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: where_config join_with count error");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 }

@@ -440,6 +440,6 @@ abstract class Cache extends CacheWorker implements CacheInterface
             $fields
         );
         $this->counter_hash_fetchs++;
-        return substr($shaHash, 0, 7);
+        return substr($shaHash, 0, 9);
     }
 }

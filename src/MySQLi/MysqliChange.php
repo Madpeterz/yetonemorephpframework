@@ -2,6 +2,10 @@
 
 namespace YAPF\Framework\MySQLi;
 
+use YAPF\Framework\Responses\MySQLi\AddReply;
+use YAPF\Framework\Responses\MySQLi\RemoveReply;
+use YAPF\Framework\Responses\MySQLi\UpdateReply;
+
 abstract class MysqliChange extends MysqliProcess
 {
     protected array $queryStats = [
@@ -11,12 +15,10 @@ abstract class MysqliChange extends MysqliProcess
         "adds" => 0,
         "total" => 0,
     ];
+
     /**
-     * getSQLstats
-     * takes a V2 where config to remove
-     * entrys from the database
-     * $where_config: see selectV2.readme
-     * @return mixed[] [selects => int, updates => int, adds => int, deletes => int, total => int]
+     * > This function returns an array of the number of queries executed by the database class
+     * @return mixed[] An array of the query stats.
      */
     public function getSQLstats(): array
     {
@@ -33,32 +35,28 @@ abstract class MysqliChange extends MysqliProcess
      * takes a V2 where config to remove
      * entrys from the database
      * $where_config: see selectV2.readme
-     * @return mixed[] [rowsDeleted => int, status => bool, message => string]
      */
-    public function removeV2(string $table, ?array $where_config = null): array
+    public function removeV2(string $table, ?array $whereConfig = null): RemoveReply
     {
-        $error_addon = ["rowsDeleted" => 0];
         if (strlen($table) == 0) {
-            $error_msg = "No table given";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("No table given");
+            return new RemoveReply($this->myLastErrorBasic);
         }
         if ($this->sqlStart() == false) {
-            $error_msg = $this->getLastErrorBasic();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return new RemoveReply($this->myLastErrorBasic);
         }
         $this->queryStats["deletes"]++;
         $sql = "DELETE FROM " . $table . "";
-        $JustDoIt = $this->processSqlRequest("", [], $error_addon, $sql, $where_config);
-        if ($JustDoIt["status"] == false) {
-            return $JustDoIt;
+        $stmt = $this->processSqlRequest("", [], $sql, $whereConfig);
+        if ($stmt === null) {
+            return new RemoveReply($this->myLastErrorBasic);
         }
-        $stmt = $JustDoIt["stmt"];
         $rowsChanged = mysqli_affected_rows($this->sqlConnection);
         $stmt->close();
         if ($rowsChanged > 0) {
             $this->needToSave = true;
         }
-        return ["status" => true, "rowsDeleted" => $rowsChanged, "message" => "ok"];
+        return new RemoveReply("ok", true, $rowsChanged);
     }
     /**
      * updateV2
@@ -67,30 +65,27 @@ abstract class MysqliChange extends MysqliProcess
      * to apply a change to the database.
      * $update_config = ["fields" => string[], "values" => mixed[], "types" => string1[]]
      * $where_config: see selectV2.readme
-     * @return mixed[] [changes => int, status => bool, message => string]
      */
-    public function updateV2(string $table, array $update_config, ?array $where_config = null): array
+    public function updateV2(string $table, array $update_config, ?array $where_config = null): UpdateReply
     {
-        $error_addon = ["changes" => 0];
         if (strlen($table) == 0) {
-            $error_msg = "No table given";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("No table given");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (count($update_config["types"]) == 0) {
-            $error_msg = "No types given for update";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("No types given for update");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (count($update_config["fields"]) != count($update_config["values"])) {
-            $error_msg = "count issue fields <=> values";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("count issue fields <=> values");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (count($update_config["values"]) != count($update_config["types"])) {
-            $error_msg = "count issue values <=> types";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("count issue values <=> types");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if ($this->sqlStart() == false) {
-            $error_msg = $this->getLastErrorBasic();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return new UpdateReply($this->myLastErrorBasic);
         }
         $bind_text = "";
         $bind_args = [];
@@ -116,47 +111,40 @@ abstract class MysqliChange extends MysqliProcess
         }
         // where fields
         $this->queryStats["updates"]++;
-        $JustDoIt = $this->processSqlRequest($bind_text, $bind_args, $error_addon, $sql, $where_config);
-        if ($JustDoIt["status"] == false) {
-            return $JustDoIt;
+        $stmt = $this->processSqlRequest($bind_text, $bind_args, $sql, $where_config);
+        if ($stmt === null) {
+            return new UpdateReply($this->myLastErrorBasic);
         }
-
-        $stmt = $JustDoIt["stmt"];
         $changes = mysqli_stmt_affected_rows($stmt);
         $stmt->close();
         $this->needToSave = true;
-        return ["status" => true,"changes" => $changes, "message" => "ok"];
+        return new UpdateReply("ok", true, $changes);
     }
     /**
      * addV2
      * takes a V2 add config
      * and inserts it into the database.
-     * $config = ["table" => string, "fields" => string[], "values" => mixed[], "types" => string1[]]
-     * newID: is null on failure
-     * rowsAdded: is 0 on failure
-     * @return mixed[] [newID => ?int, rowsAdded => int, status => bool, message => string]
+     * $config = ["table" => string, "fields" => string[], "values" => mixed[], "types" => string[]]
      */
-    public function addV2($config = []): array
+    public function addV2($config = []): AddReply
     {
-        $error_addon = ["newID" => null, "rowsAdded" => 0];
         $required_keys = ["table", "fields","values","types"];
         foreach ($required_keys as $key) {
             if (array_key_exists($key, $config) == false) {
-                $error_msg = "Required key: " . $key . " is missing";
-                return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+                $this->addError("Required key: " . $key . " is missing");
+                return new AddReply($this->myLastErrorBasic);
             }
         }
         if (count($config["fields"]) != count($config["values"])) {
-            $error_msg = "fields and values counts do not match!";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("fields and values counts do not match!");
+            return new AddReply($this->myLastErrorBasic);
         }
         if (count($config["values"]) != count($config["types"])) {
-            $error_msg = "values and types counts do not match!";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("values and types counts do not match!");
+            return new AddReply($this->myLastErrorBasic);
         }
         if ($this->sqlStart() == false) {
-            $error_msg = $this->getLastErrorBasic();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return new AddReply($this->myLastErrorBasic);
         }
         $this->queryStats["adds"]++;
         $sql = "INSERT INTO " . $config["table"] . " (" . implode(', ', $config["fields"]) . ") VALUES (";
@@ -178,17 +166,16 @@ abstract class MysqliChange extends MysqliProcess
             $loop++;
         }
         $sql .= ")";
-        $JustDoIt = $this->processSqlRequest($bind_text, $bind_args, $error_addon, $sql);
-        if ($JustDoIt["status"] == false) {
-            return $this->addError(__FILE__, __FUNCTION__, $JustDoIt["message"], $error_addon);
+        $stmt = $this->processSqlRequest($bind_text, $bind_args, $sql);
+        if ($stmt === null) {
+            return new AddReply($this->myLastErrorBasic);
         }
-        $stmt = $JustDoIt["stmt"];
         $newID = mysqli_insert_id($this->sqlConnection);
         $rowsAdded = mysqli_affected_rows($this->sqlConnection);
         if ($rowsAdded > 0) {
             $this->needToSave = true;
         }
         $stmt->close();
-        return ["status" => true, "message" => "ok","newID" => $newID, "rowsAdded" => $rowsAdded];
+        return new AddReply("ok", true, $newID);
     }
 }

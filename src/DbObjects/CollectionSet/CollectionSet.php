@@ -2,6 +2,9 @@
 
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
+use YAPF\Framework\Responses\DbObjects\SetsLoadReply;
+use YAPF\Framework\Responses\MySQLi\SelectReply;
+
 abstract class CollectionSet extends CollectionSetBulk
 {
     /**
@@ -9,9 +12,8 @@ abstract class CollectionSet extends CollectionSetBulk
      * a very limited loading system
      * takes the keys as fields, and values as values
      * then passes that to loadWithConfig.
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    public function loadMatching(array $input): array
+    public function loadMatching(array $input): SetsLoadReply
     {
         $whereConfig = [
             "fields" => array_keys($input),
@@ -19,47 +21,11 @@ abstract class CollectionSet extends CollectionSetBulk
         ];
         return $this->loadWithConfig($whereConfig);
     }
-    /**
-     * loadIds
-     * @deprecated please use loadIndexs
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
-     */
-    public function loadIds(array $ids, string $field = "id"): array
-    {
-        return $this->loadIndexs($field, $ids);
-    }
 
-    /**
-     * loadIds
-     * @deprecated please use loadIndexs
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
-     */
-    public function loadByValues(array $ids, string $field = "id"): array
-    {
-        return $this->loadIndexs($field, $ids);
-    }
-    /**
-     * loadByField
-     * alias of loadOnField
-     * uses one field to load from the database with
-     * for full control please use the method loadWithConfig
-     * @deprecated public -> protected soon(TM)
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
-     */
-    public function loadByField(
-        string $field,
-        $value,
-        int $limit = 0,
-        string $order = "id",
-        string $order_dir = "DESC"
-    ): array {
-        return $this->loadOnField($field, $value, $limit, $order, $order_dir);
-    }
     /**
      * loadOnField
      * uses one field to load from the database with
      * for full control please use the method loadWithConfig
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     protected function loadOnField(
         string $field,
@@ -67,10 +33,10 @@ abstract class CollectionSet extends CollectionSetBulk
         int $limit = 0,
         string $order_by = "id",
         string $by_direction = "DESC"
-    ): array {
+    ): SetsLoadReply {
         if (is_object($value) == true) {
             $errormsg = "Attempted to pass value as a object!";
-            $this->addError(__FILE__, __FUNCTION__, $errormsg);
+            $this->addError($errormsg);
             return ["status" => false,"message" => "Attempted to pass a value as a object!"];
         }
         $whereConfg = [
@@ -86,7 +52,6 @@ abstract class CollectionSet extends CollectionSetBulk
      * alias of loadNewest
      * paged loading support with limiters
      * for full control please use the method loadWithConfig
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadLimited(
         int $limit = 12,
@@ -94,14 +59,13 @@ abstract class CollectionSet extends CollectionSetBulk
         string $order_by = "id",
         string $by_direction = "ASC",
         ?array $whereConfig = null
-    ): array {
+    ): SetsLoadReply {
         return $this->loadNewest($limit, $page, $order_by, $by_direction, $whereConfig);
     }
     /**
      * loadNewest
      * default setup is to order by id newest first.
      * for full control please use the method loadWithConfig
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadNewest(
         int $limit = 12,
@@ -109,21 +73,20 @@ abstract class CollectionSet extends CollectionSetBulk
         string $order_by = "id",
         string $by_direction = "DESC",
         ?array $whereConfig = null
-    ): array {
+    ): SetsLoadReply {
         return $this->loadWithConfig(
             $whereConfig,
             ["ordering_enabled" => true,"order_field" => $order_by,"order_dir" => $by_direction],
             ["page_number" => $page,"max_entrys" => $limit]
         );
     }
-   /**
+    /**
      * loadAll
      * Loads everything it can get its hands
      * ordered by id ASC by default
      * for full control please use the method loadWithConfig
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    public function loadAll(string $order_by = "id", string $by_direction = "ASC"): array
+    public function loadAll(string $order_by = "id", string $by_direction = "ASC"): SetsLoadReply
     {
         return $this->loadWithConfig(
             null,
@@ -132,19 +95,18 @@ abstract class CollectionSet extends CollectionSetBulk
     }
 
 
-   /**
+    /**
      * loadWithConfig
      * Uses the select V2 system to load data
      * its magic!
      * see the v2 readme
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
     public function loadWithConfig(
         ?array $whereConfig = null,
         ?array $order_config = null,
         ?array $options_config = null,
         ?array $join_tables = null
-    ): array {
+    ): SetsLoadReply {
         $this->makeWorker();
         $basic_config = ["table" => $this->worker->getTable()];
         if ($this->disableUpdates == true) {
@@ -173,7 +135,7 @@ abstract class CollectionSet extends CollectionSetBulk
             // wooo vaild data from cache!
             $loadme = $this->cache->readHash($this->getTable(), $hashme);
             if (is_array($loadme) == true) {
-                return $this->processLoad($loadme);
+                return $this->processLoad(new SelectReply("from cache", true, $loadme));
             }
         }
         // Cache missed, read from the DB
@@ -184,36 +146,22 @@ abstract class CollectionSet extends CollectionSetBulk
             $options_config,
             $join_tables
         );
-        if ($load_data["status"] == false) {
-            $error_msg = get_class($this) . " Unable to load data: " . $load_data["message"];
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, ["count" => 0]);
+        if ($load_data->status == false) {
+            $this->addError("Unable to load data: " . $load_data->message);
+            return new SetsLoadReply($this->myLastErrorBasic);
         }
         if ($this->cache != null) {
             // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->worker->getTable(), $hashme, $load_data, $this->cacheAllowChanged);
+            $this->cache->writeHash($this->worker->getTable(), $hashme, $load_data->dataset, $this->cacheAllowChanged);
         }
         return $this->processLoad($load_data);
-    }
-
-
-
-    /**
-     * loadDataFromList
-     * @deprecated
-     * see class generated loadFrom{Fieldname}s function
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
-     */
-    public function loadDataFromList(string $fieldname = "id", array $values = []): array
-    {
-        return $this->loadIndexs($fieldname, $values);
     }
 
     /**
      * loadIndexs
      * returns where fieldname value for the row is IN $values
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    protected function loadIndexs(string $fieldname = "id", array $values = []): array
+    protected function loadIndexs(string $fieldname = "id", array $values = []): SetsLoadReply
     {
         $this->makeWorker();
         $uids = [];
@@ -223,17 +171,13 @@ abstract class CollectionSet extends CollectionSetBulk
             }
         }
         if (count($uids) == 0) {
-            return $this->addError(__FILE__, __FUNCTION__, "No ids sent!", ["count" => 0]);
+            $this->addError("No ids sent!");
+            return new SetsLoadReply($this->myLastErrorBasic);
         }
         $typecheck = $this->worker->getFieldType($fieldname, true);
         if ($typecheck == null) {
-            $this->addError(__FILE__, __FUNCTION__, "Unable to find field: " .
-            $fieldname . " in worker reported error: " . $this->worker->getLastError());
-            return [
-                "status" => false,
-                "count" => 0,
-                "message" => "Invaild field: " . $fieldname,
-            ];
+            $this->addError("Invaild field: " . $fieldname);
+            return new SetsLoadReply($this->myLastErrorBasic);
         }
         return $this->loadWithConfig([
             "fields" => [$fieldname],
@@ -247,23 +191,25 @@ abstract class CollectionSet extends CollectionSetBulk
      * takes the reply from mysqli and fills out objects and builds the collection
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    protected function processLoad($load_data = []): array
+    protected function processLoad(SelectReply $load_data): SetsLoadReply
     {
-        $this->makeWorker();
-        $use_field = $this->worker->use_id_field;
-        if ($this->worker->bad_id == false) {
-            $use_field = "id";
+        if ($load_data->status == false) {
+            $this->addError("loaddata status is false");
+            return new SetsLoadReply($this->myLastErrorBasic);
         }
-        foreach ($load_data["dataset"] as $entry) {
+        $this->makeWorker();
+        $entrysLoaded = 0;
+        foreach ($load_data->dataset as $entry) {
             $new_object = new $this->worker_class($entry);
             if ($this->disableUpdates == true) {
                 $new_object->noUpdates();
             }
             if ($new_object->isLoaded() == true) {
-                $this->collected[$entry[$use_field]] = $new_object;
+                $this->collected[$entry["id"]] = $new_object;
+                $entrysLoaded++;
             }
         }
         $this->rebuildIndex();
-        return ["status" => true, "count" => count($this->collected), "message" => "ok"];
+        return new SetsLoadReply("ok", true, $entrysLoaded);
     }
 }

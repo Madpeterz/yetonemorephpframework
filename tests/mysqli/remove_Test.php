@@ -21,8 +21,8 @@ class mysqli_remove_test extends TestCase
     {
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
 
     public function testRemove()
@@ -35,9 +35,9 @@ class mysqli_remove_test extends TestCase
         ];
         $results = $this->sql->removeV2("endoftestempty", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsDeleted"], 1);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysRemoved, 1);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testRemoveInvaildTable()
@@ -49,16 +49,14 @@ class mysqli_remove_test extends TestCase
             "types" => ["i"]
         ];
         $results = $this->sql->removeV2("badtable", $where_config);
-        //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsDeleted"], 0);
-        $error_msg = "unable to prepair: Table 'test.badtable' doesn't exist";
-        $this->assertSame($results["message"], $error_msg);
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysRemoved, 0);
+        $error_msg = "Unable to prepair: Table 'test.badtable' doesn't exist";
+        $this->assertSame($results->message, $error_msg);
         $results = $this->sql->removeV2("", $where_config);
-        //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsDeleted"], 0);
-        $this->assertSame($results["message"], "No table given");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysRemoved, 0);
+        $this->assertSame($results->message, "No table given");
     }
 
     public function testRemoveInvaildField()
@@ -71,10 +69,10 @@ class mysqli_remove_test extends TestCase
         ];
         $results = $this->sql->removeV2("endoftestempty", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsDeleted"], 0);
-        $error_msg = "unable to prepair: Unknown column 'badtheif' in 'where clause'";
-        $this->assertSame($results["message"], $error_msg);
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysRemoved, 0);
+        $error_msg = "Unable to prepair: Unknown column 'badtheif' in 'where clause'";
+        $this->assertSame($results->message, $error_msg);
     }
 
     public function testRemoveInvaildValue()
@@ -87,9 +85,9 @@ class mysqli_remove_test extends TestCase
         ];
         $results = $this->sql->removeV2("endoftestempty", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsDeleted"], 1);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysRemoved, 1);
+        $this->assertSame($results->message, "ok");
 
         $where_config = [
         "fields" => ["value"],
@@ -99,9 +97,9 @@ class mysqli_remove_test extends TestCase
         ];
         $results = $this->sql->removeV2("endoftestempty", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsDeleted"], 0);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysRemoved, 0);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testRemoveMultiple()
@@ -114,9 +112,9 @@ class mysqli_remove_test extends TestCase
         ];
         $results = $this->sql->removeV2("endoftestempty", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsDeleted"], 2);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysRemoved, 2);
+        $this->assertSame($results->message, "ok");
 
     }
 
@@ -130,9 +128,9 @@ class mysqli_remove_test extends TestCase
             ];
         $results = $this->sql->removeV2("liketests", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["message"], "ok");
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsDeleted"], 2);
+        $this->assertSame($results->message, "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysRemoved, 2);
     }
 
     public function testRemoveBrokenSqlConnection()
@@ -148,8 +146,8 @@ class mysqli_remove_test extends TestCase
             ];
         $results = $this->sql->removeV2("liketests", $where_config);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results["message"], "Connect attempt died in a fire");
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsDeleted"], 0);
+        $this->assertSame($results->message, "Connect attempt died in a fire");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysRemoved, 0);
     }
 }

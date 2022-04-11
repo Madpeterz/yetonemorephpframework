@@ -52,56 +52,56 @@ class CollectionSetTest extends TestCase
         global $system;
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
     public function testPurgeCollectionSetEmpty()
     {
         $testing = new CounttoonehundoSet();
         $result = $testing->purgeCollection();
-        $this->assertSame($result["message"], "Collection empty to start with");
-        $this->assertSame($result["removed_entrys"], 0);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "Collection empty to start with");
+        $this->assertSame($result->entrysRemoved, 0);
+        $this->assertSame($result->status, true);
     }
     public function testBulkUpdateSet()
     {
         $testing = new CounttoonehundoSet();
         $testing->loadAll();
         $result = $testing->updateFieldInCollection("cvalue", 55);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame($result["changes"], 100);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->changes, 100);
+        $this->assertSame($result->status, true);
     }
     public function testBulkUpdateNoChanges()
     {
         $testing = new CounttoonehundoSet();
         $testing->loadAll();
         $result = $testing->updateMultipleFieldsForCollection(["cvalue"], [55]);
-        $this->assertSame($result["message"], "No changes made");
-        $this->assertSame($result["changes"], 0);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "No changes made");
+        $this->assertSame($result->changes, 0);
+        $this->assertSame($result->status, true);
         $result = $testing->updateMultipleFieldsForCollection([], []);
-        $this->assertSame($result["message"], "No fields being updated!");
-        $this->assertSame($result["changes"], 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "No fields being updated!");
+        $this->assertSame($result->changes, 0);
+        $this->assertSame($result->status, false);
     }
     public function testBulkUpdateInvaildField()
     {
         $testing = new CounttoonehundoSet();
         $testing->loadAll();
         $result = $testing->updateFieldInCollection("turndown4what", "shots");
-        $this->assertSame($result["message"], "Unable to find getter: getTurndown4what");
-        $this->assertSame($result["changes"], 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Unable to find getter: getTurndown4what");
+        $this->assertSame($result->changes, 0);
+        $this->assertSame($result->status, false);
     }
     public function testBulkUpdateUnknownFieldType()
     {
         $testing = new BrokenDbObjectMassiveSet();
         $testing->addToCollected(new BrokenDbObjectMassive());
         $result = $testing->updateFieldInCollection("cvalue", 421);
-        $this->assertSame($result["message"], "Unable to find fieldtype: cvalue");
-        $this->assertSame($result["changes"], 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Unable to find fieldtype: cvalue");
+        $this->assertSame($result->changes, 0);
+        $this->assertSame($result->status, false);
     }
     public function testForeach()
     {
@@ -132,7 +132,7 @@ class CollectionSetTest extends TestCase
         $Counttoonehundo = new Counttoonehundo();
         $Counttoonehundo->setCvalue(99);
         $reply = $Counttoonehundo->createEntry();
-        $this->assertSame(true,$reply["status"],"Failed to crate testing object");
+        $this->assertSame(true,$reply->status,"Failed to crate testing object");
         $testing->addToCollected($Counttoonehundo);
         $seen_entrys = 0;
         foreach($testing as $value)
@@ -169,11 +169,11 @@ class CollectionSetTest extends TestCase
     }
     public function testResetDbAgain()
     {
-        global $sql;
-        $results = $sql->rawSQL("tests/testdataset.sql");
+        global $system;
+        $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
     public function testGetIdsMatchingField()
     {
@@ -234,17 +234,17 @@ class CollectionSetTest extends TestCase
         $endoftest = new EndoftestemptySet();
         $endoftest->loadAll();
         $status = $endoftest->updateMultipleFieldsForCollection(["name","value"],["bulk",false]);
-        $this->assertSame("ok", $status["message"]);
-        $this->assertSame(true, $status["status"]);
-        $this->assertSame(4, $status["changes"]);
+        $this->assertSame("ok", $status->message);
+        $this->assertSame(true, $status->status);
+        $this->assertSame(4, $status->changes);
     }
     public function testloadByValuesandGetFieldType()
     {
         $endoftest = new EndoftestemptySet();
         $status = $endoftest->loadFromIds([4]);
-        $this->assertSame("ok", $status["message"]);
-        $this->assertSame(true, $status["status"]);
-        $this->assertSame(1, $status["count"]);
+        $this->assertSame("ok", $status->message);
+        $this->assertSame(true, $status->status);
+        $this->assertSame(1, $status->entrys);
 
         $Endoftestempty = new Endoftestempty();
         $result = $Endoftestempty->loadID(4);
@@ -257,7 +257,7 @@ class CollectionSetTest extends TestCase
     {
         $countto = new CounttoonehundoSet();
         $result = $countto->loadMatching(["cvalue"=>16]);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->status, true);
         $this->assertSame($countto->getCount(), 10);
     }
     public function testGetUnique()
