@@ -13,10 +13,11 @@ composer require madpeterz/yapfinputfilter
 ```
 ## Versions
 
-| Product | Version  | YAPF version |
-|--|--|--|
-| yapfinputfilter | 2.x | 4.x |
-| yapfinputfilter | 1.x | 3.x |
+| Product | Version  | YAPF version | PHP |
+|--|--|--|--|
+| yapfinputfilter | 4.x | 6.x | 8.1 |
+| yapfinputfilter | 2.x | 4.x | 7.4 |
+| yapfinputfilter | 1.x | 3.x | 7.4 |
 
 ### Guides and stuff:
 [Wiki](https://github.com/Madpeterz/yetonemorephpframework/wiki)
