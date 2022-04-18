@@ -2,10 +2,11 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
-use Exception;
 use Iterator;
-use YAPF\Framework\Cache\Cache;
+use Throwable;
 use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
+use YAPF\Framework\Responses\DbObjects\CreateUidReply;
+use YAPF\Framework\Responses\DbObjects\UpdateReply;
 
 abstract class GenClassControl extends SqlConnectedClass implements Iterator
 {
@@ -20,7 +21,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * Return the current field value in the selected pos
      * @return mixed The current field value.
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->getField($this->fields[$this->position]);
     }
@@ -55,8 +56,6 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     protected $dataset = [];
     protected $fields = [];
     protected $allow_set_field = true;
-    public $bad_id = false;
-    public $use_id_field = "id";
 
     protected bool $disableUpdates = false;
     protected ?array $limitedFields = null;
@@ -82,8 +81,8 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
 
     public function limitFields(array $fields): void
     {
-        if (in_array($this->use_id_field, $fields) == false) {
-            $fields = array_merge([$this->use_id_field], $fields);
+        if (in_array("id", $fields) == false) {
+            $fields = array_merge(["id"], $fields);
         }
         $this->limitedFields = $fields;
         $this->noUpdates();
@@ -103,35 +102,29 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * createUID
      * public alias of overloadCreateUID
      * creates a UID based on the target field that does not exist in the datbase
-     * @return mixed[] [status => bool, message =>  string, uid => ?string]
+     * Attempts this 3 times before it gives up.
      */
-    public function createUID(string $onfield, int $length): array
+    public function createUID(string $onfield, int $length, int $attempts = 0): CreateUidReply
     {
-        $feedValues = [time(), microtime(), rand(200, 300)];
+        $feedValues = [time(), microtime(), rand(200, 300), $attempts];
         $testuid = substr(md5(implode(".", $feedValues)), 0, $length);
         $where_config = [
-        "fields" => [$onfield],
-        "values" => [$testuid],
-        "types" => ["s"],
-        "matches" => ["="],
+            "fields" => [$onfield],
+            "values" => [$testuid],
+            "types" => ["s"],
+            "matches" => ["="],
         ];
         $count_check = $this->sql->basicCountV2($this->getTable(), $where_config);
-        $message = "Unable to check DB for UID";
-        $status = false;
-        $applyed_uid = null;
-        if ($count_check["status"] == true) {
-            $message = "created uid in use, please try again";
-            if ($count_check["count"] == 0) {
-                $status = true;
-                $message = "ok";
-                $applyed_uid = $testuid;
-            }
+        if ($count_check->status == false) {
+            return new CreateUidReply("Unable to check if uid is in use");
         }
-        return [
-        "status" => $status,
-        "message" => $message,
-        "uid" => $applyed_uid,
-        ];
+        if ($count_check->entrys != 0) {
+            if ($attempts > 3) {
+                return new CreateUidReply("created uid in use, please try again");
+            }
+            return $this->createUID($onfield, $length, ($attempts + 1));
+        }
+        return new CreateUidReply("ok", true, $testuid);
     }
     /**
      * fieldsHash
@@ -195,7 +188,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     {
         if (in_array($fieldname, $this->fields) == false) {
             $error_meesage = " Attempting to read a fieldtype [" . $fieldname . "] has failed";
-            $this->addError(__FILE__, __FUNCTION__, get_class($this) . $error_meesage);
+            $this->addError(get_class($this) . $error_meesage);
             return null;
         }
         if ($as_mysqli_code == true) {
@@ -214,7 +207,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      */
     public function getId(): ?int
     {
-        return $this->getField($this->use_id_field);
+        return $this->getField("id");
     }
     /**
      * getFields
@@ -244,12 +237,11 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * getField
      * returns the value of a field
      * or null if not supported/not loaded,
-     * @return mixed
      */
-    protected function getField(string $fieldname)
+    protected function getField(string $fieldname): mixed
     {
         if (in_array($fieldname, $this->fields) == false) {
-            $this->addError(__FILE__, __FUNCTION__, get_class($this) . " Attempting to get field that does not exist");
+            $this->addError(get_class($this) . " Attempting to get field that does not exist");
             return null;
         }
         $value = $this->dataset[$fieldname]["value"];
@@ -284,10 +276,6 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     {
         $this->expectedSqlLoadError = $setFlag;
     }
-    public function setBadId(): void
-    {
-        $this->bad_id = true;
-    }
     public function disableAllowSetField(): void
     {
         $this->allow_set_field = false;
@@ -317,22 +305,6 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
         return true;
     }
     /**
-     * setId
-     * force sets the Id of a object, please avoid using this!
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function setId(int $newvalue): array
-    {
-        if ($this->disableUpdates == true) {
-            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
-        }
-        if ($this->bad_id == false) {
-            $this->addError(__FILE__, __FUNCTION__, "Warning: setId called. if you expected this please ignore");
-            return $this->updateField($this->use_id_field, $newvalue, true);
-        }
-        return ["status" => false,"message" => "bad_id flag is set unable to setId"];
-    }
-    /**
      * setTable
      * Sets the table used by the object
      * note: You should avoid using this unless you know
@@ -340,7 +312,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      */
     public function setTable(string $tablename = ""): void
     {
-        $this->addError(__FILE__, __FUNCTION__, "Warning: setTable called. if you expected this please ignore");
+        $this->addError("Warning: setTable called. if you expected this please ignore");
         $this->use_table = $tablename;
     }
     /**
@@ -348,19 +320,19 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * Updates the live value of a object
      * call 'saveChanges' to apply the changes to the DB!
      * Note: Setting the ID can lead to weird side effects!
-     * @return mixed[] [status =>  bool, message =>  string]
      */
-    protected function updateField(string $fieldname, $value, bool $ignore_set_id_warning = false): array
+    protected function updateField(string $fieldname, $value, bool $ignore_set_id_warning = false): UpdateReply
     {
         if ($this->disableUpdates == true) {
-            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            $this->addError("Attempt to update with limitFields enabled!");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (count($this->dataset) != count($this->save_dataset)) {
             $this->save_dataset = $this->dataset;
         }
         $check = $this->checkUpdateField($fieldname, $value, $ignore_set_id_warning);
-        if ($check["status"] == false) {
-            return $check;
+        if ($check->status == false) {
+            return new UpdateReply($this->myLastErrorBasic);
         }
         $this->dataset[$fieldname]["value"] = $value;
         if ($this->getFieldType($fieldname) == "bool") {
@@ -369,40 +341,39 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
         if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
             $this->dataset[$fieldname]["value"] = 1;
         }
-        return ["status" => true, "message" => "value set"];
+        return new UpdateReply("value set", true, 1);
     }
     /**
      * checkUpdateField
      * checks if the update field request can be accepted
-     * @return mixed[] [status =>  bool, message =>  string] or just [status => bool] if success
      */
-    protected function checkUpdateField(string $fieldname, $value, bool $ignore_set_id_warning = false): array
+    protected function checkUpdateField(string $fieldname, $value, bool $ignore_set_id_warning = false): UpdateReply
     {
         if (is_object($value) == true) {
-            $errored_on = "System error: Attempt to put a object onto field: " . $fieldname;
-            return $this->addError(__FILE__, __FUNCTION__, $errored_on);
+            $this->addError("System error: Attempt to put a object onto field: " . $fieldname);
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (is_array($value) == true) {
-            $errored_on = "System error: Attempt to put a array onto field: " . $fieldname;
-            return $this->addError(__FILE__, __FUNCTION__, $errored_on);
+            $this->addError("System error: Attempt to put a array onto field: " . $fieldname);
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if ($this->disabled == true) {
-            $errored_on = "This class is disabled";
-            return $this->addError(__FILE__, __FUNCTION__, $errored_on);
+            $this->addError("This class is disabled");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if ($this->allow_set_field == false) {
-            $errored_on = "update_field is not allowed for this object";
-            return $this->addError(__FILE__, __FUNCTION__, $errored_on);
+            $this->addError("update_field is not allowed for this object");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (in_array($fieldname, $this->fields) == false) {
-            $errored_on = "Sorry this object does not have the field: " . $fieldname;
-            return $this->addError(__FILE__, __FUNCTION__, $errored_on);
+            $this->addError("Sorry this object does not have the field: " . $fieldname);
+            return new UpdateReply($this->myLastErrorBasic);
         }
         if (($fieldname == "id") && ($ignore_set_id_warning == false)) {
-            $errored_on = "Sorry this object does not allow you to set the id field!";
-            return $this->addError(__FILE__, __FUNCTION__, $errored_on);
+            $this->addError("Sorry this object does not allow you to set the id field!");
+            return new UpdateReply($this->myLastErrorBasic);
         }
-        return ["status" => true];
+        return new UpdateReply("ok", true);
     }
 
     /*
@@ -412,16 +383,17 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
 
         on failure rolls back any changes to the object
     */
-    public function bulkChange(array $namevaluepairs): bool
+    public function bulkChange(array $namevaluepairs): UpdateReply
     {
         if ($this->disableUpdates == true) {
-            $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
-            return false;
+            $this->addError("Attempt to update with limitFields enabled!");
+            return new UpdateReply($this->myLastErrorBasic);
         }
         $rollback_savedataset = $this->save_dataset;
         $rollback_dataset = $this->dataset;
         $all_ok = true;
         $why_failed = "";
+        $changes = 0;
         try {
             foreach ($namevaluepairs as $key => $value) {
                 $functionname = "set" . ucfirst($key);
@@ -430,28 +402,31 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
                     $all_ok = false;
                     break;
                 }
+
                 $status = $this->$functionname($value);
-                if (is_array($status) == false) {
-                    $why_failed = "reply from function " . $functionname . " should be an array";
+                if (is_object($status) == false) {
+                    $why_failed = "reply from function " . $functionname . " should be an object";
                     $all_ok = false;
                     break;
                 }
-                if ($status["status"] == false) {
-                    $why_failed = $status["message"];
+                if ($status->status == false) {
+                    $why_failed = $status->message;
                     $all_ok = false;
                     break;
                 }
+                $changes++;
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $why_failed = $e->getMessage();
             $all_ok = false;
         }
         if ($all_ok == false) {
-            $this->addError(__FILE__, __FUNCTION__, $why_failed);
+            $this->addError($why_failed);
             $this->save_dataset = $rollback_savedataset;
             $this->dataset = $rollback_dataset;
+            return new UpdateReply($this->myLastErrorBasic);
         }
-        return $all_ok;
+        return new UpdateReply("ok", true, $changes);
     }
 
     /*
@@ -465,7 +440,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     public function defaultValues(array $excludeFields = []): bool
     {
         if ($this->disableUpdates == true) {
-            $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            $this->addError("Attempt to update with limitFields enabled!");
             return false;
         }
         $rollback_savedataset = $this->save_dataset;
@@ -494,19 +469,19 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
             }
             $value = $copy->$functionnameget();
             $status = $this->$functionnameset($value);
-            if (is_array($status) == false) {
-                $why_failed = "reply from function " . $functionnameset . " should be an array";
+            if (is_object($status) == false) {
+                $why_failed = "reply from function " . $functionnameset . " should be an object";
                 $all_ok = false;
                 break;
             }
-            if ($status["status"] == false) {
-                $why_failed = $status["message"];
+            if ($status->status == false) {
+                $why_failed = $status->message;
                 $all_ok = false;
                 break;
             }
         }
         if ($all_ok == false) {
-            $this->addError(__FILE__, __FUNCTION__, $why_failed);
+            $this->addError($why_failed);
             $this->save_dataset = $rollback_savedataset;
             $this->dataset = $rollback_dataset;
         }

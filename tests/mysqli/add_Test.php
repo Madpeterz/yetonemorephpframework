@@ -30,10 +30,9 @@ class mysqli_add_test extends TestCase
             ];
             $results = $this->sql->addV2($config);
             // [newID => ?int, rowsAdded => int, status => bool, message => string]
-            $this->assertSame($results["message"], "ok");
-            $this->assertSame($results["status"], true);
-            $this->assertSame($results["rowsAdded"], 1);
-            $this->assertGreaterThan(0, $results["newID"]);
+            $this->assertSame($results->message, "ok");
+            $this->assertSame($results->status, true);
+            $this->assertGreaterThan(0, $results->newid);
             $loop++;
         }
     }
@@ -48,13 +47,12 @@ class mysqli_add_test extends TestCase
         ];
         $results = $this->sql->addV2($config);
         // [newID => ?int, rowsAdded => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsAdded"], 0);
+        $this->assertSame($results->status, false);
         $this->assertSame(
-            $results["message"],
-            "unable to prepair: Table 'test.badtable' doesn't exist"
+            $results->message,
+            "Unable to prepair: Table 'test.badtable' doesn't exist"
         );
-        $this->assertSame($results["newID"], null);
+        $this->assertSame($results->newid, null);
     }
 
     public function test_add_invaildfield()
@@ -67,11 +65,10 @@ class mysqli_add_test extends TestCase
         ];
         $results = $this->sql->addV2($config);
         // [newID => ?int, rowsAdded => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsAdded"], 0);
-        $error_msg = "unable to prepair: Unknown column 'badfield' in 'field list'";
-        $this->assertSame($results["message"], $error_msg);
-        $this->assertSame($results["newID"], null);
+        $this->assertSame($results->status, false);
+        $error_msg = "Unable to prepair: Unknown column 'badfield' in 'field list'";
+        $this->assertSame($results->message, $error_msg);
+        $this->assertSame($results->newid, null);
     }
 
     public function test_add_invaildvalue()
@@ -83,11 +80,10 @@ class mysqli_add_test extends TestCase
             "types" => ["s"]
         ];
         $results = $this->sql->addV2($config);
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["rowsAdded"], 0);
-        $error_msg = "unable to execute because: Column 'value' cannot be null";
-        $this->assertSame($results["message"], $error_msg);
-        $this->assertSame($results["newID"], null);
+        $this->assertSame($results->status, false);
+        $error_msg = "Unable to execute because: Column 'value' cannot be null";
+        $this->assertSame($results->message, $error_msg);
+        $this->assertSame($results->newid, null);
 
         $config = [
             "table" => "alltypestable",
@@ -96,9 +92,8 @@ class mysqli_add_test extends TestCase
             "types" => ["d", "s", "i"]
         ];
         $results = $this->sql->addV2($config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["rowsAdded"], 1);
-        $this->assertSame($results["message"], "ok");
-        $this->assertGreaterThan(0, $results["newID"]);
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->message, "ok");
+        $this->assertGreaterThan(0, $results->newid);
     }
 }

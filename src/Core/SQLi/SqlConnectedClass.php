@@ -2,25 +2,21 @@
 
 namespace YAPF\Framework\Core\SQLi;
 
-use YAPF\Framework\Cache\Cache;
 use YAPF\Core\ErrorControl\ErrorLogging;
-use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
+use YAPF\Framework\Cache\Cache;
+use YAPF\Framework\MySQLi\MysqliEnabled;
 
 abstract class SqlConnectedClass extends ErrorLogging
 {
-    /* @var YAPF\MySQLi\MysqliEnabled $sql */
-    protected ?MysqliConnector $sql;
+    protected ?MysqliEnabled $sql;
     protected $disabled = false;
     /**
      * __construct
      * if not marked as disabled connects the sql global value
      */
-    public function getLastSql(): string
+    public function getLastSql(): ?string
     {
-        if ($this->sql != null) {
-            return $this->sql->getLastSql();
-        }
-        return "";
+        return $this->sql?->getLastSql();
     }
     public function __construct()
     {
@@ -31,14 +27,14 @@ abstract class SqlConnectedClass extends ErrorLogging
         }
     }
 
-    public function reconnectSql(MysqliConnector &$SetSQl): void
+    public function reconnectSql(MysqliEnabled &$SetSQl): void
     {
         if ($this->sql != null) {
             $this->sql = &$this->unref($this->sql);
         }
         $this->sql = $SetSQl;
     }
-    protected function &unref($var): ?MysqliConnector
+    protected function &unref($var): ?MysqliEnabled
     {
         return $var;
     }

@@ -33,6 +33,13 @@ class FunctionHelper
         return $agents[$agentId];
     }
 
+    /**
+     * If the string  contains the string , return true, otherwise return false.
+     * @deprecated php8 now does this.
+     * @param string source The string to search in.
+     * @param string match The string to search for.
+     * @return bool A boolean value.
+     */
     public static function strContains(string $source, string $match): bool
     {
         if (strpos($source, $match) !== false) {
@@ -83,7 +90,7 @@ class FunctionHelper
         if ($dif < 0) {
             return $activeWord;
         }
-        return timeleftHoursAndDays(time() + $dif, $use_secs, $expiredWord);
+        return $this->timeleftHoursAndDays(time() + $dif, $use_secs, $expiredWord);
     }
     /**
      * get_opts

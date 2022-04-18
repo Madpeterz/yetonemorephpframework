@@ -13,11 +13,11 @@ abstract class GeneratorTypes extends SqlConnectedClass
             $this->console_output = true;
         }
     }
+    protected $console_output = false;
+    protected $use_output = true;
     protected $counter_models_created = 0;
     protected $counter_models_failed = 0;
     protected $counter_models_related_actions = 0;
-    protected $use_output = true;
-    protected $console_output = false;
     public function noOutput(): void
     {
         $this->use_output = false;

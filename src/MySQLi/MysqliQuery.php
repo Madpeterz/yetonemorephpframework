@@ -2,8 +2,9 @@
 
 namespace YAPF\Framework\MySQLi;
 
-use Exception;
+use Throwable;
 use mysqli_stmt;
+use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 abstract class MysqliQuery extends MysqliChange
 {
@@ -22,7 +23,6 @@ abstract class MysqliQuery extends MysqliChange
      * selectV2
      * for a full breakdown of all the magic
      * please see the selectV2.readme
-     * @return mixed[] [dataset => mixed[mixed[]], status => bool, message => string]
      */
     public function selectV2(
         array $basic_config,
@@ -31,19 +31,17 @@ abstract class MysqliQuery extends MysqliChange
         ?array $options_config = null,
         ?array $join_tables = null,
         bool $clean_ids = false
-    ): array {
-        $error_addon = ["dataset" => []];
+    ): SelectReply {
         if (array_key_exists("table", $basic_config) == false) {
-            $error_msg = "table index missing from basic config!";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("table index missing from basic config!");
+            return new SelectReply($this->myLastErrorBasic);
         }
         if (strlen($basic_config["table"]) == 0) {
-            $error_msg = "No table set in basic config!";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("No table set in basic config!");
+            return new SelectReply($this->myLastErrorBasic);
         }
         if ($this->sqlStart() == false) {
-            $error_msg = $this->getLastErrorBasic();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return new SelectReply($this->myLastErrorBasic);
         }
         $main_table_id = "";
         $auto_ids = false;
@@ -53,35 +51,32 @@ abstract class MysqliQuery extends MysqliChange
         $this->selectBuildFields($sql, $basic_config);
         $sql .= " FROM " . $basic_config["table"] . " " . $main_table_id . " ";
         $this->queryStats["selects"]++;
-        $JustDoIt = $this->processSqlRequest(
+        $stmt = $this->processSqlRequest(
             "",
             [],
-            $error_addon,
             $sql,
             $where_config,
             $order_config,
             $options_config,
             $join_tables
         );
-        if ($JustDoIt["status"] == false) {
-            return $JustDoIt;
+        if ($stmt === null) {
+            return new SelectReply($this->myLastErrorBasic);
         }
-        /** @var mysqli_stmt $stmt */
-        $stmt = $JustDoIt["stmt"];
         $result = false;
         try {
             $result = $stmt->get_result();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $stmt->close();
-            return ["status" => false, "dataset" => [],
-            "message" => "statement failed due to error: " . $e];
+            $this->addError("statement failed due to error: " . $e);
+            return new SelectReply($this->myLastErrorBasic);
         }
         $dataset = $this->buildDataset($clean_ids, $result);
         $stmt->free_result();
         $stmt->close();
         $this->sqlConnection->next_result();
         $this->sql_selects++;
-        return ["status" => true, "dataset" => $dataset ,"message" => "ok"];
+        return new SelectReply("ok", true, $dataset);
     }
     /**
      *  buildDataset
@@ -116,7 +111,6 @@ abstract class MysqliQuery extends MysqliChange
      * searchs multiple tables to find a match
      * returns an array in the dataset of the following
      * [targetfield => value, source => table found in]
-     * @return mixed[] [dataset => mixed[mixed[]], status => bool, message => string]
      */
     public function searchTables(
         array $target_tables,
@@ -126,31 +120,29 @@ abstract class MysqliQuery extends MysqliChange
         string $match_code = "=",
         int $limit_amount = 1,
         string $target_field = "id"
-    ): array {
-        $error_addon = ["dataset" => []];
+    ): SelectReply {
         if (count($target_tables) <= 1) {
-            $error_msg = "Requires 2 or more tables to use search";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("Requires 2 or more tables to use search");
+            return new SelectReply($this->myLastErrorBasic);
         }
         if (strlen($match_field) == 0) {
-            $error_msg = "Requires a match field to be sent";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("Requires a match field to be sent");
+            return new SelectReply($this->myLastErrorBasic);
         }
         if (in_array($match_type, ["s", "d", "i", "b"]) == false) {
-            $error_msg = "Match type is not vaild";
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            $this->addError("Match type is not vaild");
+            return new SelectReply($this->myLastErrorBasic);
         }
         $match_symbol = "?";
         if ($match_value === null) {
             $match_symbol = "NULL";
             if (in_array($match_code, ["IS","IS NOT"]) == false) {
-                $error_msg = "Match value can not be null";
-                return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+                $this->addError("Match value can not be null");
+                return new SelectReply($this->myLastErrorBasic);
             }
         }
         if ($this->sqlStart() == false) {
-            $error_msg = $this->getLastErrorBasic();
-            return $this->addError(__FILE__, __FUNCTION__, $error_msg, $error_addon);
+            return new SelectReply($this->myLastErrorBasic);
         }
         $bind_args = [];
         $bind_text = "";
@@ -174,11 +166,10 @@ abstract class MysqliQuery extends MysqliChange
             $table_id++;
         }
         $sql .= " ORDER BY id DESC";
-        $JustDoIt = $this->SQLprepairBindExecute($error_addon, $sql, $bind_args, $bind_text);
-        if ($JustDoIt["status"] == false) {
-            return $JustDoIt;
+        $stmt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        if ($stmt === null) {
+            return new SelectReply($this->myLastErrorBasic);
         }
-        $stmt = $JustDoIt["stmt"];
         $result = $stmt->get_result();
         $dataset = [];
         $loop = 0;
@@ -186,6 +177,6 @@ abstract class MysqliQuery extends MysqliChange
             $dataset[$loop] = $entry;
             $loop++;
         }
-        return ["status" => true, "dataset" => $dataset ,"message" => "ok"];
+        return new SelectReply("ok", true, $dataset);
     }
 }

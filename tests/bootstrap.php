@@ -2,6 +2,8 @@
 
 namespace YAPFtest;
 
+use Throwable;
+use mysqli;
 use YAPF\Framework\Config\SimpleConfig;
 
 /*

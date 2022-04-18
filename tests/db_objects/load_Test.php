@@ -32,34 +32,34 @@ class DbObjectsLoadTest extends TestCase
         global $system;
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
     public function testLoadId()
     {
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
-        $this->assertSame($load_status, true);
-        $this->assertSame($countto->getId(), 44);
-        $this->assertSame($countto->getCvalue(), 8);
+        $this->assertSame(true, $load_status->status);
+        $this->assertSame(44, $countto->getId());
+        $this->assertSame(8, $countto->getCvalue());
     }
 
     public function testLoadSet()
     {
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadAll();
-        $this->assertSame($load_status["message"], "ok");
-        $this->assertSame($load_status["status"], true);
-        $this->assertSame($load_status["count"], 100);
+        $this->assertSame("ok", $load_status->message);
+        $this->assertSame(true, $load_status->status);
+        $this->assertSame(100, $load_status->entrys);
     }
 
     public function testLoadRange()
     {
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadLimited(44, 1, "id", "DESC");
-        $this->assertSame($load_status["message"], "ok");
-        $this->assertSame($load_status["status"], true);
-        $this->assertSame($load_status["count"], 44);
+        $this->assertSame($load_status->message, "ok");
+        $this->assertSame($load_status->status, true);
+        $this->assertSame($load_status->entrys, 44);
         $firstobj = $countto->getFirst();
         $this->assertSame($firstobj->getId(), 56);
         $this->assertSame($firstobj->getCvalue(), 32);
@@ -69,9 +69,9 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadNewest(5);
-        $this->assertSame($load_status["status"], true);
-        $this->assertSame($load_status["count"], 5);
-        $this->assertSame($load_status["message"], "ok");
+        $this->assertSame($load_status->status, true);
+        $this->assertSame($load_status->entrys, 5);
+        $this->assertSame($load_status->message, "ok");
         $firstobj = $countto->getFirst();
         $this->assertSame($firstobj->getId(), 100);
         $this->assertSame($firstobj->getCvalue(), 512);
@@ -87,7 +87,7 @@ class DbObjectsLoadTest extends TestCase
             "matches" => [">=",">="],
         ];
         $load_status = $countto->loadWithConfig($where_config);
-        $this->assertSame($load_status, true);
+        $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->getId(), 100);
     }
 
@@ -101,63 +101,63 @@ class DbObjectsLoadTest extends TestCase
             "matches" => ["<"],
         ];
         $load_status = $twintables1->loadWithConfig($where_config);
-        $this->assertSame($load_status["status"], true);
-        $this->assertSame($load_status["count"], 0);
+        $this->assertSame($load_status->status, true);
+        $this->assertSame($load_status->entrys, 0);
     }
 
     public function testLoadSingleLoadExtendedTests()
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("id", 44);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result->status);
         $countto = new Counttoonehundo();
         $countto->makedisabled();
         $result = $countto->loadByField("id", 44);
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
         $weird = new Weirdtable();
         $result = $weird->loadByField("weirdb", 3);
         $this->assertSame($weird->getId(), null);
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("cvalue", 128);
         $this->assertSame($countto->getLastSql(), "SELECT * FROM test.counttoonehundo  WHERE `cvalue` = ?");
         $this->assertSame($countto->getLastErrorBasic(), "Load error incorrect number of entrys expected 1 but got:10");
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
     }
 
     public function testLoadByFieldInvaildField()
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("fake", 44);
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
         $this->assertSame($countto->getLastErrorBasic(), "Attempted to get field type: fake but its not supported!");
     }
 
     public function testLoadSetByIds()
     {
         $countto = new CounttoonehundoSet();
-        $result = $countto->loadFromIds([1,2,3,4,5,6,7,8,9,19]);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["count"], 10);
-        $this->assertSame($result["message"], "ok");
-        $result = $countto->loadFromIds([]);
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["count"], 0);
-        $this->assertSame($result["message"], "No ids sent!");
+        $results = $countto->loadFromIds([1,2,3,4,5,6,7,8,9,19]);
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 10);
+        $this->assertSame($results->message, "ok");
+        $results = $countto->loadFromIds([]);
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->message, "No ids sent!");
     }
 
     public function testLoadSetloadByField()
     {
         $countto = new CounttoonehundoSet();
-        $result = $countto->loadByCvalue(32);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["count"], 10);
-        $this->assertSame($result["message"], "ok");
+        $results = $countto->loadByCvalue(32);
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 10);
+        $this->assertSame($results->message, "ok");
         $testing = new WeirdtableSet();
-        $result = $testing->loadAll();
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["count"], 2);
-        $this->assertSame($result["message"], "ok");
+        $results = $testing->loadAll();
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 2);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testLoadSetWithConfigInvaild()
@@ -169,12 +169,12 @@ class DbObjectsLoadTest extends TestCase
             "types" => ["i"],
             "matches" => ["<="],
         ];
-        $result = $countto->loadWithConfig($where_config);
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["count"], 0);
-        $errormsg = "YAPF\Junk\Sets\CounttoonehundoSet Unable to load data: ";
+        $results = $countto->loadWithConfig($where_config);
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrys, 0);
+        $errormsg = "Unable to load data: ";
         $errormsg .= "Where config failed: count error fields <=> values";
-        $this->assertSame($result["message"], $errormsg);
+        $this->assertSame($results->message, $errormsg);
     }
 
     public function testLoadWithConfigOptional()
@@ -185,7 +185,7 @@ class DbObjectsLoadTest extends TestCase
             "values" => [91],
         ];
         $load_status = $countto->loadWithConfig($where_config);
-        $this->assertSame($load_status, true);
+        $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->getId(), 91);
 
         $EndEmptySet = new CounttoonehundoSet();
@@ -194,7 +194,7 @@ class DbObjectsLoadTest extends TestCase
             "values" => [8],
         ];
         $reply = $EndEmptySet->loadWithConfig($where_config);
-        $this->assertSame($reply["status"], true);
+        $this->assertSame($reply->status, true);
         $this->assertSame($EndEmptySet->getCount(), 10);
     }
 
@@ -202,7 +202,7 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadMatching(["id"=>4,"cvalue"=>8]);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result->status);
         $this->assertSame($countto->getCvalue(), 8);
     }
 
@@ -228,14 +228,11 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame("redpondblue 1",$obj->getName(),"Value is not set as expected");
         $this->assertSame(null,$obj->getValue(),"Value is not what is expected");
         $reply = $obj->setValue("fail");
-        $this->assertSame(false,$reply["status"],"Set a value incorrectly");
+        $this->assertSame(false,$reply->status,"Set a value incorrectly");
         $reply = $testing->updateFieldInCollection("value","failme");
-        $this->assertSame(false,$reply["status"],"bulk set value incorrectly");
+        $this->assertSame(false,$reply->status,"bulk set value incorrectly");
         $reply = $obj->createEntry();
-        $this->assertSame(false,$reply["status"],"created object incorrectly");
-        $reply = $obj->setId(44);
-        $this->assertSame(false,$reply["status"],"set object id incorrectly");
-
+        $this->assertSame(false,$reply->status,"created object incorrectly");
         $testing = new Liketests();
         $testing->limitFields(["name"]);
         $this->assertSame(true,$testing->getUpdatesStatus(),"Single should be marked as update disabled");

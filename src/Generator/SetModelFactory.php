@@ -10,7 +10,9 @@ class SetModelFactory extends SingleModelFactory
         $this->file_lines[] = '';
         $this->file_lines[] = 'namespace ' . $this->namespaceSet . ';';
         $this->file_lines[] = '';
+        $this->file_lines[] = 'use YAPF\Framework\Responses\DbObjects\SetsLoadReply as SetsLoadReply;';
         $this->file_lines[] = 'use YAPF\Framework\DbObjects\CollectionSet\CollectionSet as CollectionSet;';
+        $this->file_lines[] = 'use YAPF\Framework\Responses\DbObjects\UpdateReply as UpdateReply;';
         $this->file_lines[] = 'use ' . $this->namespaceSingle . '\\'
         . $this->classname . ' as ' . $this->classname . ';';
         $this->file_lines[] = '';
@@ -124,7 +126,6 @@ class SetModelFactory extends SingleModelFactory
 
             $this->file_lines[] = '/**';
             $this->file_lines[] = ' * ' . $functionloadname;
-            $this->file_lines[] = ' * @return mixed[] [status =>  bool, count => integer, message =>  string]';
             $this->file_lines[] = '*/';
             $this->file_lines[] = 'public function ' . $functionloadname . '(';
             $this->file_lines[] = [2];
@@ -133,10 +134,10 @@ class SetModelFactory extends SingleModelFactory
             $this->file_lines[] = 'string $orderBy = "id", ';
             $this->file_lines[] = 'string $orderDir = "DESC"';
             $this->file_lines[] = [1];
-            $this->file_lines[] = '): array';
+            $this->file_lines[] = '): SetsLoadReply';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
-            $this->file_lines[] = 'return $this->loadByField(';
+            $this->file_lines[] = 'return $this->loadOnField(';
             $this->file_lines[] = [3];
             $this->file_lines[] = '"' . $row_two["COLUMN_NAME"] . '", ';
             $this->file_lines[] = '$' . $row_two["COLUMN_NAME"] . ', ';
@@ -152,9 +153,8 @@ class SetModelFactory extends SingleModelFactory
 
             $this->file_lines[] = '/**';
             $this->file_lines[] = ' * ' . $functionloadname;
-            $this->file_lines[] = ' * @return array<mixed> [status =>  bool, count => integer, message =>  string]';
             $this->file_lines[] = '*/';
-            $this->file_lines[] = 'public function ' . $functionloadname . '(array $values): array';
+            $this->file_lines[] = 'public function ' . $functionloadname . '(array $values): SetsLoadReply';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
             $this->file_lines[] = 'return $this->loadIndexs("' . $row_two["COLUMN_NAME"] . '", $values);';

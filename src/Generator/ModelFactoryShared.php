@@ -19,6 +19,9 @@ abstract class ModelFactoryShared
     protected array $cols = [];
     protected array $links = [];
     protected bool $addDbToTable = false;
+    protected bool $use_output = true;
+    protected bool $console_output = false;
+    protected string $output = "";
 
     public function __construct(
         string $classname,

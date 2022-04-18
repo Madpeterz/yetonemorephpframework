@@ -3,7 +3,6 @@
 namespace YAPF\Framework\Config;
 
 use YAPF\Framework\Cache\Cache;
-use YAPF\Framework\Cache\Drivers\Disk;
 use YAPF\Framework\Cache\Drivers\Redis;
 use YAPF\Core\ErrorControl\ErrorLogging;
 use YAPF\Framework\MySQLi\MysqliEnabled;
@@ -13,10 +12,6 @@ class SimpleConfig extends ErrorLogging
     // Cache
     protected ?Cache $Cache = null;
     protected bool $cache_enabled = false;
-
-    // Cache / Disk
-    protected bool $use_disk_cache = false;
-    protected string $disk_cache_folder = "cache";
 
     // Cache / Redis
     protected bool $use_redis_cache = false;
@@ -38,6 +33,7 @@ class SimpleConfig extends ErrorLogging
 
     public function __construct()
     {
+        mysqli_report(MYSQLI_REPORT_OFF);
         if (class_exists("App\\Db", true) == false) {
             $offline = [
                 "status" => 0,
@@ -45,6 +41,11 @@ class SimpleConfig extends ErrorLogging
             ];
             die(json_encode($offline));
         }
+    }
+
+    public function __destruct()
+    {
+        $this->shutdown();
     }
 
     public function shutdown(): void
@@ -92,7 +93,6 @@ class SimpleConfig extends ErrorLogging
             return;
         }
         $this->use_redis_cache = false;
-        $this->use_disk_cache = false;
     }
     public function configCacheRedisUnixSocket(string $socket = "/var/run/redis/redis.sock"): void
     {
@@ -114,22 +114,12 @@ class SimpleConfig extends ErrorLogging
         $this->redis_port = $port;
         $this->redis_timeout = $timeout;
     }
-    public function configCacheDisk(string $folder = "cache"): void
-    {
-        if ($this->dockerConfigLocked == true) {
-            return;
-        }
-        $this->use_disk_cache = true;
-        $this->disk_cache_folder = $folder;
-    }
 
     public function setupCache(): void
     {
         $this->Cache = null;
         if ($this->use_redis_cache == true) {
             $this->startRedisCache();
-        } elseif ($this->use_disk_cache == true) {
-            $this->startDiskCache();
         }
         return;
     }
@@ -146,8 +136,6 @@ class SimpleConfig extends ErrorLogging
         $this->setupCacheTables();
         if ($this->use_redis_cache == true) {
             $this->Cache->start(false);
-        } elseif ($this->use_disk_cache == true) {
-            $this->Cache->start(true);
         }
         return;
     }
@@ -161,10 +149,5 @@ class SimpleConfig extends ErrorLogging
         }
         $this->Cache->setTimeout($this->redis_timeout);
         $this->Cache->connectTCP($this->redis_host, $this->redis_port);
-    }
-
-    protected function startDiskCache(): void
-    {
-        $this->Cache = new Disk($this->disk_cache_folder);
     }
 }

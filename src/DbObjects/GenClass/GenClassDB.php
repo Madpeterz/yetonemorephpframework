@@ -2,6 +2,12 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
+use YAPF\Framework\Responses\DbObjects\CreateReply;
+use YAPF\Framework\Responses\DbObjects\RemoveReply;
+use YAPF\Framework\Responses\DbObjects\SingleLoadReply;
+use YAPF\Framework\Responses\DbObjects\UpdateReply;
+use YAPF\Framework\Responses\MySQLi\SelectReply;
+
 abstract class GenClassDB extends GenClassControl
 {
     /**
@@ -10,39 +16,36 @@ abstract class GenClassDB extends GenClassControl
      * takes the keys as fields, and values as values
      * then passes that to loadWithConfig.
      */
-    public function loadMatching(array $input): bool
+    public function loadMatching(?array $input): SingleLoadReply
     {
+        if ($input === null) {
+            $this->addError("Input array is null");
+            return new SingleLoadReply($this->myLastErrorBasic);
+        } elseif (count($input) == 0) {
+            $this->addError("Input array is empty");
+            return new SingleLoadReply($this->myLastErrorBasic);
+        }
         $whereConfig = [
             "fields" => array_keys($input),
             "values" => array_values($input),
         ];
         return $this->loadWithConfig($whereConfig);
     }
-    /**
-     * @deprecated
-     * loadOnField
-     * please use loadByField
-     */
-    public function loadOnField(string $field_name, $field_value): bool
-    {
-        return $this->loadByField($field_name, $field_value);
-    }
+
     /**
      * loadByField
      * loads a object that matchs in the DB on the field and value
      */
-    public function loadByField(string $field_name, $field_value): bool
+    public function loadByField(string $field_name, $field_value): SingleLoadReply
     {
         if (is_object($field_value) == true) {
-            $errormsg = "Attempted to pass field_value as a object!";
-            $this->addError(__FILE__, __FUNCTION__, $errormsg);
-            return false;
+            $this->addError("Attempted to pass field_value as a object!");
+            return new SingleLoadReply($this->myLastErrorBasic);
         }
         $field_type = $this->getFieldType($field_name, true);
         if ($field_type == null) {
-            $errormsg = "Attempted to get field type: " . $field_name . " but its not supported!";
-            $this->addError(__FILE__, __FUNCTION__, $errormsg);
-            return false;
+            $this->addError("Attempted to get field type: " . $field_name . " but its not supported!");
+            return new SingleLoadReply($this->myLastErrorBasic);
         }
         $whereconfig = [
                 "fields" => [$field_name],
@@ -53,16 +56,23 @@ abstract class GenClassDB extends GenClassControl
         return $this->loadWithConfig($whereconfig);
     }
     /**
-     * loadID
+     * loadId
      * loads the object from the database that matchs the id
      */
-    public function loadID(int $id): bool
+    public function loadId(?int $id): SingleLoadReply
     {
+        if ($id == false) {
+            $this->addError("Attempted to loadId but id is null!");
+            return new SingleLoadReply($this->myLastErrorBasic);
+        } elseif ($id < 1) {
+            $this->addError("Attempted to loadId but id is less than one!");
+            return new SingleLoadReply($this->myLastErrorBasic);
+        }
         $whereconfig = [
-             "fields" => ["id"],
-             "matches" => ["="],
-             "values" => [$id],
-             "types" => ["i"],
+            "fields" => ["id"],
+            "matches" => ["="],
+            "values" => [$id],
+            "types" => ["i"],
         ];
         return $this->loadWithConfig($whereconfig);
     }
@@ -73,11 +83,11 @@ abstract class GenClassDB extends GenClassControl
      * where it matchs the whereconfig.
      * returns false if the class is disabled or the load fails
      */
-    public function loadWithConfig(array $whereconfig): bool
+    public function loadWithConfig(array $whereconfig): SingleLoadReply
     {
         if ($this->disabled == true) {
-            $this->addError(__FILE__, __FUNCTION__, "unable to loadData this class is disabled");
-            return false;
+            $this->addError("unable to loadData This class is disabled");
+            return new SingleLoadReply($this->myLastErrorBasic);
         }
         $basic_config = ["table" => $this->getTable()];
         if ($this->disableUpdates == true) {
@@ -103,7 +113,7 @@ abstract class GenClassDB extends GenClassControl
             // wooo vaild data from cache!
             $loadme = $this->cache->readHash($this->getTable(), $hashme);
             if (is_array($loadme) == true) {
-                return $this->processLoad($loadme);
+                return $this->processLoad(new SelectReply("from cache", true, $loadme));
             }
         }
         $this->sql->setExpectedErrorFlag($this->expectedSqlLoadError);
@@ -111,7 +121,7 @@ abstract class GenClassDB extends GenClassControl
         $this->sql->setExpectedErrorFlag(false);
         if ($this->cache != null) {
             // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->getTable(), $hashme, $load_data, $this->cacheAllowChanged);
+            $this->cache->writeHash($this->getTable(), $hashme, $load_data->dataset, $this->cacheAllowChanged);
         }
         return $this->processLoad($load_data);
     }
@@ -162,26 +172,26 @@ abstract class GenClassDB extends GenClassControl
      * and fills in the objects dataset
      * returns true if needed checks are passed
      */
-    protected function processLoad(array $load_data): bool
+    protected function processLoad(SelectReply $load_data): SingleLoadReply
     {
-        if ($load_data["status"] == true) {
-            if (count($load_data["dataset"]) == 1) {
-                $id_check_passed = true;
-                $restore_dataset = $this->dataset;
-                $this->setup($load_data["dataset"][0]);
-                if (($this->getId() <= 0) || ($this->getId() === null)) {
-                    $id_check_passed = false;
-                    $this->dataset = $restore_dataset;
-                }
-                return $id_check_passed;
-            }
-            if (count($load_data["dataset"]) > 1) {
-                $error_message = "Load error incorrect number of entrys expected 1 but got:";
-                $error_message .= count($load_data["dataset"]);
-                $this->addError(__FILE__, __FUNCTION__, $error_message);
-            }
+        if ($load_data->status == false) {
+            $this->addError($load_data->message);
+            return new SingleLoadReply($this->getLastErrorBasic());
         }
-        return false;
+        if ($load_data->entrys != 1) {
+            $error_message = "Load error incorrect number of entrys expected 1 but got:";
+            $error_message .= $load_data->entrys;
+            $this->addError($error_message);
+            return new SingleLoadReply($this->getLastErrorBasic());
+        }
+        $restore_dataset = $this->dataset;
+        $this->setup($load_data->dataset[0]);
+        if (($this->getId() <= 0) || ($this->getId() === null)) {
+            $this->dataset = $restore_dataset;
+            $this->addError("Invaild Id passed to processLoad!");
+            return new SingleLoadReply($this->getLastErrorBasic());
+        }
+        return new SingleLoadReply("Ok", true);
     }
     /**
      * removeMe
@@ -189,107 +199,116 @@ abstract class GenClassDB extends GenClassControl
      * and marks the object as unloaded by setting its id to -1
      * @return mixed[] [status =>  bool, message =>  string]
      */
-    public function removeEntry(): array
+    public function removeEntry(): RemoveReply
     {
-        if ($this->disabled == false) {
-            if ($this->getId() > 0) {
-                $where_config = [
-                    "fields" => ["id"],
-                    "values" => [$this->getId()],
-                    "types" => ["i"],
-                    "matches" => ["="],
-                ];
-                $remove_status = $this->sql->removeV2($this->getTable(), $where_config);
-                if ($remove_status["status"] == true) {
-                    $this->dataset["id"]["value"] = -1;
-                    if ($this->cache != null) {
-                        $this->cache->markChangeToTable($this->getTable());
-                    }
-                }
-                return $remove_status;
-            }
-            return ["status" => false, "message" => "this object is not loaded!"];
+        if ($this->disabled == true) {
+            $this->addError("This class is disabled.");
+            return new RemoveReply($this->myLastErrorBasic);
         }
-        return ["status" => false, "message" => "this class is disabled."];
+        if ($this->getId() < 1) {
+            $this->addError("this object is not loaded!");
+            return new RemoveReply($this->myLastErrorBasic);
+        }
+        $where_config = [
+            "fields" => ["id"],
+            "values" => [$this->getId()],
+            "types" => ["i"],
+            "matches" => ["="],
+        ];
+        $remove_status = $this->sql->removeV2($this->getTable(), $where_config);
+        if ($remove_status->status == false) {
+            $this->addError($remove_status->message);
+            return new RemoveReply($this->myLastErrorBasic);
+        }
+        $this->dataset["id"]["value"] = -1;
+        if ($this->cache != null) {
+            $this->cache->markChangeToTable($this->getTable());
+        }
+        return new RemoveReply("ok", true, $remove_status->entrysRemoved);
     }
     /**
      * createEntry
      * create a new entry in the database for this object
      * once created it also sets the objects id field
-     * @return mixed[] [status =>  bool, message =>  string]
      */
-    public function createEntry(): array
+    public function createEntry(): CreateReply
     {
         if ($this->disableUpdates == true) {
-            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            $this->addError("Attempt to update with limitFields enabled!");
+            return new CreateReply($this->myLastErrorBasic);
+        } elseif ($this->disabled == true) {
+            $this->addError("This class is disabled.");
+            return new CreateReply($this->myLastErrorBasic);
+        } elseif (array_key_exists("id", $this->dataset) == false) {
+            $this->addError("id field is required on the class to support create");
+            return new CreateReply($this->myLastErrorBasic);
+        } elseif (count($this->dataset) != count($this->save_dataset)) {
+            $this->save_dataset = $this->dataset;
+        } elseif (array_key_exists("id", $this->save_dataset) == false) {
+            $this->addError("Attempt to create entry but save dataset does not have id field");
+            return new CreateReply($this->myLastErrorBasic);
+        } elseif ($this->save_dataset["id"]["value"] !== null) {
+            $this->addError("Attempt to create entry but save dataset id is not null");
+            return new CreateReply($this->myLastErrorBasic);
         }
-        if ($this->disabled == false) {
-            if (array_key_exists("id", $this->dataset) == true) {
-                if ($this->save_dataset["id"]["value"] == null) {
-                    $fields = [];
-                    $values = [];
-                    $types = [];
-                    foreach ($this->dataset as $key => $value) {
-                        if ($key != "id") {
-                            $value = $this->dataset[$key]["value"];
-                            $fields[] = $key;
-                            $update_code = "i";
-                            if ($this->dataset[$key]["type"] == "str") {
-                                $update_code = "s";
-                            } elseif ($this->dataset[$key]["type"] == "float") {
-                                $update_code = "d";
-                            }
-                            $values[] = $value;
-                            $types[] = $update_code;
-                        }
-                    }
-                    $return_dataset = ["status" => false,"message" => "Nothing processed"];
-                    if (count($fields) > 0) {
-                        $config = [
-                            "table" => $this->getTable(),
-                            "fields" => $fields,
-                            "values" => $values,
-                            "types" => $types,
-                        ];
-                        $return_dataset = $this->sql->addV2($config);
-                        if ($return_dataset["status"] == true) {
-                            if ($this->cache != null) {
-                                $this->cache->markChangeToTable($this->getTable());
-                            }
-                            $this->dataset["id"]["value"] = $return_dataset["newID"];
-                            $this->save_dataset["id"]["value"] = $return_dataset["newID"];
-                        }
-                    }
-                    return $return_dataset;
-                }
-                $error_msg = "attempting to create a object with a set id, this is not allowed!";
-                return ["status" => false, "message" => $error_msg];
+        $fields = [];
+        $values = [];
+        $types = [];
+        foreach ($this->dataset as $key => $value) {
+            if ($key == "id") {
+                continue;
             }
-            return ["status" => false, "message" => "id field is required on the class to support create"];
+            $value = $this->dataset[$key]["value"];
+            $fields[] = $key;
+            $update_code = "i";
+            if ($this->dataset[$key]["type"] == "str") {
+                $update_code = "s";
+            } elseif ($this->dataset[$key]["type"] == "float") {
+                $update_code = "d";
+            }
+            $values[] = $value;
+            $types[] = $update_code;
         }
-        return ["status" => false, "message" => "this class is disabled."];
+        $config = [
+            "table" => $this->getTable(),
+            "fields" => [],
+            "values" => [],
+            "types" => [],
+        ];
+        if (count($fields) != 0) {
+            $config["fields"] = $fields;
+            $config["values"] = $values;
+            $config["types"] = $types;
+        }
+        $return_dataset = $this->sql->addV2($config);
+        if ($return_dataset->status == false) {
+            $this->addError($return_dataset->message);
+            return new CreateReply($this->myLastErrorBasic);
+        } elseif ($this->cache != null) {
+            $this->cache->markChangeToTable($this->getTable());
+        }
+        $this->dataset["id"]["value"] = $return_dataset->newid;
+        $this->save_dataset = $this->dataset;
+        return new CreateReply("ok", true, $return_dataset->newid);
     }
     /**
      * updateEntry
      * updates changes to the object in the database
-     * @return mixed[] [status =>  bool, message =>  string]
      */
-    public function updateEntry(): array
+    public function updateEntry(): UpdateReply
     {
         if ($this->disableUpdates == true) {
-            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
-        }
-        if ($this->disabled == true) {
-            $error_msg = "this class is disabled.";
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
-        }
-        if (array_key_exists("id", $this->save_dataset) == false) {
-            $error_msg = "Object does not have its id field set!";
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
-        }
-        if ($this->save_dataset["id"]["value"] < 1) {
-            $error_msg = "Object id is not vaild for updates";
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
+            $this->addError("Attempt to update with limitFields enabled!");
+            return new UpdateReply($this->myLastErrorBasic);
+        } elseif ($this->disabled == true) {
+            $this->addError("This class is disabled.");
+            return new UpdateReply($this->myLastErrorBasic);
+        } elseif (array_key_exists("id", $this->save_dataset) == false) {
+            $this->addError("Object does not have its id field set!");
+            return new UpdateReply($this->myLastErrorBasic);
+        } elseif ($this->save_dataset["id"]["value"] < 1) {
+            $this->addError("Object id is not vaild for updates");
+            return new UpdateReply($this->myLastErrorBasic);
         }
 
         $where_config = [
@@ -312,13 +331,11 @@ abstract class GenClassDB extends GenClassControl
                     $had_error = true;
                     $error_msg = "Key: " . $key . " is missing from dataset!";
                     break;
-                }
-                if (array_key_exists("value", $this->dataset[$key]) == false) {
+                } elseif (array_key_exists("value", $this->dataset[$key]) == false) {
                     $had_error = true;
                     $error_msg = "Key: " . $key . " is missing its value index!";
                     break;
-                }
-                if ($this->dataset[$key]["value"] != $this->save_dataset[$key]["value"]) {
+                } elseif ($this->dataset[$key]["value"] != $this->save_dataset[$key]["value"]) {
                     $update_code = "i";
                     if ($this->dataset[$key]["type"] == "str") {
                         $update_code = "s";
@@ -331,21 +348,21 @@ abstract class GenClassDB extends GenClassControl
                 }
             }
         }
-        if ($had_error == false) {
-            $expected_changes = count($update_config["fields"]);
-            if ($expected_changes > 0) {
-                $reply = $this->sql->updateV2($this->getTable(), $update_config, $where_config, 1);
-                if ($reply["status"] == true) {
-                    if ($this->cache != null) {
-                        $this->cache->markChangeToTable($this->getTable());
-                    }
-                }
-                return $reply;
-            }
-            $error_msg = "No changes made";
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
+        if ($had_error == true) {
+            $this->addError("request rejected: " . $error_msg);
+            return new UpdateReply($this->myLastErrorBasic);
         }
-        $error_msg = "request rejected: " . $error_msg;
-        return ["status" => false, "changes" => 0, "message" => $error_msg];
+        $expected_changes = count($update_config["fields"]);
+        if ($expected_changes == 0) {
+            $this->addError("No changes made");
+            return new UpdateReply($this->myLastErrorBasic);
+        }
+        $reply = $this->sql->updateV2($this->getTable(), $update_config, $where_config, 1);
+        if ($reply->status == true) {
+            if ($this->cache != null) {
+                $this->cache->markChangeToTable($this->getTable());
+            }
+        }
+        return new UpdateReply("ok", true, $reply->entrysUpdated);
     }
 }

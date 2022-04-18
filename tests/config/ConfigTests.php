@@ -20,24 +20,10 @@ class ConfigTests extends TestCase
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
         $system->getCacheDriver()->shutdown();
-        
-        $system = new SimpleConfig();
-        $system->configCacheDisk("tmp");
-        $system->setupCache();
-        $countto = new CounttoonehundoSet();
-        $system->getCacheDriver()->addTableToCache($countto->getTable(),15,true,true);
-        $system->startCache();
-
-        $countto = new CounttoonehundoSet();
-        $countto->loadAll();
-        $system->getCacheDriver()->shutdown();
 
         $this->assertSame(true,true,"yep");
     }
 
-    /**
-     * @depends test_forcePushToCache
-     */
     public function test_ConfigCacheFlagRedis(): void
     {
         global $system;
@@ -54,27 +40,6 @@ class ConfigTests extends TestCase
         $this->assertSame("Redis",$system->getCacheDriver()->getDriverName(),"Wrong cache driver");
         $this->assertStringContainsString('"reads":1,',json_encode($system->getCacheDriver()->getStatusCounters()),"incorrect counters");
         $this->assertSame(true,$system->getCacheDriver()->getStatusConnected(),"Redis did not connect");
-    }
-
-    /**
-     * @depends test_forcePushToCache
-     */
-    public function test_ConfigCacheFlagDisk(): void
-    {
-        global $system;
-        $system = new SimpleConfig();
-        $system->configCacheDisk("tmp");
-        $system->setupCache();
-        $countto = new CounttoonehundoSet();
-        $system->getCacheDriver()->addTableToCache($countto->getTable(),15,true,true);
-        $system->startCache();
-
-        $countto = new CounttoonehundoSet();
-        $countto->loadAll();
-        $system->getCacheDriver()->shutdown();
-        $this->assertSame("Disk",$system->getCacheDriver()->getDriverName(),"Wrong cache driver");
-        $this->assertStringContainsString('"reads":1,',json_encode($system->getCacheDriver()->getStatusCounters()),"incorrect counters");
-        $this->assertSame(true,$system->getCacheDriver()->getStatusConnected(),"Disk did not connect");
     }
 
     public function test_ConfigCacheFlagNoCache(): void

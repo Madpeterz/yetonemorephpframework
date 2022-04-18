@@ -33,9 +33,9 @@ class MysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame("ok", $results["message"], "Incorrect update status message: ".$this->sql->getLastSql());
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["changes"], 1);
+        $this->assertSame("ok", $results->message, "Incorrect update status message: ".$this->sql->getLastSql());
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysUpdated, 1);
         
     }
 
@@ -54,9 +54,9 @@ class MysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "No types given for update");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "No types given for update");
     }
 
     public function testUpdateBadUpdateConfigs()
@@ -74,9 +74,9 @@ class MysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "count issue fields <=> values");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "count issue fields <=> values");
         $where_config = [
             "fields" => ["id"],
             "values" => [1],
@@ -90,9 +90,9 @@ class MysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "count issue values <=> types");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "count issue values <=> types");
     }
 
     public function testUpdateInvaildTable()
@@ -110,15 +110,15 @@ class MysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("badtable", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "unable to prepair: Table 'test.badtable' doesn't exist");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "Unable to prepair: Table 'test.badtable' doesn't exist");
 
         $results = $this->sql->updateV2("", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "No table given");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "No table given");
     }
 
     public function testUpdateInvaildField()
@@ -136,9 +136,9 @@ class MysqliUpdateTest extends TestCase
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "unable to prepair: Unknown column 'missingfield' in 'where clause'");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "Unable to prepair: Unknown column 'missingfield' in 'where clause'");
     }
 
     public function testUpdateInvaildValue()
@@ -155,11 +155,11 @@ class MysqliUpdateTest extends TestCase
             "types" => ["s"]
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
-        $this->assertSame("unable to execute because: Column 'username' cannot be null", $results["message"],
+        $this->assertSame("Unable to execute because: Column 'username' cannot be null", $results->message,
         "Your mysql server is not setup in strict mode\n 
 change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER");
-        $this->assertSame(false, $results["status"]);
-        $this->assertSame(0, $results["changes"]);
+        $this->assertSame(false, $results->status);
+        $this->assertSame(0, $results->entrysUpdated);
     }
 
     public function testUpdateMultiple()
@@ -177,9 +177,9 @@ change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TR
         ];
         $results = $this->sql->updateV2("liketests", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["changes"], 2);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysUpdated, 2);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testUpdateLike()
@@ -197,9 +197,9 @@ change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TR
         ];
         $results = $this->sql->updateV2("liketests", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["changes"], 2);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrysUpdated, 2);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testUpdateNoSqlConnection()
@@ -220,8 +220,8 @@ change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TR
         ];
         $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $where_config);
         // [changes => int, status => bool, message => string]
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["changes"], 0);
-        $this->assertSame($results["message"], "Connect attempt died in a fire");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrysUpdated, 0);
+        $this->assertSame($results->message, "Connect attempt died in a fire");
     }
 }

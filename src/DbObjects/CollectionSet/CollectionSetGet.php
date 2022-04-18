@@ -76,11 +76,11 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
         $ValueFieldGetter = "get" . ucfirst($right_side_field);
         $worker = new $this->worker_class();
         if (method_exists($worker, $keyFieldGetter) == false) {
-            $this->addError(__FILE__, __FUNCTION__, "Field: " . $left_side_field . " is missing");
+            $this->addError("Field: " . $left_side_field . " is missing");
             return [];
         }
         if (method_exists($worker, $ValueFieldGetter) == false) {
-            $this->addError(__FILE__, __FUNCTION__, "Field: " . $right_side_field . " is missing");
+            $this->addError("Field: " . $right_side_field . " is missing");
             return [];
         }
         $return_array = [];
@@ -229,7 +229,7 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
     public function getAllIds(): array
     {
         $this->makeWorker();
-        return $this->uniqueArray($this->worker->use_id_field);
+        return $this->uniqueArray("id");
     }
 
     /**

@@ -5,6 +5,7 @@ namespace YAPF\Junk;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
+use YAPF\Framework\Responses\DbObjects\UpdateReply;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Counttoonehundo;
 
@@ -24,7 +25,7 @@ class BrokenDbObject extends genClass
     * setCvalue
     * @return mixed[] [status =>  bool, message =>  string]
     */
-    public function setCvalue(?int $newvalue): array
+    public function setCvalue(?int $newvalue): UpdateReply
     {
         return $this->updateField("cvalue", $newvalue);
     }
@@ -110,11 +111,10 @@ class DbObjectsGenClassTest extends TestCase
     }
     public function testResetDbFirst()
     {
-        global $sql;
-        $results = $sql->rawSQL("tests/testdataset.sql");
-        // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        global $system;
+        $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
     public function testHasAny()
     {
@@ -130,28 +130,28 @@ class DbObjectsGenClassTest extends TestCase
         $result = $countto->setCvalue(22);
         $countto->makedisabled();
         $result = $countto->setCvalue(823);
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "This class is disabled");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "This class is disabled");
         $result = $countto->createEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "this class is disabled.");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "This class is disabled.");
         $countto = new Counttoonehundo();
         $countto->loadID(44);
         $countto->makedisabled();
         $result = $countto->removeEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "this class is disabled.");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "This class is disabled.");
         $result = $countto->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "this class is disabled.");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "This class is disabled.");
     }
 
     public function testCreateDefaultIdDetected()
     {
         $countto = new Counttoonehundo(["id" => 44]);
         $result = $countto->createEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "attempting to create a object with a set id, this is not allowed!");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "Attempt to create entry but save dataset id is not null");
     }
 
     public function testCreateBrokenObject()
@@ -159,24 +159,24 @@ class DbObjectsGenClassTest extends TestCase
         $broken = new BrokenDbObject();
         $broken->setCvalue(44);
         $result = $broken->createEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "id field is required on the class to support create");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "id field is required on the class to support create");
     }
 
     public function testUpdateMissingId()
     {
         $broken = new Counttoonehundo(["cvalue" => 44]);
         $result = $broken->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "Object id is not vaild for updates");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "Object id is not vaild for updates");
     }
 
     public function testUpdateInvaildIdDetected()
     {
         $countto = new Counttoonehundo(["id" => -88,"cvalue" => 44]);
         $result = $countto->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "Object id is not vaild for updates");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "Object id is not vaild for updates");
     }
 
     public function testUpdateVeryBrokenObject()
@@ -184,32 +184,32 @@ class DbObjectsGenClassTest extends TestCase
         $verybroken = new VeryBrokenDbObject(["id" => 44,"cvalue" => 55]);
         $verybroken->setCvalue(44);
         $result = $verybroken->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "No changes made");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "No changes made");
     }
 
     public function testUpdateVeryBrokenObjectNoId()
     {
         $verybroken = new VeryBrokenDbObjectNoId(["cvalue" => 55]);
         $result = $verybroken->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "Object does not have its id field set!");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "Object does not have its id field set!");
     }
     public function testWeirdBrokenObject()
     {
         $weird = new WeirdBrokenObjectWithSaveDatasetButNoLive(["cvalue" => 44,"id" => 44]);
         $weird->getCvalue();
         $result = $weird->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "request rejected: Key: cvalue is missing from dataset!");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "request rejected: Key: cvalue is missing from dataset!");
     }
     public function testWeirdBrokenObjectAgain()
     {
         $weird = new WeirdBrokenObjectWithSaveDatasetButMalformedLive(["cvalue" => 44,"id" => 44]);
         $weird->getCvalue();
         $result = $weird->updateEntry();
-        $this->assertSame($result["status"], false);
-        $this->assertSame($result["message"], "request rejected: Key: cvalue is missing its value index!");
+        $this->assertSame($result->status, false);
+        $this->assertSame($result->message, "request rejected: Key: cvalue is missing its value index!");
     }
     public function testCreateUID()
     {
@@ -217,9 +217,9 @@ class DbObjectsGenClassTest extends TestCase
         $testing->setFloatfield(44.1);
         $testing->setIntfield(11);
         $result = $testing->createUID("stringfield", 5);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame($result["status"], true);
-        $this->assertSame(strlen($result["uid"]), 5);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->status, true);
+        $this->assertSame(strlen($result->uid), 5);
     }
     public function testGetHash()
     {

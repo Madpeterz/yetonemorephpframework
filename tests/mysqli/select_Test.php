@@ -21,19 +21,17 @@ class MysqliSelectTest extends TestCase
     public function testRestoreDbFirst()
     {
         $results = $this->sql->rawSQL("tests/testdataset.sql");
-        // [status =>  bool, message =>  string]
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["message"], "56 commands run");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->commandsRun, 56);
     }
 
     public function testSelectBasic()
     {
         $basic_config = ["table" => "counttoonehundo"];
         $result = $this->sql->selectV2($basic_config);
-        // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 100);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 100);
+        $this->assertSame($result->status, true);
     }
 
     public function testSelectNoTable()
@@ -41,9 +39,9 @@ class MysqliSelectTest extends TestCase
         $basic_config = [];
         $result = $this->sql->selectV2($basic_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "table index missing from basic config!");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "table index missing from basic config!");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectEmptyTable()
@@ -51,9 +49,9 @@ class MysqliSelectTest extends TestCase
         $basic_config = ["table" => ""];
         $result = $this->sql->selectV2($basic_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "No table set in basic config!");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "No table set in basic config!");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectSimpleLimit()
@@ -62,9 +60,9 @@ class MysqliSelectTest extends TestCase
         $options = ["max_entrys" => 5];
         $result = $this->sql->selectV2($basic_config, null, null, $options);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 5);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 5);
+        $this->assertSame($result->status, true);
     }
 
     public function testSelectEmptyInArray()
@@ -78,9 +76,9 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Targeting IN|NOT IN with no array");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Targeting IN|NOT IN with no array");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectNullAsText()
@@ -95,9 +93,9 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config, $options);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 5);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 5);
+        $this->assertSame($result->status, true);
     }
 
     public function testSelectUnkownWhereMatcher()
@@ -114,9 +112,9 @@ class MysqliSelectTest extends TestCase
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         $this->sql->vailatematchtype = false;
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Where config failed: Unsupported where match type!");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: Unsupported where match type!");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectIsNotNull()
@@ -130,9 +128,9 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 100);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 100);
+        $this->assertSame($result->status, true);
     }
 
     public function testSelectInNotArray()
@@ -146,9 +144,9 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Targeting IN|NOT IN with no array");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Targeting IN|NOT IN with no array");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectGroupedMatches()
@@ -165,9 +163,9 @@ class MysqliSelectTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $expected_sql = "SELECT * FROM counttoonehundo  WHERE (`cvalue` = ? OR `cvalue` != ?) AND `cvalue` < ?";
         $this->assertSame($this->sql->getLastSql(), $expected_sql);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 70);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 70);
+        $this->assertSame($result->status, true);
     }
 
     public function testSelectGroupedMatchesOpenFirst()
@@ -184,9 +182,9 @@ class MysqliSelectTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $expected_sql = "SELECT * FROM counttoonehundo  WHERE (`cvalue` = ? OR (`cvalue` != ? AND `cvalue` < ?))";
         $this->assertSame($this->sql->getLastSql(), $expected_sql);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 70);
-        $this->assertSame($result["status"], true);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 70);
+        $this->assertSame($result->status, true);
     }
 
     public function testSelectGroupedEmptyInArray()
@@ -201,9 +199,9 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Targeting IN|NOT IN with no array");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Targeting IN|NOT IN with no array");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectGroupedUnknownMatcher()
@@ -218,9 +216,9 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Where config failed: Unsupported where match type!");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Where config failed: Unsupported where match type!");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectBasicExtended()
@@ -231,11 +229,11 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 1);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["dataset"][0]["total"], '10230');
-        $this->assertSame($result["dataset"][0]["entrys"], 100);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 1);
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->dataset[0]["total"], '10230');
+        $this->assertSame($result->dataset[0]["entrys"], 100);
     }
 
     public function testSelectOrdering()
@@ -248,22 +246,22 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, $order_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 100);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["dataset"][0]["id"], 100);
-        $this->assertSame($result["dataset"][0]["cvalue"], 512);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 100);
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->dataset[0]["id"], 100);
+        $this->assertSame($result->dataset[0]["cvalue"], 512);
         $basic_config = ["table" => "counttoonehundo"];
         $order_config = [
         "ordering_enabled" => true,
         ];
         $result = $this->sql->selectV2($basic_config, $order_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 100);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["dataset"][0]["id"], 100);
-        $this->assertSame($result["dataset"][0]["cvalue"], 512);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 100);
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->dataset[0]["id"], 100);
+        $this->assertSame($result->dataset[0]["cvalue"], 512);
         $basic_config = ["table" => "counttoonehundo"];
         $order_config = [
         "ordering_enabled" => true,
@@ -271,11 +269,11 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, $order_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 100);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["dataset"][0]["id"], 100);
-        $this->assertSame($result["dataset"][0]["cvalue"], 512);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 100);
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->dataset[0]["id"], 100);
+        $this->assertSame($result->dataset[0]["cvalue"], 512);
     }
 
 
@@ -291,11 +289,11 @@ class MysqliSelectTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $where_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 80);
-        $this->assertSame($result["status"], true);
-        $this->assertSame($result["dataset"][0]["id"], 1);
-        $this->assertSame($result["dataset"][0]["cvalue"], 1);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 80);
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->dataset[0]["id"], 1);
+        $this->assertSame($result->dataset[0]["cvalue"], 1);
     }
 
     public function testSelectLeftJoin()
@@ -318,14 +316,14 @@ class MysqliSelectTest extends TestCase
         "order_dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
-        $this->assertSame($result["message"], "ok");
+        $this->assertSame($result->message, "ok");
         $expected_sql = "SELECT mtb.id, mtb.name, tw2.extended1, tw2.extended2, tw2.extended3 FROM ";
         $expected_sql .= "relationtestinga mtb LEFT JOIN relationtestingb tw2 ON tw2.id = mtb.linkid ORDER BY id DESC";
         $this->assertSame($this->sql->getLastSql(), $expected_sql);
-        $this->assertSame($result["status"], true);
-        $this->assertSame(count($result["dataset"]), 2);
-        $this->assertSame($result["dataset"][0]["name"], "group2");
-        $this->assertSame($result["dataset"][0]["extended1"], "c1");
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->entrys, 2);
+        $this->assertSame($result->dataset[0]["name"], "group2");
+        $this->assertSame($result->dataset[0]["extended1"], "c1");
     }
 
     public function testSelectInnerJoin()
@@ -352,11 +350,11 @@ class MysqliSelectTest extends TestCase
         $expected_sql = "SELECT mtb.id, mtb.message as table1message, tw2.message as table2message FROM ";
         $expected_sql .= "twintables1 mtb JOIN twintables2 tw2 ORDER BY id DESC";
         $this->assertSame($this->sql->getLastSql(), $expected_sql);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame($result["status"], true);
-        $this->assertSame(count($result["dataset"]), 1);
-        $this->assertSame($result["dataset"][0]["table1message"], "is not very good");
-        $this->assertSame($result["dataset"][0]["table2message"], "is great");
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->status, true);
+        $this->assertSame($result->entrys, 1);
+        $this->assertSame($result->dataset[0]["table1message"], "is not very good");
+        $this->assertSame($result->dataset[0]["table2message"], "is great");
     }
 
     public function testSelecJoinBadJoinConfig()
@@ -380,8 +378,8 @@ class MysqliSelectTest extends TestCase
         "order_dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
-        $this->assertSame($result["message"], "failed with message:counts match error onfield_right <=> onfield_match");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "failed with message:counts match error onfield_right <=> onfield_match");
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectMissingJoinConfig()
@@ -403,8 +401,8 @@ class MysqliSelectTest extends TestCase
         "order_dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
-        $this->assertSame($result["message"], "unable to prepair: Unknown column 'tw2.extended1' in 'field list'");
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Unable to prepair: Unknown column 'tw2.extended1' in 'field list'");
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectNoSqlConnection()
@@ -415,9 +413,9 @@ class MysqliSelectTest extends TestCase
         $basic_config = ["table" => "counttoonehundo"];
         $result = $this->sql->selectV2($basic_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result["message"], "Connect attempt died in a fire");
-        $this->assertSame(count($result["dataset"]), 0);
-        $this->assertSame($result["status"], false);
+        $this->assertSame($result->message, "Connect attempt died in a fire");
+        $this->assertSame($result->entrys, 0);
+        $this->assertSame($result->status, false);
     }
 
     public function testSelectWithFunctionWhere()
@@ -431,10 +429,10 @@ class MysqliSelectTest extends TestCase
             "asFunction" => [1]
         ];
         $result = $this->sql->selectV2($basic_config,null,$whereConfig);
-        $this->assertSame($result["message"], "ok");
-        $this->assertSame(count($result["dataset"]), 1);
-        $this->assertSame($result["status"], true);
-        $this->assertSame("group1", $result["dataset"][0]["name"],"incorrect group value returned");
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($result->entrys, 1);
+        $this->assertSame($result->status, true);
+        $this->assertSame("group1", $result->dataset[0]["name"],"incorrect group value returned");
     }
 }
 

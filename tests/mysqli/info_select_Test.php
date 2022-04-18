@@ -32,6 +32,6 @@ class MysqliTestInfoSchema extends TestCase
         ];
 
         $results = $this->sql->selectV2($basic_config, null, $where_config);
-        $this->assertSame(true,$results["status"], "Unable to read from table with query: ".$this->sql->lastSql);
+        $this->assertSame(true,$results->status, "Unable to read from table with query: ".$this->sql->lastSql);
     }
 }

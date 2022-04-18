@@ -21,33 +21,33 @@ class MysqliCountTest extends TestCase
     public function testCountOnehundo()
     {
         $results = $this->sql->basicCountV2("counttoonehundo");
-        $this->assertSame($results["message"], "ok");
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["count"], 100);
+        $this->assertSame($results->message, "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 100);
     }
 
     public function testCountEmpty()
     {
         $results = $this->sql->basicCountV2("rollbacktest");
-        $this->assertSame($results["message"], "ok");
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["count"], 0);
+        $this->assertSame($results->message, "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 0);
     }
 
     public function testCountNoTable()
     {
         $results = $this->sql->basicCountV2("");
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["count"], 0);
-        $this->assertSame($results["message"], "No table given");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->message, "No table given");
     }
 
     public function testCountInvaildTable()
     {
         $results = $this->sql->basicCountV2("badtable");
-        $this->assertSame($results["status"], false);
-        $this->assertSame($results["count"], 0);
-        $this->assertSame($results["message"], "unable to prepair: Table 'test.badtable' doesn't exist");
+        $this->assertSame($results->status, false);
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->message, "Unable to prepair: Table 'test.badtable' doesn't exist");
     }
 
     public function testCountOnehundoOnlyNegitive()
@@ -59,18 +59,18 @@ class MysqliCountTest extends TestCase
             "types" => ["i"]
         ];
         $results = $this->sql->basicCountV2("counttoonehundo", $where_config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["count"], 0);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testCountGroupped()
     {
         $results = $this->sql->groupCountV2("counttoonehundo", "cvalue");
-        $this->assertSame($results["status"], true);
-        $this->assertSame(count($results["dataset"]), 10);
-        $this->assertSame($results["message"], "ok");
-        $this->assertSame($results["dataset"][0]["Entrys"], 10);
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 10);
+        $this->assertSame($results->message, "ok");
+        $this->assertSame($results->dataset[0]["Entrys"], 10);
     }
 
     public function testCountOnehundoOnlyIdsGtr60()
@@ -82,9 +82,9 @@ class MysqliCountTest extends TestCase
             "types" => ["i"]
         ];
         $results = $this->sql->basicCountV2("counttoonehundo", $where_config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["count"], 40);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 40);
+        $this->assertSame($results->message, "ok");
     }
 
     public function testRemoveHasEmptyedCheckCount()
@@ -96,9 +96,9 @@ class MysqliCountTest extends TestCase
             "types" => ["i"]
         ];
         $results = $this->sql->basicCountV2("endoftestempty", $where_config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["count"], 0);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->message, "ok");
     }
 
 
@@ -111,8 +111,8 @@ class MysqliCountTest extends TestCase
             "types" => ["i"]
         ];
         $results = $this->sql->basicCountV2("endoftestempty", $where_config);
-        $this->assertSame($results["status"], true);
-        $this->assertSame($results["count"], 0);
-        $this->assertSame($results["message"], "ok");
+        $this->assertSame($results->status, true);
+        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->message, "ok");
     }
 }

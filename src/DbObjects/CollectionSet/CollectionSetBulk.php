@@ -2,19 +2,20 @@
 
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
+use YAPF\Framework\Responses\DbObjects\MultiUpdateReply;
+use YAPF\Framework\Responses\DbObjects\RemoveReply;
+
 abstract class CollectionSetBulk extends CollectionSetGet
 {
     /**
      * purgeCollection
      * Removes all objects from the database that are in the collection
-     * @return mixed[] [status =>  bool,removed_entrys => integer, message =>  string]
      */
-    public function purgeCollection(): array
+    public function purgeCollection(): RemoveReply
     {
         $this->makeWorker();
         if ($this->getCount() == 0) {
-            $error_msg = "Collection empty to start with";
-            return ["status" => true, "removed_entrys" => 0, "message" => $error_msg];
+            return new RemoveReply("Collection empty to start with", true, 0);
         }
         $where_config = [
             "fields" => ["id"],
@@ -26,32 +27,30 @@ abstract class CollectionSetBulk extends CollectionSetGet
         $status = false;
         $removed_entrys = 0;
 
-        $error_msg = "Failed to remove entrys from database because: " . $remove_status["message"];
-        if ($remove_status["status"] == true) {
-            if ($this->cache != null) {
-                $this->cache->markChangeToTable($this->getTable());
-            }
-            $error_msg = "Incorrect number of entrys removed expected " . $this->getCount();
-            $error_msg = " got " . $remove_status["rowsDeleted"];
-            if ($remove_status["rowsDeleted"] == $this->getCount()) {
-                $status = true;
-                $error_msg = "ok";
-                $removed_entrys = $remove_status["rowsDeleted"];
-            }
+        if ($remove_status->status == false) {
+            $this->addError($remove_status->message);
+            return new RemoveReply($this->myLastErrorBasic);
         }
-        return ["status" => $status, "removed_entrys" => $removed_entrys, "message" => $error_msg];
+        if ($remove_status->entrysRemoved != $this->getCount()) {
+            $this->addError("Incorrect number of entrys removed");
+            return new RemoveReply($this->myLastErrorBasic);
+        }
+        if ($this->cache != null) {
+            $this->cache->markChangeToTable($this->getTable());
+        }
+        return new RemoveReply("ok", true, $remove_status->entrysRemoved);
     }
 
     /**
      * updateFieldInCollection
      * Updates all objects in the collection's value
      * for the selected field
-     * @return mixed[] [status =>  bool, changes => int, message =>  string]
      */
-    public function updateFieldInCollection(string $update_field, $new_value): array
+    public function updateFieldInCollection(string $update_field, $new_value): MultiUpdateReply
     {
         if ($this->disableUpdates == true) {
-            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            $this->addError("Attempt to update with disableUpdates enabled!");
+            return new MultiUpdateReply($this->myLastErrorBasic);
         }
         return $this->updateMultipleFieldsForCollection([$update_field], [$new_value]);
     }
@@ -102,11 +101,10 @@ abstract class CollectionSetBulk extends CollectionSetGet
      * it builds an array of ids that need to have
      * the update applyed to them and the total number of
      * entrys that need to be updated
-     * @return mixed[] [changes => integer,changed_ids => integer[]]
+     * @return int[] ids to change
      */
     protected function updateMultipleGetUpdatedIds(array $update_fields, array $new_values): array
     {
-        $expected_changes = 0;
         $changed_ids = [];
         $ids = $this->getAllIds();
         $total_update_fields = count($update_fields);
@@ -116,14 +114,13 @@ abstract class CollectionSetBulk extends CollectionSetGet
             while ($loop2 < $total_update_fields) {
                 $lookup = "get" . ucfirst($update_fields[$loop2]);
                 if ($localworker->$lookup() != $new_values[$loop2]) {
-                    $expected_changes++;
                     $changed_ids[] = $entry_id;
                     break;
                 }
                 $loop2++;
             }
         }
-        return ["changes" => $expected_changes , "changed_ids" => $changed_ids];
+        return $changed_ids;
     }
     /**
      * updateMultipleApplyChanges
@@ -147,52 +144,51 @@ abstract class CollectionSetBulk extends CollectionSetGet
      * updateMultipleFieldsForCollection
      * using the fields and values updates the collection
      * and applys the changes to the database.
-     * @return mixed[] [status =>  bool, changes => int, message =>  string]
      */
-    public function updateMultipleFieldsForCollection(array $update_fields, array $new_values): array
+    public function updateMultipleFieldsForCollection(array $update_fields, array $new_values): MultiUpdateReply
     {
         if ($this->disableUpdates == true) {
-            return $this->addError(__FILE__, __FUNCTION__, "Attempt to update with limitFields enabled!");
+            $this->addError("Attempt to update with limitFields enabled!");
+            return new MultiUpdateReply($this->myLastErrorBasic);
         }
         $this->makeWorker();
         if ($this->getCount() <= 0) {
-            $error_msg = "Nothing loaded in collection";
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
+            $this->addError("Nothing loaded in collection");
+            return new MultiUpdateReply($this->myLastErrorBasic);
         }
         if (count($update_fields) <= 0) {
-            $error_msg = "No fields being updated!";
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
+            $this->addError("No fields being updated!");
+            return new MultiUpdateReply($this->myLastErrorBasic);
         }
         $ready_update_config = $this->updateMultipleMakeUpdateConfig($update_fields, $new_values);
         if ($ready_update_config["status"] == false) {
-            $error_msg = $ready_update_config["message"];
-            return ["status" => false, "changes" => 0, "message" => $error_msg];
+            $this->addError($ready_update_config["message"]);
+            return new MultiUpdateReply($this->myLastErrorBasic);
         }
         $change_config = $this->updateMultipleGetUpdatedIds($update_fields, $new_values);
-        if ($change_config["changes"] <= 0) {
-            $error_msg = "No changes made";
-            return ["status" => true, "changes" => 0, "message" => $error_msg];
+        if (count($change_config) <= 0) {
+            return new MultiUpdateReply("No changes made", true);
         }
         $update_config = $ready_update_config["dataset"];
         $where_config = [
             "fields" => ["id"],
             "matches" => ["IN"],
-            "values" => [$change_config["changed_ids"]],
+            "values" => [$change_config],
             "types" => ["i"],
         ];
         $table = $this->worker->getTable();
-        $total_changes = $change_config["changes"];
+        $total_changes = count($change_config);
         unset($change_config);
         unset($ready_update_config);
         $update_status = $this->sql->updateV2($table, $update_config, $where_config, $total_changes);
-        if ($update_status["status"] == true) {
-            if ($this->cache != null) {
-                $this->cache->markChangeToTable($this->getTable());
-            }
-            $this->updateMultipleApplyChanges($update_fields, $new_values);
-            return $update_status;
+        if ($update_status->status == false) {
+            $this->addError("Update failed because:" . $update_status->message);
+            return new MultiUpdateReply($this->myLastErrorBasic);
         }
-        $error_msg = "Update failed because:" . $update_status["message"];
-        return ["status" => false, "changes" => 0, "message" => $error_msg];
+        if ($this->cache != null) {
+            $this->cache->markChangeToTable($this->getTable());
+        }
+        $this->updateMultipleApplyChanges($update_fields, $new_values);
+        return new MultiUpdateReply("ok", true, $total_changes);
     }
 }
