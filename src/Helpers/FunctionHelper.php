@@ -33,21 +33,6 @@ class FunctionHelper
         return $agents[$agentId];
     }
 
-    /**
-     * If the string  contains the string , return true, otherwise return false.
-     * @deprecated php8 now does this.
-     * @param string source The string to search in.
-     * @param string match The string to search for.
-     * @return bool A boolean value.
-     */
-    public static function strContains(string $source, string $match): bool
-    {
-        if (strpos($source, $match) !== false) {
-            return true;
-        }
-        return false;
-    }
-
     public static function timeDisplay(int $secs): string
     {
         $mins = floor($secs / 60);
@@ -82,7 +67,7 @@ class FunctionHelper
 
     public function expiredAgo(
         $unixtime = 0,
-        bool $use_secs = false,
+        bool $withSeconds = false,
         string $expiredWord = "Expired",
         string $activeWord = "Active"
     ): string {
@@ -90,7 +75,7 @@ class FunctionHelper
         if ($dif < 0) {
             return $activeWord;
         }
-        return $this->timeleftHoursAndDays(time() + $dif, $use_secs, $expiredWord);
+        return $this->timeRemainingHumanReadable(time() + $dif, $withSeconds, $expiredWord);
     }
     /**
      * get_opts
@@ -114,8 +99,11 @@ class FunctionHelper
         }
         return $opts;
     }
-    public function timeleftHoursAndDays($unixtime = 0, bool $use_secs = false, string $expiredWord = "Expired"): string
-    {
+    public function timeRemainingHumanReadable(
+        $unixtime = 0,
+        bool $withSeconds = false,
+        string $expiredWord = "Expired"
+    ): string {
         $dif = $unixtime - time();
         if ($dif <= 0) {
             return $expiredWord;
@@ -127,11 +115,11 @@ class FunctionHelper
             $hours -= $days * 24;
             return $days . " days, " . $hours . " hours";
         }
-        if (($use_secs == false) && ($hours > 0)) {
+        if (($withSeconds == false) && ($hours > 0)) {
             $mins -= $hours * 60;
             return $hours . " hours, " . $mins . " mins";
         }
-        if ($use_secs == false) {
+        if ($withSeconds == false) {
             return $mins . " mins";
         }
         $dif -= $mins * 60;
@@ -140,6 +128,7 @@ class FunctionHelper
         }
         return $dif . " secs";
     }
+
     public function isChecked(bool $input_value): string
     {
         if ($input_value == true) {

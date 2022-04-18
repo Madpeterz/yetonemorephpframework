@@ -9,9 +9,9 @@ abstract class CollectionSet extends CollectionSetBulk
 {
     /**
      * loadMatching
-     * a very limited loading system
-     * takes the keys as fields, and values as values
-     * then passes that to loadWithConfig.
+     * @deprecated
+     * please use use loadWithConfig this function will be going
+     * away at some point.
      */
     public function loadMatching(array $input): SetsLoadReply
     {
@@ -31,21 +31,21 @@ abstract class CollectionSet extends CollectionSetBulk
         string $field,
         $value,
         int $limit = 0,
-        string $order_by = "id",
-        string $by_direction = "DESC"
+        string $orderBy = "id",
+        string $orderDirection = "DESC"
     ): SetsLoadReply {
         if (is_object($value) == true) {
             $errormsg = "Attempted to pass value as a object!";
             $this->addError($errormsg);
             return ["status" => false,"message" => "Attempted to pass a value as a object!"];
         }
-        $whereConfg = [
+        $whereConfig = [
             "fields" => [$field],
             "values" => [$value],
         ];
-        $orderConfig = ["ordering_enabled" => true,"order_field" => $order_by,"order_dir" => $by_direction];
-        $optionsConfig = ["page_number" => 0,"max_entrys" => $limit];
-        return $this->loadWithConfig($whereConfg, $orderConfig, $optionsConfig);
+        $orderConfig = ["enabled" => true,"byField" => $orderBy,"dir" => $orderDirection];
+        $optionsConfig = ["pageNumber" => 0,"limit" => $limit];
+        return $this->loadWithConfig($whereConfig, $orderConfig, $optionsConfig);
     }
     /**
      * loadLimited
@@ -56,11 +56,11 @@ abstract class CollectionSet extends CollectionSetBulk
     public function loadLimited(
         int $limit = 12,
         int $page = 0,
-        string $order_by = "id",
-        string $by_direction = "ASC",
+        string $orderBy = "id",
+        string $orderDirection = "ASC",
         ?array $whereConfig = null
     ): SetsLoadReply {
-        return $this->loadNewest($limit, $page, $order_by, $by_direction, $whereConfig);
+        return $this->loadNewest($limit, $page, $orderBy, $orderDirection, $whereConfig);
     }
     /**
      * loadNewest
@@ -70,14 +70,14 @@ abstract class CollectionSet extends CollectionSetBulk
     public function loadNewest(
         int $limit = 12,
         int $page = 0,
-        string $order_by = "id",
-        string $by_direction = "DESC",
+        string $orderBy = "id",
+        string $orderDirection = "DESC",
         ?array $whereConfig = null
     ): SetsLoadReply {
         return $this->loadWithConfig(
             $whereConfig,
-            ["ordering_enabled" => true,"order_field" => $order_by,"order_dir" => $by_direction],
-            ["page_number" => $page,"max_entrys" => $limit]
+            ["enabled" => true,"byField" => $orderBy,"dir" => $orderDirection],
+            ["pageNumber" => $page,"limit" => $limit]
         );
     }
     /**
@@ -86,11 +86,11 @@ abstract class CollectionSet extends CollectionSetBulk
      * ordered by id ASC by default
      * for full control please use the method loadWithConfig
      */
-    public function loadAll(string $order_by = "id", string $by_direction = "ASC"): SetsLoadReply
+    public function loadAll(string $orderBy = "id", string $orderDirection = "ASC"): SetsLoadReply
     {
         return $this->loadWithConfig(
             null,
-            ["ordering_enabled" => true,"order_field" => $order_by,"order_dir" => $by_direction]
+            ["enabled" => true,"byField" => $orderBy,"dir" => $orderDirection]
         );
     }
 
@@ -115,53 +115,58 @@ abstract class CollectionSet extends CollectionSetBulk
         $whereConfig = $this->worker->extendWhereConfig($whereConfig);
         // Cache support
         $hitCache = false;
-        $hashme = "";
+        $currentHash = "";
         if ($this->cache != null) {
-            $mergeddata = $basic_config;
+            $mergedData = $basic_config;
             if (is_array($join_tables) == true) {
-                $mergeddata = array_merge($basic_config, $join_tables);
+                $mergedData = array_merge($basic_config, $join_tables);
             }
-            $hashme = $this->cache->getHash(
+            $currentHash = $this->cache->getHash(
                 $whereConfig,
                 $order_config,
                 $options_config,
-                $mergeddata,
+                $mergedData,
                 $this->getTable(),
                 count($this->worker->getFields())
             );
-            $hitCache = $this->cache->cacheVaild($this->getTable(), $hashme);
+            $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash);
         }
         if ($hitCache == true) {
-            // wooo vaild data from cache!
-            $loadme = $this->cache->readHash($this->getTable(), $hashme);
-            if (is_array($loadme) == true) {
-                return $this->processLoad(new SelectReply("from cache", true, $loadme));
+            // Valid data from cache!
+            $loadResult = $this->cache->readHash($this->getTable(), $currentHash);
+            if (is_array($loadResult) == true) {
+                return $this->processLoad(new SelectReply("from cache", true, $loadResult));
             }
         }
         // Cache missed, read from the DB
-        $load_data = $this->sql->selectV2(
+        $loadData = $this->sql->selectV2(
             $basic_config,
             $order_config,
             $whereConfig,
             $options_config,
             $join_tables
         );
-        if ($load_data->status == false) {
-            $this->addError("Unable to load data: " . $load_data->message);
+        if ($loadData->status == false) {
+            $this->addError("Unable to load data: " . $loadData->message);
             return new SetsLoadReply($this->myLastErrorBasic);
         }
         if ($this->cache != null) {
             // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->worker->getTable(), $hashme, $load_data->dataset, $this->cacheAllowChanged);
+            $this->cache->writeHash(
+                $this->worker->getTable(),
+                $currentHash,
+                $loadData->dataset,
+                $this->cacheAllowChanged
+            );
         }
-        return $this->processLoad($load_data);
+        return $this->processLoad($loadData);
     }
 
     /**
-     * loadIndexs
+     * loadIndexes
      * returns where fieldname value for the row is IN $values
      */
-    protected function loadIndexs(string $fieldname = "id", array $values = []): SetsLoadReply
+    protected function loadIndexes(string $fieldName = "id", array $values = []): SetsLoadReply
     {
         $this->makeWorker();
         $uids = [];
@@ -174,16 +179,16 @@ abstract class CollectionSet extends CollectionSetBulk
             $this->addError("No ids sent!");
             return new SetsLoadReply($this->myLastErrorBasic);
         }
-        $typecheck = $this->worker->getFieldType($fieldname, true);
-        if ($typecheck == null) {
-            $this->addError("Invaild field: " . $fieldname);
+        $typeCheck = $this->worker->getFieldType($fieldName, true);
+        if ($typeCheck == null) {
+            $this->addError("Invalid field: " . $fieldName);
             return new SetsLoadReply($this->myLastErrorBasic);
         }
         return $this->loadWithConfig([
-            "fields" => [$fieldname],
+            "fields" => [$fieldName],
             "matches" => ["IN"],
             "values" => [$uids],
-            "types" => [$typecheck],
+            "types" => [$typeCheck],
         ]);
     }
     /**
@@ -191,25 +196,24 @@ abstract class CollectionSet extends CollectionSetBulk
      * takes the reply from mysqli and fills out objects and builds the collection
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    protected function processLoad(SelectReply $load_data): SetsLoadReply
+    protected function processLoad(SelectReply $loadData): SetsLoadReply
     {
-        if ($load_data->status == false) {
-            $this->addError("loaddata status is false");
+        if ($loadData->status == false) {
+            $this->addError("loadData status is false");
             return new SetsLoadReply($this->myLastErrorBasic);
         }
         $this->makeWorker();
-        $entrysLoaded = 0;
-        foreach ($load_data->dataset as $entry) {
-            $new_object = new $this->worker_class($entry);
+        $oldCount = $this->getCount();
+        foreach ($loadData->dataset as $entry) {
+            $new_object = new $this->workerClass($entry);
             if ($this->disableUpdates == true) {
                 $new_object->noUpdates();
             }
             if ($new_object->isLoaded() == true) {
                 $this->collected[$entry["id"]] = $new_object;
-                $entrysLoaded++;
             }
         }
         $this->rebuildIndex();
-        return new SetsLoadReply("ok", true, $entrysLoaded);
+        return new SetsLoadReply("ok", true, $this->getCount() - $oldCount);
     }
 }

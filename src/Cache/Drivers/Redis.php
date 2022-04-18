@@ -79,7 +79,7 @@ class Redis extends Cache implements CacheInterface
 
     protected function setupCache(): bool
     {
-        $this->addErrorlog("Cache server: Redis - Please dont fuck it up");
+        $this->addErrorlog("Cache server: Redis - Please do not mess it up");
         return true;
     }
 

@@ -36,24 +36,24 @@ abstract class GenClassDB extends GenClassControl
      * loadByField
      * loads a object that matchs in the DB on the field and value
      */
-    public function loadByField(string $field_name, $field_value): SingleLoadReply
+    public function loadByField(string $fieldName, $field_value): SingleLoadReply
     {
         if (is_object($field_value) == true) {
             $this->addError("Attempted to pass field_value as a object!");
             return new SingleLoadReply($this->myLastErrorBasic);
         }
-        $field_type = $this->getFieldType($field_name, true);
+        $field_type = $this->getFieldType($fieldName, true);
         if ($field_type == null) {
-            $this->addError("Attempted to get field type: " . $field_name . " but its not supported!");
+            $this->addError("Attempted to get field type: " . $fieldName . " but its not supported!");
             return new SingleLoadReply($this->myLastErrorBasic);
         }
-        $whereconfig = [
-                "fields" => [$field_name],
+        $whereConfig = [
+                "fields" => [$fieldName],
                 "matches" => ["="],
                 "values" => [$field_value],
                 "types" => [$field_type],
         ];
-        return $this->loadWithConfig($whereconfig);
+        return $this->loadWithConfig($whereConfig);
     }
     /**
      * loadId
@@ -68,22 +68,22 @@ abstract class GenClassDB extends GenClassControl
             $this->addError("Attempted to loadId but id is less than one!");
             return new SingleLoadReply($this->myLastErrorBasic);
         }
-        $whereconfig = [
+        $whereConfig = [
             "fields" => ["id"],
             "matches" => ["="],
             "values" => [$id],
             "types" => ["i"],
         ];
-        return $this->loadWithConfig($whereconfig);
+        return $this->loadWithConfig($whereConfig);
     }
 
     /**
      * loadWithConfig
      * Fetchs data from the DB and hands it over to processLoad
-     * where it matchs the whereconfig.
+     * where it matchs the whereConfig.
      * returns false if the class is disabled or the load fails
      */
-    public function loadWithConfig(array $whereconfig): SingleLoadReply
+    public function loadWithConfig(array $whereConfig): SingleLoadReply
     {
         if ($this->disabled == true) {
             $this->addError("unable to loadData This class is disabled");
@@ -93,37 +93,37 @@ abstract class GenClassDB extends GenClassControl
         if ($this->disableUpdates == true) {
             $basic_config["fields"] = $this->limitedFields;
         }
-        $whereconfig = $this->extendWhereConfig($whereconfig);
+        $whereConfig = $this->extendWhereConfig($whereConfig);
         // Cache support
         $hitCache = false;
-        $hashme = "";
+        $currentHash = "";
         if ($this->cache != null) {
-            $hashme = $this->cache->getHash(
-                $whereconfig,
+            $currentHash = $this->cache->getHash(
+                $whereConfig,
                 ["single" => true],
                 ["single" => true],
                 $basic_config,
                 $this->getTable(),
                 count($this->getFields())
             );
-            $hitCache = $this->cache->cacheVaild($this->getTable(), $hashme, true);
+            $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, true);
         }
 
         if ($hitCache == true) {
-            // wooo vaild data from cache!
-            $loadme = $this->cache->readHash($this->getTable(), $hashme);
-            if (is_array($loadme) == true) {
-                return $this->processLoad(new SelectReply("from cache", true, $loadme));
+            // wooo valid data from cache!
+            $loadResult = $this->cache->readHash($this->getTable(), $currentHash);
+            if (is_array($loadResult) == true) {
+                return $this->processLoad(new SelectReply("from cache", true, $loadResult));
             }
         }
         $this->sql->setExpectedErrorFlag($this->expectedSqlLoadError);
-        $load_data = $this->sql->selectV2($basic_config, null, $whereconfig);
+        $loadData = $this->sql->selectV2($basic_config, null, $whereConfig);
         $this->sql->setExpectedErrorFlag(false);
         if ($this->cache != null) {
             // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->getTable(), $hashme, $load_data->dataset, $this->cacheAllowChanged);
+            $this->cache->writeHash($this->getTable(), $currentHash, $loadData->dataset, $this->cacheAllowChanged);
         }
-        return $this->processLoad($load_data);
+        return $this->processLoad($loadData);
     }
 
     /**
@@ -172,23 +172,23 @@ abstract class GenClassDB extends GenClassControl
      * and fills in the objects dataset
      * returns true if needed checks are passed
      */
-    protected function processLoad(SelectReply $load_data): SingleLoadReply
+    protected function processLoad(SelectReply $loadData): SingleLoadReply
     {
-        if ($load_data->status == false) {
-            $this->addError($load_data->message);
+        if ($loadData->status == false) {
+            $this->addError($loadData->message);
             return new SingleLoadReply($this->getLastErrorBasic());
         }
-        if ($load_data->entrys != 1) {
-            $error_message = "Load error incorrect number of entrys expected 1 but got:";
-            $error_message .= $load_data->entrys;
+        if ($loadData->items != 1) {
+            $error_message = "Load error incorrect number of items expected 1 but got:";
+            $error_message .= $loadData->items;
             $this->addError($error_message);
             return new SingleLoadReply($this->getLastErrorBasic());
         }
         $restore_dataset = $this->dataset;
-        $this->setup($load_data->dataset[0]);
+        $this->setup($loadData->dataset[0]);
         if (($this->getId() <= 0) || ($this->getId() === null)) {
             $this->dataset = $restore_dataset;
-            $this->addError("Invaild Id passed to processLoad!");
+            $this->addError("Invalid Id passed to processLoad!");
             return new SingleLoadReply($this->getLastErrorBasic());
         }
         return new SingleLoadReply("Ok", true);
@@ -209,13 +209,13 @@ abstract class GenClassDB extends GenClassControl
             $this->addError("this object is not loaded!");
             return new RemoveReply($this->myLastErrorBasic);
         }
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [$this->getId()],
             "types" => ["i"],
             "matches" => ["="],
         ];
-        $remove_status = $this->sql->removeV2($this->getTable(), $where_config);
+        $remove_status = $this->sql->removeV2($this->getTable(), $whereConfig);
         if ($remove_status->status == false) {
             $this->addError($remove_status->message);
             return new RemoveReply($this->myLastErrorBasic);
@@ -224,7 +224,7 @@ abstract class GenClassDB extends GenClassControl
         if ($this->cache != null) {
             $this->cache->markChangeToTable($this->getTable());
         }
-        return new RemoveReply("ok", true, $remove_status->entrysRemoved);
+        return new RemoveReply("ok", true, $remove_status->itemsRemoved);
     }
     /**
      * createEntry
@@ -287,9 +287,9 @@ abstract class GenClassDB extends GenClassControl
         } elseif ($this->cache != null) {
             $this->cache->markChangeToTable($this->getTable());
         }
-        $this->dataset["id"]["value"] = $return_dataset->newid;
+        $this->dataset["id"]["value"] = $return_dataset->newId;
         $this->save_dataset = $this->dataset;
-        return new CreateReply("ok", true, $return_dataset->newid);
+        return new CreateReply("ok", true, $return_dataset->newId);
     }
     /**
      * updateEntry
@@ -307,11 +307,11 @@ abstract class GenClassDB extends GenClassControl
             $this->addError("Object does not have its id field set!");
             return new UpdateReply($this->myLastErrorBasic);
         } elseif ($this->save_dataset["id"]["value"] < 1) {
-            $this->addError("Object id is not vaild for updates");
+            $this->addError("Object id is not valid for updates");
             return new UpdateReply($this->myLastErrorBasic);
         }
 
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "matches" => ["="],
             "values" => [$this->save_dataset["id"]["value"]],
@@ -357,12 +357,12 @@ abstract class GenClassDB extends GenClassControl
             $this->addError("No changes made");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        $reply = $this->sql->updateV2($this->getTable(), $update_config, $where_config, 1);
+        $reply = $this->sql->updateV2($this->getTable(), $update_config, $whereConfig, 1);
         if ($reply->status == true) {
             if ($this->cache != null) {
                 $this->cache->markChangeToTable($this->getTable());
             }
         }
-        return new UpdateReply("ok", true, $reply->entrysUpdated);
+        return new UpdateReply("ok", true, $reply->itemsUpdated);
     }
 }

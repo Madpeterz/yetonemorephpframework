@@ -6,11 +6,11 @@ class CreateReply
 {
     public readonly bool $status;
     public readonly string $message;
-    public readonly ?int $newid;
-    public function __construct(string $message, bool $status = false, ?int $newid = null)
+    public readonly ?int $newId;
+    public function __construct(string $message, bool $status = false, ?int $newId = null)
     {
         $this->status = $status;
         $this->message = $message;
-        $this->newid = $newid;
+        $this->newId = $newId;
     }
 }

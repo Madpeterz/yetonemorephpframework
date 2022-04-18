@@ -3,7 +3,6 @@
 namespace YAPF\Framework\MySQLi;
 
 use Throwable;
-use mysqli_stmt;
 use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 abstract class MysqliQuery extends MysqliChange
@@ -27,7 +26,7 @@ abstract class MysqliQuery extends MysqliChange
     public function selectV2(
         array $basic_config,
         ?array $order_config = null,
-        ?array $where_config = null,
+        ?array $whereConfig = null,
         ?array $options_config = null,
         ?array $join_tables = null,
         bool $clean_ids = false
@@ -55,7 +54,7 @@ abstract class MysqliQuery extends MysqliChange
             "",
             [],
             $sql,
-            $where_config,
+            $whereConfig,
             $order_config,
             $options_config,
             $join_tables
@@ -108,35 +107,33 @@ abstract class MysqliQuery extends MysqliChange
     }
     /**
      * searchTables
-     * searchs multiple tables to find a match
-     * returns an array in the dataset of the following
-     * [targetfield => value, source => table found in]
+     * search multiple tables to find a match
      */
     public function searchTables(
-        array $target_tables,
-        string $match_field,
-        $match_value,
-        string $match_type = "s",
-        string $match_code = "=",
-        int $limit_amount = 1,
-        string $target_field = "id"
+        array $targetTables,
+        string $matchField,
+        $matchValue,
+        string $matchType = "s",
+        string $matchCode = "=",
+        int $limit = 1,
+        string $targetField = "id"
     ): SelectReply {
-        if (count($target_tables) <= 1) {
+        if (count($targetTables) <= 1) {
             $this->addError("Requires 2 or more tables to use search");
             return new SelectReply($this->myLastErrorBasic);
         }
-        if (strlen($match_field) == 0) {
+        if (strlen($matchField) == 0) {
             $this->addError("Requires a match field to be sent");
             return new SelectReply($this->myLastErrorBasic);
         }
-        if (in_array($match_type, ["s", "d", "i", "b"]) == false) {
-            $this->addError("Match type is not vaild");
+        if (in_array($matchType, ["s", "d", "i", "b"]) == false) {
+            $this->addError("Match type is not valid");
             return new SelectReply($this->myLastErrorBasic);
         }
         $match_symbol = "?";
-        if ($match_value === null) {
+        if ($matchValue === null) {
             $match_symbol = "NULL";
-            if (in_array($match_code, ["IS","IS NOT"]) == false) {
+            if (in_array($matchCode, ["IS","IS NOT"]) == false) {
                 $this->addError("Match value can not be null");
                 return new SelectReply($this->myLastErrorBasic);
             }
@@ -144,29 +141,29 @@ abstract class MysqliQuery extends MysqliChange
         if ($this->sqlStart() == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
-        $bind_args = [];
-        $bind_text = "";
+        $bindArgs = [];
+        $bindText = "";
         $sql = "";
         $addon = "";
         $table_id = 1;
-        foreach ($target_tables as $table) {
+        foreach ($targetTables as $table) {
             $sql .= $addon;
-            $sql .= "(SELECT tb" . $table_id . "." . $target_field . ", '";
+            $sql .= "(SELECT tb" . $table_id . "." . $targetField . ", '";
             $sql .= $table . "' AS source FROM " . $table . " tb" . $table_id . "";
-            $sql .= " WHERE tb" . $table_id . "." . $match_field . " " . $match_code . " " . $match_symbol . " ";
-            if ($limit_amount > 0) {
-                $sql .= "LIMIT " . $limit_amount;
+            $sql .= " WHERE tb" . $table_id . "." . $matchField . " " . $matchCode . " " . $match_symbol . " ";
+            if ($limit > 0) {
+                $sql .= "LIMIT " . $limit;
             }
             $sql .= ")";
             $addon = " UNION ALL ";
             if ($match_symbol == "?") {
-                $bind_args[] = $match_value;
-                $bind_text .= $match_type;
+                $bindArgs[] = $matchValue;
+                $bindText .= $matchType;
             }
             $table_id++;
         }
         $sql .= " ORDER BY id DESC";
-        $stmt = $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        $stmt = $this->prepareBindExecute($sql, $bindArgs, $bindText);
         if ($stmt === null) {
             return new SelectReply($this->myLastErrorBasic);
         }

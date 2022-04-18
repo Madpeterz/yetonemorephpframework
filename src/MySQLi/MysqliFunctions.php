@@ -80,53 +80,53 @@ abstract class MysqliFunctions extends Db
         string &$sql,
         array $order
     ): void {
-        if (array_key_exists("ordering_enabled", $order) == true) {
-            if (array_key_exists("order_field", $order) == false) {
-                $order["order_field"] = "id";
-                $order["order_dir"] = "DESC";
-                $order["ordering_enabled"] = true;
+        if (array_key_exists("enabled", $order) == true) {
+            if (array_key_exists("byField", $order) == false) {
+                $order["byField"] = "id";
+                $order["dir"] = "DESC";
+                $order["enabled"] = true;
             }
         }
-        if ($order["ordering_enabled"] == true) {
+        if ($order["enabled"] == true) {
             if (array_key_exists("as_string", $order) == true) {
                 $sql .= " ORDER BY " . $order["as_string"] . " ";
             } else {
-                $sql .= " ORDER BY " . $order["order_field"] . " " . $order["order_dir"] . " ";
+                $sql .= " ORDER BY " . $order["byField"] . " " . $order["dir"] . " ";
             }
         }
     }
     /**
      * buildSelectOption
-     * processes the options settings for
-     * max_entrys and page_number to create the LIMIT sql.
+     * processes the options settings for limit and offset
      */
     protected function buildOption(string &$sql, array $options): void
     {
-        if (array_key_exists("groupby", $options) == true) {
-            $sql .= " GROUP BY " . $options["groupby"];
+        if (array_key_exists("groupBy", $options) == true) {
+            $sql .= " GROUP BY " . $options["groupBy"];
         }
-        if (array_key_exists("max_entrys", $options) == true) {
-            if (array_key_exists("page_number", $options) == true) {
-                if ($options["page_number"] > 0) {
-                    $offset = $options["page_number"] * $options["max_entrys"];
-                    $sql .= " LIMIT " . $options["max_entrys"] . " OFFSET " . $offset;
-                } elseif ($options["max_entrys"] > 0) {
-                    $sql .= " LIMIT " . $options["max_entrys"];
-                }
-            } else {
-                if ($options["max_entrys"] > 0) {
-                    $sql .= " LIMIT " . $options["max_entrys"];
-                }
+        if (array_key_exists("limit", $options) == false) {
+            return;
+        }
+        if (array_key_exists("pageNumber", $options) == false) {
+            if ($options["limit"] > 0) {
+                $sql .= " LIMIT " . $options["limit"];
             }
+            return;
+        }
+        if ($options["pageNumber"] > 0) {
+            $offset = $options["pageNumber"] * $options["limit"];
+            $sql .= " LIMIT " . $options["limit"] . " OFFSET " . $offset;
+            return;
+        } elseif ($options["limit"] > 0) {
+            $sql .= " LIMIT " . $options["limit"];
         }
     }
     /**
      * convertIfBool
      * takes a input and if its a bool converts it to a int
      * otherwise returns input
-     * @return mixed
      */
-    public function convertIfBool($input)
+    public function convertIfBool($input): mixed
     {
         if ($input === false) {
             return 0;
@@ -209,14 +209,14 @@ abstract class MysqliFunctions extends Db
         $this->needToSave = true;
         return new RawReply("ok", true, $commands_run);
     }
-    protected function selectBuildJoins(?array $join_tables, string &$sql, bool &$failed, string &$failed_on): void
+    protected function selectBuildJoins(?array $join_tables, string &$sql, bool &$failed, string &$failedWhy): void
     {
         if ($join_tables == null) {
             return;
         }
         $all_found = true;
         $counts_match = true;
-        $required_keys = ["tables","types","onfield_left","onfield_match","onfield_right"];
+        $required_keys = ["tables","types","onFieldLeft","onFieldMatch","onFieldRight"];
         $missing_join_key = "";
         foreach ($required_keys as $key) {
             if (array_key_exists($key, $join_tables) == false) {
@@ -226,14 +226,14 @@ abstract class MysqliFunctions extends Db
             }
         }
         if ($all_found == false) {
-            $failed_on = "Join tables config missing key: " . $missing_join_key;
+            $failedWhy = "Join tables config missing key: " . $missing_join_key;
             return;
         }
         $last_key = "";
         foreach ($required_keys as $key) {
             if ($last_key != "") {
                 if (count($join_tables[$key]) != count($join_tables[$last_key])) {
-                    $failed_on = "counts match error " . $key . " <=> " . $last_key;
+                    $failedWhy = "counts match error " . $key . " <=> " . $last_key;
                     $counts_match = false;
                     break;
                 }
@@ -248,9 +248,9 @@ abstract class MysqliFunctions extends Db
         $loop = 0;
         while ($loop < count($join_tables["tables"])) {
             $sql .= " " . $join_tables["types"][$loop] . " " . $join_tables["tables"][$loop] . "";
-            if ($join_tables["onfield_left"][$loop] != "") {
-                $sql .= " ON " . $join_tables["onfield_left"][$loop] . " ";
-                $sql .= $join_tables["onfield_match"][$loop] . " " . $join_tables["onfield_right"][$loop] . "";
+            if ($join_tables["onFieldLeft"][$loop] != "") {
+                $sql .= " ON " . $join_tables["onFieldLeft"][$loop] . " ";
+                $sql .= $join_tables["onFieldMatch"][$loop] . " " . $join_tables["onFieldRight"][$loop] . "";
             }
             $loop++;
         }
@@ -268,8 +268,8 @@ abstract class MysqliFunctions extends Db
                 $main_table_id = $join_tables["main_table_id"];
                 $auto_ids = false;
             }
-            if (array_key_exists("cleanids", $join_tables) == true) {
-                $clean_ids = $join_tables["cleanids"];
+            if (array_key_exists("cleanIds", $join_tables) == true) {
+                $clean_ids = $join_tables["cleanIds"];
                 $auto_ids = false;
             }
         }
@@ -286,15 +286,15 @@ abstract class MysqliFunctions extends Db
         }
     }
     /**
-     * prepairBindExecute
+     * prepareBindExecute
      * shared by Add,Remove,Select and Update
      * this runs the code on the database after all needed
      * checks have finished.
      */
-    protected function SQLprepairBindExecute(
+    protected function prepareBindExecute(
         string &$sql,
-        array &$bind_args,
-        string &$bind_text
+        array &$bindArgs,
+        string &$bindText
     ): ?mysqli_stmt {
         $sql = strtr($sql, ["  " => " "]);
         $sql = trim($sql);
@@ -303,16 +303,16 @@ abstract class MysqliFunctions extends Db
         try {
             $stmt = $this->sqlConnection->prepare($sql);
         } catch (Throwable $e) {
-            $this->addError("Unable to prepair: " . $e->getMessage());
+            $this->addError("Unable to prepare: " . $e->getMessage());
             return null;
         }
         if ($stmt == false) {
-            $this->addError("Unable to prepair: " . $this->sqlConnection->error);
+            $this->addError("Unable to prepare: " . $this->sqlConnection->error);
             return null;
         }
-        if (count($bind_args) > 0) {
+        if (count($bindArgs) > 0) {
             try {
-                $result = mysqli_stmt_bind_param($stmt, $bind_text, ...$bind_args);
+                $result = mysqli_stmt_bind_param($stmt, $bindText, ...$bindArgs);
                 if ($result === false) {
                     throw new Throwable(
                         "mysqli_stmt_bind_param has failed :" . json_encode($stmt->error_list),
@@ -471,7 +471,7 @@ abstract class MysqliFunctions extends Db
             return true; // connection is already open!
         }
         if ($this->hasDbConfig() == false) {
-            $error_msg = "DB config is not vaild to start!";
+            $error_msg = "DB config is not valid to start!";
             $this->addError($error_msg);
             return false;
         }
@@ -481,9 +481,15 @@ abstract class MysqliFunctions extends Db
             $this->dbPass = "";
         }
         $status = $this->sqlStartConnection($this->dbUser, $this->dbPass, $this->dbName, false, $this->dbHost, 5);
-        if ($status == true) {
-            $this->sqlConnection->autocommit(false); // disable auto commit.
+        if ($status == false) {
+            $this->addError("sqlStartConnection returned false!");
+            return false;
         }
+        if ($this->sqlConnection == null) {
+            $this->addError("sql connection is not open as expected!");
+            return false;
+        }
+        $this->sqlConnection->autocommit(false); // disable auto commit.
         return $status;
     }
     /**

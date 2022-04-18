@@ -18,7 +18,7 @@ class SingleModelFactory extends ModelFactoryShared
                     "source_table" => $fkname2table[$entry["ID"]],
                     "source_field" => "",
                     "target_table" => $bits[1],
-                    "target_field" => "",
+                    "targetField" => "",
                 ];
         */
         foreach ($this->links as $id => $entry) {
@@ -28,10 +28,10 @@ class SingleModelFactory extends ModelFactoryShared
             if ($entry["source_table"] == $this->table) {
                 $targetclass = ucfirst(strtolower($entry["target_table"]));
                 $fromField = ucfirst($entry["source_field"]);
-                $loadField = ucfirst($entry["target_field"]);
+                $loadField = ucfirst($entry["targetField"]);
             } elseif ($entry["target_table"] == $this->table) {
                 $targetclass = ucfirst(strtolower($entry["source_table"]));
-                $fromField = ucfirst($entry["target_field"]);
+                $fromField = ucfirst($entry["targetField"]);
                 $loadField = ucfirst($entry["source_field"]);
             }
             if ($targetclass == "") {

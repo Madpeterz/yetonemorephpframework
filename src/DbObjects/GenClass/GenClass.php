@@ -12,17 +12,17 @@ abstract class GenClass extends GenClassDB
      */
     public function hasAny(): bool
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [-1],
             "types" => ["i"],
             "matches" => [">="],
         ];
-        $reply = $this->sql->basicCountV2($this->getTable(), $where_config);
+        $reply = $this->sql->basicCountV2($this->getTable(), $whereConfig);
         if ($reply->status == false) {
             return false;
         }
-        if ($reply->entrys > 0) {
+        if ($reply->items > 0) {
             return true;
         }
         return false;

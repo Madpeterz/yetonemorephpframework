@@ -30,24 +30,24 @@ abstract class SqlConnectedClass extends ErrorLogging
     public function reconnectSql(MysqliEnabled &$SetSQl): void
     {
         if ($this->sql != null) {
-            $this->sql = &$this->unref($this->sql);
+            $this->sql = &$this->unRef($this->sql);
         }
         $this->sql = $SetSQl;
     }
-    protected function &unref($var): ?MysqliEnabled
+    protected function &unRef($var): ?MysqliEnabled
     {
         return $var;
     }
 
     protected ?Cache $cache = null;
-    public function attachCache(Cache &$forceAttach): void
+    public function attachCache(Cache &$setCache): void
     {
         if ($this->cache != null) {
-            $this->cache = $this->unrefCache($this->cache);
+            $this->cache = $this->unRefCache($this->cache);
         }
-        $this->cache = $forceAttach;
+        $this->cache = $setCache;
     }
-    protected function &unrefCache($var): ?Cache
+    protected function &unRefCache($var): ?Cache
     {
         return $var;
     }

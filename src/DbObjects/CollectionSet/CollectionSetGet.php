@@ -15,12 +15,12 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
 
     public function current(): GenClass
     {
-        return $this->collected[$this->indexs[$this->position]];
+        return $this->collected[$this->indexes[$this->position]];
     }
 
     public function key(): int
     {
-        return $this->indexs[$this->position];
+        return $this->indexes[$this->position];
     }
 
     public function next(): void
@@ -33,10 +33,10 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
         if ($this->position < 0) {
             return false;
         }
-        if (array_key_exists($this->position, $this->indexs) == false) {
+        if (array_key_exists($this->position, $this->indexes) == false) {
             return false;
         }
-        $index = $this->indexs[$this->position];
+        $index = $this->indexes[$this->position];
         if (array_key_exists($index, $this->collected) == false) {
             return false;
         }
@@ -68,45 +68,41 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      * getLinkedArray
      * returns a key value pair array for all objects in collection
      * example id & name
-     * @return mixed[] [leftside_value => rightside_value,...]
+     * @return mixed[] [left field Value => right field value,...]
      */
-    public function getLinkedArray(string $left_side_field, string $right_side_field): array
+    public function getLinkedArray(string $leftField, string $RightField): array
     {
-        $keyFieldGetter = "get" . ucfirst($left_side_field);
-        $ValueFieldGetter = "get" . ucfirst($right_side_field);
-        $worker = new $this->worker_class();
+        $keyFieldGetter = "get" . ucfirst($leftField);
+        $ValueFieldGetter = "get" . ucfirst($RightField);
+        $worker = new $this->workerClass();
         if (method_exists($worker, $keyFieldGetter) == false) {
-            $this->addError("Field: " . $left_side_field . " is missing");
+            $this->addError("Field: " . $leftField . " is missing");
             return [];
         }
         if (method_exists($worker, $ValueFieldGetter) == false) {
-            $this->addError("Field: " . $right_side_field . " is missing");
+            $this->addError("Field: " . $RightField . " is missing");
             return [];
         }
         $return_array = [];
-        foreach ($this->collected as $key => $object) {
-            if (is_object($object) == true) {
-                $return_array[$object->$keyFieldGetter()] = $object->$ValueFieldGetter();
-            }
+        foreach ($this->collected as $object) {
+            $return_array[$object->$keyFieldGetter()] = $object->$ValueFieldGetter();
         }
         return $return_array;
     }
     /**
      * uniqueArray
-     * gets a Unique array of values based on field_name from
+     * gets a Unique array of values based on fieldName from
      * the objects.
      * @return array<mixed>
      */
-    protected function uniqueArray(string $field_name): array
+    protected function uniqueArray(string $fieldName): array
     {
         $found_values = [];
-        $function = "get" . ucfirst($field_name);
-        foreach ($this->collected as $key => $object) {
-            if (is_object($object) == true) {
-                $value = $object->$function();
-                if (in_array($value, $found_values) == false) {
-                    $found_values[] = $value;
-                }
+        $getFunction = "get" . ucfirst($fieldName);
+        foreach ($this->collected as $object) {
+            $value = $object->$getFunction();
+            if (in_array($value, $found_values) == false) {
+                $found_values[] = $value;
             }
         }
         return $found_values;
@@ -127,9 +123,9 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      * with the same field.
      * @return integer[] [id,...]
      */
-    public function getIdsMatchingField(string $fieldname, $fieldvalue): array
+    public function getIdsMatchingField(string $fieldName, $fieldValue): array
     {
-        $objects = $this->ObjectIndexSearcher($fieldname, $fieldvalue);
+        $objects = $this->indexSearch($fieldName, $fieldValue);
         $ids = [];
         foreach ($objects as $object) {
             $ids[] = $object->getId();
@@ -144,7 +140,7 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      */
     public function getFirst(): ?object
     {
-        foreach ($this->collected as $key => $value) {
+        foreach ($this->collected as $value) {
             return $value;
         }
         return null;
@@ -155,13 +151,11 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      */
     public function getWorkerClass(): string
     {
-        $this->makeWorker();
-        return $this->worker_class;
+        return $this->workerClass;
     }
     /**
      * getCollectionHash
      * returns a sha256 hash of the full collection
-     * object hashs
      */
     public function getCollectionHash(): string
     {
@@ -175,23 +169,23 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      * getObjectByField
      * Note: Please use getObjectByID if your using the id field
      * as its faster and does not need a index!
-     * searchs the index for a object that matchs
+     * search the index for a object that matches
      * fieldname to value, if a object shares
      * a value the last loaded one is taken.
      */
-    public function getObjectByField(string $fieldname, $value): ?object
+    public function getObjectByField(string $fieldName, $value): ?object
     {
-        return $this->findObjectByField($fieldname, $value, false);
+        return $this->findObjectByField($fieldName, $value, false);
     }
     /**
      * getObjectByField
-     * searchs the index for a object that matchs
+     * search the index for a object that matches
      * fieldname to value, if a object shares
      * a value the last entry is used
      */
-    protected function findObjectByField(string $fieldname, $value): ?object
+    protected function findObjectByField(string $fieldName, $value): ?object
     {
-        $objects = $this->ObjectIndexSearcher($fieldname, $value);
+        $objects = $this->indexSearch($fieldName, $value);
         if (count($objects) >= 1) {
             return array_pop($objects);
         }
@@ -199,7 +193,7 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
     }
     /**
      * getObjectByID
-     * returns a object that matchs the selected id
+     * returns a object that matches the selected id
      * returns null if not found
      * Note: Does not support bad Ids please use findObjectByField
      */
@@ -216,9 +210,9 @@ abstract class CollectionSetGet extends CollectionSetCore implements Iterator
      * alias of uniqueArray
      * @return mixed[] [value,...]
      */
-    public function getAllByField(string $fieldname): array
+    public function getAllByField(string $fieldName): array
     {
-        return $this->uniqueArray($fieldname);
+        return $this->uniqueArray($fieldName);
     }
     /**
      * getAllIds

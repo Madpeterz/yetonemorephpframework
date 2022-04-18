@@ -1,0 +1,12 @@
+{
+    "cSpell.ignoreWords": [
+        "YAPF"
+    ],
+    "cSpell.words": [
+        "hashs",
+        "Predis",
+        "setex",
+        "uids",
+        "Unixtime"
+    ]
+}

@@ -33,8 +33,8 @@ abstract class MysqliChange extends MysqliProcess
     /**
      * removeV2
      * takes a V2 where config to remove
-     * entrys from the database
-     * $where_config: see selectV2.readme
+     * items from the database
+     * $whereConfig: see selectV2.readme
      */
     public function removeV2(string $table, ?array $whereConfig = null): RemoveReply
     {
@@ -64,9 +64,9 @@ abstract class MysqliChange extends MysqliProcess
      * and a V2 where config,
      * to apply a change to the database.
      * $update_config = ["fields" => string[], "values" => mixed[], "types" => string1[]]
-     * $where_config: see selectV2.readme
+     * $whereConfig: see selectV2.readme
      */
-    public function updateV2(string $table, array $update_config, ?array $where_config = null): UpdateReply
+    public function updateV2(string $table, array $update_config, ?array $whereConfig = null): UpdateReply
     {
         if (strlen($table) == 0) {
             $this->addError("No table given");
@@ -87,8 +87,8 @@ abstract class MysqliChange extends MysqliProcess
         if ($this->sqlStart() == false) {
             return new UpdateReply($this->myLastErrorBasic);
         }
-        $bind_text = "";
-        $bind_args = [];
+        $bindText = "";
+        $bindArgs = [];
         $sql = "UPDATE " . $table . " ";
         $loop = 0;
         $addon = "";
@@ -103,15 +103,15 @@ abstract class MysqliChange extends MysqliProcess
                 $sql .= "NULL";
             } else {
                 $sql .= "?";
-                $bind_text .= $update_config["types"][$loop];
-                $bind_args[] = $update_config["values"][$loop];
+                $bindText .= $update_config["types"][$loop];
+                $bindArgs[] = $update_config["values"][$loop];
             }
             $addon = ", ";
             $loop++;
         }
         // where fields
         $this->queryStats["updates"]++;
-        $stmt = $this->processSqlRequest($bind_text, $bind_args, $sql, $where_config);
+        $stmt = $this->processSqlRequest($bindText, $bindArgs, $sql, $whereConfig);
         if ($stmt === null) {
             return new UpdateReply($this->myLastErrorBasic);
         }
@@ -149,8 +149,8 @@ abstract class MysqliChange extends MysqliProcess
         $this->queryStats["adds"]++;
         $sql = "INSERT INTO " . $config["table"] . " (" . implode(', ', $config["fields"]) . ") VALUES (";
         $loop = 0;
-        $bind_text = "";
-        $bind_args = [];
+        $bindText = "";
+        $bindArgs = [];
         $addon = "";
         while ($loop < count($config["values"])) {
             $sql .= $addon;
@@ -159,14 +159,14 @@ abstract class MysqliChange extends MysqliProcess
                 $sql .= " NULL";
             } else {
                 $sql .= "?";
-                $bind_text .= $config["types"][$loop];
-                $bind_args[] = $value;
+                $bindText .= $config["types"][$loop];
+                $bindArgs[] = $value;
             }
             $addon = " , ";
             $loop++;
         }
         $sql .= ")";
-        $stmt = $this->processSqlRequest($bind_text, $bind_args, $sql);
+        $stmt = $this->processSqlRequest($bindText, $bindArgs, $sql);
         if ($stmt === null) {
             return new AddReply($this->myLastErrorBasic);
         }

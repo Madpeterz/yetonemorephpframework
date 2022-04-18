@@ -31,7 +31,7 @@ class DbObjectsRemoveTest extends TestCase
         $this->assertSame($result->message, "ok");
         $this->assertSame($result->status, true);
     }
-    public function testRemoveSingleInvaild()
+    public function testRemoveSingleInValid()
     {
         $target = new Counttoonehundo();
         $result = $target->removeEntry();
@@ -48,7 +48,7 @@ class DbObjectsRemoveTest extends TestCase
         $result = $target->purgeCollection();
         $this->assertSame($result->message, "ok");
         $this->assertSame($result->status, true);
-        $this->assertSame($result->entrysRemoved, 100);
+        $this->assertSame($result->itemsRemoved, 100);
     }
     public function testRemoveSetRejectRelationship()
     {

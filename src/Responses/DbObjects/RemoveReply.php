@@ -6,11 +6,11 @@ class RemoveReply
 {
     public readonly bool $status;
     public readonly string $message;
-    public readonly int $entrysRemoved;
-    public function __construct(string $message, bool $status = false, int $entrysRemoved = 0)
+    public readonly int $itemsRemoved;
+    public function __construct(string $message, bool $status = false, int $itemsRemoved = 0)
     {
         $this->status = $status;
         $this->message = $message;
-        $this->entrysRemoved = $entrysRemoved;
+        $this->itemsRemoved = $itemsRemoved;
     }
 }

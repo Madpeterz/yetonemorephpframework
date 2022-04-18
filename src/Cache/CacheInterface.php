@@ -10,7 +10,7 @@ interface CacheInterface
 
     public function getCacheUTimeID(): string;
 
-    public function start(bool $selfCleanup = false): void;
+    public function start(): void;
 
     public function cleanup(int $max_counter = 5): void;
 
@@ -29,7 +29,7 @@ interface CacheInterface
 
     public function markChangeToTable(string $tableName): void;
 
-    public function cacheVaild(string $tableName, string $hash, bool $asSingle = false): bool;
+    public function cacheValid(string $tableName, string $hash, bool $asSingle = false): bool;
 
     public function getChangeID(string $tableName): int;
 
@@ -66,7 +66,7 @@ interface CacheInterface
     /**
      * setKey
      * Directly sets a key in the cache avoiding the objects Hash system
-     * this will bypass the last changed system, please dont use this with
+     * this will bypass the last changed system, please do not use this with
      * dbObjects or expect weirdness
     */
     public function setKey(string $key, string $value, int $expiresUnixtime): bool;

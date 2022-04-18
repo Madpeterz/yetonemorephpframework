@@ -46,18 +46,18 @@ class DbObjectsUpdateTest extends TestCase
         $target = new LiketestsSet();
         $results = $target->loadAll();
         $this->assertSame(true, $results->status, "Incorrect load status");
-        $this->assertSame($results->entrys, 4);
+        $this->assertSame($results->items, 4);
         $results = $target->updateFieldInCollection("value", "Song");
         $this->assertSame(true, $results->status, "Incorrect update status");
         $this->assertSame($results->changes, 3);
     }
 
-    public function testUpdateSetInvaild()
+    public function testUpdateSetInValid()
     {
         $target = new LiketestsSet();
         $results = $target->loadAll();
         $this->assertSame(true, $results->status, "Incorrect load status");
-        $this->assertSame($results->entrys, 4);
+        $this->assertSame($results->items, 4);
         $results = $target->updateFieldInCollection("value", null);
         $this->assertSame(false, $results->status, "Incorrect update status");
         $this->assertSame($results->changes, 0);

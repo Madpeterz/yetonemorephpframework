@@ -45,7 +45,7 @@ class DbObjectsFactory extends ModelFactory
      */
     protected function getDBForeignKeys(string $target_database): SelectReply
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["REFERENCED_TABLE_NAME","TABLE_SCHEMA","REFERENCED_TABLE_SCHEMA"],
             "values" => [null,$target_database,$target_database],
             "matches" => ["IS NOT","=","="],
@@ -57,7 +57,7 @@ class DbObjectsFactory extends ModelFactory
             "fields" => ["TABLE_NAME","COLUMN_NAME","REFERENCED_COLUMN_NAME","REFERENCED_TABLE_NAME"],
         ];
 
-        return $this->sql->selectV2($basic_config, null, $where_config);
+        return $this->sql->selectV2($basic_config, null, $whereConfig);
     }
 
     /**
@@ -78,7 +78,7 @@ class DbObjectsFactory extends ModelFactory
                 "source_table" => $entry["TABLE_NAME"],
                 "source_field" => $entry["COLUMN_NAME"],
                 "target_table" => $entry["REFERENCED_TABLE_NAME"],
-                "target_field" => $entry["REFERENCED_COLUMN_NAME"],
+                "targetField" => $entry["REFERENCED_COLUMN_NAME"],
             ];
         }
         return $packet;
@@ -97,7 +97,7 @@ class DbObjectsFactory extends ModelFactory
                 $this->output .= "<th>Set</th><th>Single</th></tr></thead><tbody>";
             }
         }
-        $where_config = [
+        $whereConfig = [
             "fields" => ["TABLE_SCHEMA"],
             "matches" => ["="],
             "values" => [$target_database],
@@ -107,7 +107,7 @@ class DbObjectsFactory extends ModelFactory
             "table" => "information_schema.TABLES",
             "fields" => ["TABLE_NAME"],
         ];
-        $results = $this->sql->selectV2($basic_config, null, $where_config);
+        $results = $this->sql->selectV2($basic_config, null, $whereConfig);
         if ($results->status == false) {
             if ($this->use_output == true) {
                 if ($this->console_output == true) {

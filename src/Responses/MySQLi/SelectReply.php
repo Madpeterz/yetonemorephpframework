@@ -6,7 +6,7 @@ class SelectReply
 {
     public readonly bool $status;
     public readonly string $message;
-    public readonly int $entrys;
+    public readonly int $items;
     public readonly ?array $dataset;
     public function __construct(string $message, bool $status = false, ?array $dataset = null)
     {
@@ -14,9 +14,9 @@ class SelectReply
         $this->message = $message;
         $this->dataset = $dataset;
         if ($this->dataset != null) {
-            $this->entrys = count($this->dataset);
+            $this->items = count($this->dataset);
             return;
         }
-        $this->entrys = 0;
+        $this->items = 0;
     }
 }

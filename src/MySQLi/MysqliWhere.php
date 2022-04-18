@@ -6,79 +6,79 @@ abstract class MysqliWhere extends MysqliFunctions
 {
     /**
      * processWhere
-     * processes the where_config to make
-     * sure its vaild and setup fully before passing
+     * processes the whereConfig to make
+     * sure its valid and setup fully before passing
      * it over to the builder
      * returns the result of the builder if all is ok
      * returns false if something failed and is on fire
      */
     protected function processWhere(
         string &$sql,
-        ?array $where_config,
-        string &$bind_text,
-        array &$bind_args,
-        string &$failed_on,
+        ?array $whereConfig,
+        string &$bindText,
+        array &$bindArgs,
+        string &$failedWhy,
         bool &$failed
     ): bool {
-        if ($where_config === null) {
-            $failed_on = "note: Where config is null skipping";
+        if ($whereConfig === null) {
+            $failedWhy = "note: Where config is null skipping";
             return true;
-        } elseif (count($where_config) == 0) {
-            $failed_on = "where_config is empty but not null!";
+        } elseif (count($whereConfig) == 0) {
+            $failedWhy = "whereConfig is empty but not null!";
             return false;
         }
         $check_keys = ["fields","values","types","matches"];
         $missing_keys = [];
         foreach ($check_keys as $test_key) {
-            if (array_key_exists($test_key, $where_config) == false) {
+            if (array_key_exists($test_key, $whereConfig) == false) {
                 $missing_keys[] = $test_key;
             }
         }
         if (count($missing_keys) > 0) {
-            $failed_on = "missing where keys:" . implode(",", $missing_keys);
+            $failedWhy = "missing where keys:" . implode(",", $missing_keys);
             return false;
-        } elseif (count($where_config["fields"]) != count($where_config["values"])) {
-            $failed_on = "count error fields <=> values";
+        } elseif (count($whereConfig["fields"]) != count($whereConfig["values"])) {
+            $failedWhy = "count error fields <=> values";
             return false;
-        } elseif (count($where_config["values"]) != count($where_config["types"])) {
-            $failed_on = "count error values <=> types";
+        } elseif (count($whereConfig["values"]) != count($whereConfig["types"])) {
+            $failedWhy = "count error values <=> types";
             return false;
-        } elseif (count($where_config["types"]) != count($where_config["matches"])) {
-            $failed_on = "count error types <=> matches";
+        } elseif (count($whereConfig["types"]) != count($whereConfig["matches"])) {
+            $failedWhy = "count error types <=> matches";
             return false;
-        } elseif (count($where_config["fields"]) == 0) {
-            $failed_on = "Note: where config keys are empty inside  skipping";
+        } elseif (count($whereConfig["fields"]) == 0) {
+            $failedWhy = "Note: where config keys are empty inside  skipping";
             return true;
-        } elseif (array_key_exists("join_with", $where_config) == false) {
-            $where_config["join_with"] = "AND";
+        } elseif (array_key_exists("joinWith", $whereConfig) == false) {
+            $whereConfig["joinWith"] = "AND";
         }
 
 
-        if (is_array($where_config["join_with"]) == false) {
+        if (is_array($whereConfig["joinWith"]) == false) {
             $new_array = [];
             $loop = 1;
-            $total = count($where_config["types"]);
+            $total = count($whereConfig["types"]);
             while ($loop < $total) {
-                $new_array[] = $where_config["join_with"];
+                $new_array[] = $whereConfig["joinWith"];
                 $loop++;
             }
-            $where_config["join_with"] = $new_array;
+            $whereConfig["joinWith"] = $new_array;
         }
-        if (count($where_config["join_with"]) != (count($where_config["types"]) - 1)) {
-            $failed_on = "where_config join_with count error";
+        if (count($whereConfig["joinWith"]) != (count($whereConfig["types"]) - 1)) {
+            $failedWhy = "whereConfig joinWith count error";
             return false;
         }
 
-        if (array_key_exists("asFunction", $where_config) == false) {
-            $where_config["asFunction"] = [];
+        if (array_key_exists("asFunction", $whereConfig) == false) {
+            $whereConfig["asFunction"] = [];
         }
 
-        while (count($where_config["asFunction"]) < count($where_config["fields"])) {
-            $where_config["asFunction"][] = 0;
+        while (count($whereConfig["asFunction"]) < count($whereConfig["fields"])) {
+            $whereConfig["asFunction"][] = 0;
         }
 
-        $failed_on = "Passed";
-        $this->buildWhere($sql, $bind_text, $bind_args, $where_config, $failed, $failed_on);
+        $failedWhy = "Passed";
+        $this->buildWhere($sql, $bindText, $bindArgs, $whereConfig, $failed, $failedWhy);
         if ($failed == true) {
             return false;
         }
@@ -89,9 +89,9 @@ abstract class MysqliWhere extends MysqliFunctions
      * used for IS and IS NOT match cases
      * if the match is not one of these nothing happens.
      */
-    protected function buildWhereCaseIs(string &$current_where_code, string $field, string $match): void
+    protected function buildWhereCaseIs(string &$whereCode, string $field, string $match): void
     {
-        $current_where_code .= "" . $field . " " . $match . " null ";
+        $whereCode .= "" . $field . " " . $match . " null ";
     }
     /**
      * buildWhereCaseLike
@@ -101,20 +101,20 @@ abstract class MysqliWhere extends MysqliFunctions
      * any other match type is skipped.
      */
     protected function buildWhereCaseLike(
-        string &$current_where_code,
+        string &$whereCode,
         string $field,
         string $match,
-        string &$bind_text,
-        array &$bind_args,
+        string &$bindText,
+        array &$bindArgs,
         $value,
         string $type
     ): void {
         $adj = str_replace(" ", "", $match);
         $value = str_replace("LIKE", $value, $adj);
         $match = "LIKE";
-        $current_where_code .= "" . $field . " " . $match . " ? ";
-        $bind_text .= $type;
-        $bind_args[] = $value;
+        $whereCode .= "" . $field . " " . $match . " ? ";
+        $bindText .= $type;
+        $bindArgs[] = $value;
     }
     /**
      * buildWhereCaseIn
@@ -122,11 +122,11 @@ abstract class MysqliWhere extends MysqliFunctions
      * any other match type is skipped.
      */
     protected function buildWhereCaseIn(
-        string &$current_where_code,
+        string &$whereCode,
         string $field,
         string $match,
-        string &$bind_text,
-        array &$bind_args,
+        string &$bindText,
+        array &$bindArgs,
         $value,
         string $type,
         string &$sql
@@ -139,15 +139,15 @@ abstract class MysqliWhere extends MysqliFunctions
             $sql = "empty_in_array";
             return;
         }
-        $current_where_code .=  $field . " " . $match . " (";
+        $whereCode .=  $field . " " . $match . " (";
         $addon2 = "";
         foreach ($value as $entry) {
-            $current_where_code .= $addon2 . " ? ";
+            $whereCode .= $addon2 . " ? ";
             $addon2 = ", ";
-            $bind_text .= $type;
-            $bind_args[] = $entry;
+            $bindText .= $type;
+            $bindArgs[] = $entry;
         }
-        $current_where_code .= ") ";
+        $whereCode .= ") ";
     }
     /**
      * whereCaseProcessor
@@ -155,19 +155,19 @@ abstract class MysqliWhere extends MysqliFunctions
      * where case.
      */
     protected function whereCaseProcessor(
-        string &$current_where_code,
+        string &$whereCode,
         string $field,
         ?string $match,
-        string &$bind_text,
-        array &$bind_args,
+        string &$bindText,
+        array &$bindArgs,
         $value,
         string $type,
         int $asFunction,
         string &$sql,
         bool &$failed,
-        string &$failed_on
+        string &$failedWhy
     ): void {
-        $allowed_match_types = [
+        $matchTypes = [
             "=",
             "<=",
             ">=",
@@ -182,62 +182,62 @@ abstract class MysqliWhere extends MysqliFunctions
             "IN",
             "NOT IN",
         ];
-        if (in_array($match, $allowed_match_types) == false) {
+        if (in_array($match, $matchTypes) == false) {
             $failed = true;
-            $failed_on = "Unsupported where match type!";
+            $failedWhy = "Unsupported where match type!";
             return;
         }
         if (in_array($match, ["IS","IS NOT"]) == true) {
-            $this->buildWhereCaseIs($current_where_code, $field, $match);
+            $this->buildWhereCaseIs($whereCode, $field, $match);
         } elseif (in_array($match, ["% LIKE","LIKE %","% LIKE %"]) == true) {
-            $this->buildWhereCaseLike($current_where_code, $field, $match, $bind_text, $bind_args, $value, $type);
+            $this->buildWhereCaseLike($whereCode, $field, $match, $bindText, $bindArgs, $value, $type);
         } elseif (in_array($match, ["IN","NOT IN"]) == true) {
-            $this->buildWhereCaseIn($current_where_code, $field, $match, $bind_text, $bind_args, $value, $type, $sql);
+            $this->buildWhereCaseIn($whereCode, $field, $match, $bindText, $bindArgs, $value, $type, $sql);
         } else {
             $whereString = "`" . $field . "` " . $match . " ?";
             if ($asFunction == 1) {
                 $whereString = $field . " " . $match . " ?";
             }
-            $current_where_code .= $whereString;
-            $bind_text .= $type;
-            $bind_args[] = $this->convertIfBool($value);
+            $whereCode .= $whereString;
+            $bindText .= $type;
+            $bindArgs[] = $this->convertIfBool($value);
         }
     }
     protected function whereJoinBuilder(
         string &$sql,
-        string &$bind_text,
-        array &$bind_args,
-        array $where_config,
+        string &$bindText,
+        array &$bindArgs,
+        array $whereConfig,
         bool &$failed,
-        string &$failed_on,
-        string &$current_where_code
+        string &$failedWhy,
+        string &$whereCode
     ): void {
-        $this->open_groups = 1;
-        $current_where_code .= "(";
-        $end_group_after = [") AND",") OR"];
-        $start_group_before = ["( AND","( OR"];
+        $this->openGroups = 1;
+        $whereCode .= "(";
+        $endGroupAfter = [") AND",") OR"];
+        $startGroupBefore = ["( AND","( OR"];
         $loop = 0;
-        while ($loop < count($where_config["fields"])) {
+        while ($loop < count($whereConfig["fields"])) {
             $this->whereCaseWriter(
-                $where_config,
+                $whereConfig,
                 $loop,
-                $current_where_code,
-                $bind_text,
-                $bind_args,
+                $whereCode,
+                $bindText,
+                $bindArgs,
                 $sql,
                 $failed,
-                $failed_on,
-                $this->open_groups
+                $failedWhy,
+                $this->openGroups
             );
             if ($failed == true) {
                 break;
             }
-            if (array_key_exists($loop, $where_config["join_with"]) == true) {
-                if (in_array($where_config["join_with"][$loop], $start_group_before) == true) {
-                    $this->open_groups++;
-                    $current_where_code .= "(";
+            if (array_key_exists($loop, $whereConfig["joinWith"]) == true) {
+                if (in_array($whereConfig["joinWith"][$loop], $startGroupBefore) == true) {
+                    $this->openGroups++;
+                    $whereCode .= "(";
                 }
-                if (in_array($where_config["join_with"][$loop], $end_group_after) == true) {
+                if (in_array($whereConfig["joinWith"][$loop], $endGroupAfter) == true) {
                     $this->pending_closer = 1;
                 }
             }
@@ -246,9 +246,9 @@ abstract class MysqliWhere extends MysqliFunctions
             }
             $loop++;
         }
-        while ($this->open_groups > 0) {
-            $current_where_code .= ")";
-            $this->open_groups--;
+        while ($this->openGroups > 0) {
+            $whereCode .= ")";
+            $this->openGroups--;
         }
     }
 
@@ -263,48 +263,48 @@ abstract class MysqliWhere extends MysqliFunctions
     }
 
     protected int $pending_closer = 0;
-    protected int $open_groups = 0;
+    protected int $openGroups = 0;
     protected function whereCaseWriter(
-        array $where_config,
+        array $whereConfig,
         int $loop,
-        string &$current_where_code,
-        string &$bind_text,
-        array &$bind_args,
+        string &$whereCode,
+        string &$bindText,
+        array &$bindArgs,
         string &$sql,
         bool &$failed,
-        string &$failed_on
+        string &$failedWhy
     ): void {
-        $value = $where_config["values"][$loop];
+        $value = $whereConfig["values"][$loop];
         if ($value === "null") {
             $value = null;
         }
-        $field = $where_config["fields"][$loop];
+        $field = $whereConfig["fields"][$loop];
         $this->whereCaseProcessor(
-            $current_where_code,
+            $whereCode,
             $field,
-            $where_config["matches"][$loop],
-            $bind_text,
-            $bind_args,
+            $whereConfig["matches"][$loop],
+            $bindText,
+            $bindArgs,
             $value,
-            $where_config["types"][$loop],
-            $where_config["asFunction"][$loop],
+            $whereConfig["types"][$loop],
+            $whereConfig["asFunction"][$loop],
             $sql,
             $failed,
-            $failed_on
+            $failedWhy
         );
         if ($failed == true) {
             return;
         }
         if ($this->pending_closer == 1) {
             $this->pending_closer = 0;
-            $this->open_groups--;
-            $current_where_code .= ")";
+            $this->openGroups--;
+            $whereCode .= ")";
         }
         if ($sql != "empty_in_array") {
-            if (count($where_config["join_with"]) > $loop) {
-                $current_where_code .= " ";
-                $current_where_code .= strtr($where_config["join_with"][$loop], ["( " => "",") " => ""]);
-                $current_where_code .= " ";
+            if (count($whereConfig["joinWith"]) > $loop) {
+                $whereCode .= " ";
+                $whereCode .= strtr($whereConfig["joinWith"][$loop], ["( " => "",") " => ""]);
+                $whereCode .= " ";
             }
         }
     }
@@ -316,38 +316,38 @@ abstract class MysqliWhere extends MysqliFunctions
      */
     protected function buildWhere(
         string &$sql,
-        string &$bind_text,
-        array &$bind_args,
-        array $where_config,
+        string &$bindText,
+        array &$bindArgs,
+        array $whereConfig,
         bool &$failed,
-        string &$failed_on
+        string &$failedWhy
     ): void {
-        $current_where_code = "";
+        $whereCode = "";
         $complex_builder_triggers = ["( AND", "( OR",") AND", ") OR"];
-        if ($this->helperArrayElementInArray($complex_builder_triggers, $where_config["join_with"]) == true) {
+        if ($this->helperArrayElementInArray($complex_builder_triggers, $whereConfig["joinWith"]) == true) {
             $this->whereJoinBuilder(
                 $sql,
-                $bind_text,
-                $bind_args,
-                $where_config,
+                $bindText,
+                $bindArgs,
+                $whereConfig,
                 $failed,
-                $failed_on,
-                $current_where_code
+                $failedWhy,
+                $whereCode
             );
         } else {
             $loop = 0;
-            $this->open_groups = 0;
+            $this->openGroups = 0;
             $this->pending_closer = 0;
-            while ($loop < count($where_config["fields"])) {
+            while ($loop < count($whereConfig["fields"])) {
                 $this->whereCaseWriter(
-                    $where_config,
+                    $whereConfig,
                     $loop,
-                    $current_where_code,
-                    $bind_text,
-                    $bind_args,
+                    $whereCode,
+                    $bindText,
+                    $bindArgs,
                     $sql,
                     $failed,
-                    $failed_on
+                    $failedWhy
                 );
                 if ($failed == true) {
                     break;
@@ -359,9 +359,9 @@ abstract class MysqliWhere extends MysqliFunctions
             }
         }
         if ($sql != "empty_in_array") {
-            if ($current_where_code != "") {
-                $current_where_code = trim($current_where_code);
-                $sql .= " WHERE " . $current_where_code;
+            if ($whereCode != "") {
+                $whereCode = trim($whereCode);
+                $sql .= " WHERE " . $whereCode;
             }
         }
     }

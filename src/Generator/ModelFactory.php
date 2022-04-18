@@ -83,7 +83,7 @@ class ModelFactory extends GeneratorWriter
      */
     protected function getTableColumns(string $target_database, string $target_table): ?array
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["TABLE_SCHEMA", "TABLE_NAME"],
             "matches" => ["=","="],
             "values" => [$target_database, $target_table],
@@ -93,7 +93,7 @@ class ModelFactory extends GeneratorWriter
             "table" => "information_schema.columns",
             "fields" => ["COLUMN_NAME","COLUMN_DEFAULT","DATA_TYPE","COLUMN_TYPE"],
         ];
-        $results = $this->sql->selectV2($basic_config, null, $where_config);
+        $results = $this->sql->selectV2($basic_config, null, $whereConfig);
         $returndata = null;
         if ($results->status == true) {
             $returndata = $results->dataset;

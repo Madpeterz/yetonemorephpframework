@@ -23,7 +23,7 @@ class MysqliCountTest extends TestCase
         $results = $this->sql->basicCountV2("counttoonehundo");
         $this->assertSame($results->message, "ok");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 100);
+        $this->assertSame($results->items, 100);
     }
 
     public function testCountEmpty()
@@ -31,36 +31,36 @@ class MysqliCountTest extends TestCase
         $results = $this->sql->basicCountV2("rollbacktest");
         $this->assertSame($results->message, "ok");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testCountNoTable()
     {
         $results = $this->sql->basicCountV2("");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
         $this->assertSame($results->message, "No table given");
     }
 
-    public function testCountInvaildTable()
+    public function testCountInValidTable()
     {
         $results = $this->sql->basicCountV2("badtable");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
-        $this->assertSame($results->message, "Unable to prepair: Table 'test.badtable' doesn't exist");
+        $this->assertSame($results->items, 0);
+        $this->assertSame($results->message, "Unable to prepare: Table 'test.badtable' doesn't exist");
     }
 
     public function testCountOnehundoOnlyNegitive()
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [0],
             "matches" => ["<"],
             "types" => ["i"]
         ];
-        $results = $this->sql->basicCountV2("counttoonehundo", $where_config);
+        $results = $this->sql->basicCountV2("counttoonehundo", $whereConfig);
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
         $this->assertSame($results->message, "ok");
     }
 
@@ -68,51 +68,51 @@ class MysqliCountTest extends TestCase
     {
         $results = $this->sql->groupCountV2("counttoonehundo", "cvalue");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 10);
+        $this->assertSame($results->items, 10);
         $this->assertSame($results->message, "ok");
-        $this->assertSame($results->dataset[0]["Entrys"], 10);
+        $this->assertSame($results->dataset[0]["items"], 10);
     }
 
     public function testCountOnehundoOnlyIdsGtr60()
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [60],
             "matches" => [">"],
             "types" => ["i"]
         ];
-        $results = $this->sql->basicCountV2("counttoonehundo", $where_config);
+        $results = $this->sql->basicCountV2("counttoonehundo", $whereConfig);
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 40);
+        $this->assertSame($results->items, 40);
         $this->assertSame($results->message, "ok");
     }
 
     public function testRemoveHasEmptyedCheckCount()
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [-1],
             "matches" => ["!="],
             "types" => ["i"]
         ];
-        $results = $this->sql->basicCountV2("endoftestempty", $where_config);
+        $results = $this->sql->basicCountV2("endoftestempty", $whereConfig);
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
         $this->assertSame($results->message, "ok");
     }
 
 
     public function testAddHasAddedCheckCount()
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [-1],
             "matches" => ["!="],
             "types" => ["i"]
         ];
-        $results = $this->sql->basicCountV2("endoftestempty", $where_config);
+        $results = $this->sql->basicCountV2("endoftestempty", $whereConfig);
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
         $this->assertSame($results->message, "ok");
     }
 }

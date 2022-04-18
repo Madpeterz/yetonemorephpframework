@@ -168,15 +168,15 @@ class DbObjectsGenClassTest extends TestCase
         $broken = new Counttoonehundo(["cvalue" => 44]);
         $result = $broken->updateEntry();
         $this->assertSame($result->status, false);
-        $this->assertSame($result->message, "Object id is not vaild for updates");
+        $this->assertSame($result->message, "Object id is not valid for updates");
     }
 
-    public function testUpdateInvaildIdDetected()
+    public function testUpdateInValidIdDetected()
     {
         $countto = new Counttoonehundo(["id" => -88,"cvalue" => 44]);
         $result = $countto->updateEntry();
         $this->assertSame($result->status, false);
-        $this->assertSame($result->message, "Object id is not vaild for updates");
+        $this->assertSame($result->message, "Object id is not valid for updates");
     }
 
     public function testUpdateVeryBrokenObject()

@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\Cache;
 
+use YAPF\Framework\Helpers\FunctionHelper;
+
 abstract class CacheWorker extends CacheRequired
 {
     protected array $tablesConfig = [];
@@ -10,7 +12,7 @@ abstract class CacheWorker extends CacheRequired
     protected bool $lastChangedUpdated = false;
     protected string $pathStarting = "";
     protected string $splitter = "-";
-    protected array $changedTables = []; // tables found in this array will allways fail cache checks
+    protected array $changedTables = []; // tables found in this array will always fail cache checks
     protected int $removed_counters = 0;
     protected array $seenKeys = [];
     protected array $keyData = [];
@@ -30,19 +32,25 @@ abstract class CacheWorker extends CacheRequired
 
     protected function saveLastChanged(): void
     {
-        $yesno = [true => "Yes", false => "No"];
-        $this->addErrorlog("Save last changed: " . $yesno[$this->lastChangedUpdated]);
+        $statusMessage = "No";
+        if ($this->lastChangedUpdated == false) {
+            $statusMessage = "no";
+        }
+        $this->addErrorlog("Save last changed: " . $statusMessage);
         if ($this->lastChangedUpdated == true) {
             $this->tableLastChanged["lastChanged"] = time();
-            $lastChangedfile = json_encode($this->tableLastChanged);
-            $this->addErrorlog("Saving last changed: " . $lastChangedfile);
-            $this->writeKey($this->getLastChangedPath(), $lastChangedfile, "lastChanged", time() + (60 * 60));
+            $this->writeKey(
+                $this->getLastChangedPath(),
+                json_encode($this->tableLastChanged),
+                "lastChanged",
+                time() + (60 * 60)
+            );
         }
     }
 
     protected function writeKey(string $key, string $data, string $table, int $expiresUnixtime): bool
     {
-        $tempKey = substr(sha1($key), 0, 6);
+        $tempKey = substr(FunctionHelper::sha256($key), 0, 6);
         $storage = [
             "key" => $key,
             "data" => $data,
@@ -56,7 +64,7 @@ abstract class CacheWorker extends CacheRequired
 
     private function getLastChangedPath(): string
     {
-        return $this->getWorkerPath() . "tables-lastchanged";
+        return $this->getWorkerPath() . "tablesLastUpdated";
     }
 
     private function getWorkerPath(): string
@@ -120,7 +128,7 @@ abstract class CacheWorker extends CacheRequired
     */
     protected function getHashInfo(string $tableName, string $hash): array
     {
-        $path = $this->getkeyPath($tableName, $hash);
+        $path = $this->getKeyPath($tableName, $hash);
         $this->addErrorlog("getHashInfo: loading from: " . $path);
         return $this->getKeyInfo($path);
     }
@@ -152,7 +160,7 @@ abstract class CacheWorker extends CacheRequired
         return json_decode($cacheInfoRead, true);
     }
 
-    protected function getkeyPath(string $tableName, string $hash): string
+    protected function getKeyPath(string $tableName, string $hash): string
     {
         $use_account_hash = $this->accountHash;
         if ($this->tablesConfig[$tableName]["shared"] == true) {

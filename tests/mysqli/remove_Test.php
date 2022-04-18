@@ -27,127 +27,127 @@ class mysqli_remove_test extends TestCase
 
     public function testRemove()
     {
-        $where_config = [
+        $whereConfig = [
         "fields" => ["id"],
         "values" => [2],
         "matches" => ["="],
         "types" => ["i"]
         ];
-        $results = $this->sql->removeV2("endoftestempty", $where_config);
+        $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrysRemoved, 1);
+        $this->assertSame($results->itemsRemoved, 1);
         $this->assertSame($results->message, "ok");
     }
 
-    public function testRemoveInvaildTable()
+    public function testRemoveInValidTable()
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["id"],
             "values" => [1],
             "matches" => ["="],
             "types" => ["i"]
         ];
-        $results = $this->sql->removeV2("badtable", $where_config);
+        $results = $this->sql->removeV2("badtable", $whereConfig);
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrysRemoved, 0);
-        $error_msg = "Unable to prepair: Table 'test.badtable' doesn't exist";
+        $this->assertSame($results->itemsRemoved, 0);
+        $error_msg = "Unable to prepare: Table 'test.badtable' doesn't exist";
         $this->assertSame($results->message, $error_msg);
-        $results = $this->sql->removeV2("", $where_config);
+        $results = $this->sql->removeV2("", $whereConfig);
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrysRemoved, 0);
+        $this->assertSame($results->itemsRemoved, 0);
         $this->assertSame($results->message, "No table given");
     }
 
-    public function testRemoveInvaildField()
+    public function testRemoveInValidField()
     {
-        $where_config = [
+        $whereConfig = [
         "fields" => ["badtheif"],
         "values" => [1],
         "matches" => ["="],
         "types" => ["i"]
         ];
-        $results = $this->sql->removeV2("endoftestempty", $where_config);
+        $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrysRemoved, 0);
-        $error_msg = "Unable to prepair: Unknown column 'badtheif' in 'where clause'";
+        $this->assertSame($results->itemsRemoved, 0);
+        $error_msg = "Unable to prepare: Unknown column 'badtheif' in 'where clause'";
         $this->assertSame($results->message, $error_msg);
     }
 
-    public function testRemoveInvaildValue()
+    public function testRemoveInValidValue()
     {
-        $where_config = [
+        $whereConfig = [
         "fields" => ["id"],
         "values" => ["1"],
         "matches" => ["="],
         "types" => ["s"]
         ];
-        $results = $this->sql->removeV2("endoftestempty", $where_config);
+        $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrysRemoved, 1);
+        $this->assertSame($results->itemsRemoved, 1);
         $this->assertSame($results->message, "ok");
 
-        $where_config = [
+        $whereConfig = [
         "fields" => ["value"],
         "values" => [null],
         "matches" => ["="],
         "types" => ["i"]
         ];
-        $results = $this->sql->removeV2("endoftestempty", $where_config);
+        $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrysRemoved, 0);
+        $this->assertSame($results->itemsRemoved, 0);
         $this->assertSame($results->message, "ok");
     }
 
     public function testRemoveMultiple()
     {
-        $where_config = [
+        $whereConfig = [
         "fields" => ["id"],
         "values" => [-1],
         "matches" => ["!="],
         "types" => ["i"]
         ];
-        $results = $this->sql->removeV2("endoftestempty", $where_config);
+        $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrysRemoved, 2);
+        $this->assertSame($results->itemsRemoved, 2);
         $this->assertSame($results->message, "ok");
 
     }
 
     public function testRemoveLike()
     {
-        $where_config = [
+        $whereConfig = [
             "fields" => ["name"],
             "values" => ["pondblue"],
             "matches" => ["% LIKE %"],
             "types" => ["s"]
             ];
-        $results = $this->sql->removeV2("liketests", $where_config);
+        $results = $this->sql->removeV2("liketests", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->message, "ok");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrysRemoved, 2);
+        $this->assertSame($results->itemsRemoved, 2);
     }
 
     public function testRemoveBrokenSqlConnection()
     {
         $this->sql->sqlSave();
-        $this->sql->dbUser = "invaild";
+        $this->sql->dbUser = "InValid";
         $this->sql->dbPass = null;
-        $where_config = [
+        $whereConfig = [
             "fields" => ["name"],
             "values" => ["pondblue"],
             "matches" => ["% LIKE %"],
             "types" => ["s"]
             ];
-        $results = $this->sql->removeV2("liketests", $where_config);
+        $results = $this->sql->removeV2("liketests", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
-        $this->assertSame($results->message, "Connect attempt died in a fire");
+        $this->assertSame($results->message, "sqlStartConnection returned false!");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrysRemoved, 0);
+        $this->assertSame($results->itemsRemoved, 0);
     }
 }

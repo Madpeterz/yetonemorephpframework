@@ -108,17 +108,17 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     {
         $feedValues = [time(), microtime(), rand(200, 300), $attempts];
         $testuid = substr(md5(implode(".", $feedValues)), 0, $length);
-        $where_config = [
+        $whereConfig = [
             "fields" => [$onfield],
             "values" => [$testuid],
             "types" => ["s"],
             "matches" => ["="],
         ];
-        $count_check = $this->sql->basicCountV2($this->getTable(), $where_config);
+        $count_check = $this->sql->basicCountV2($this->getTable(), $whereConfig);
         if ($count_check->status == false) {
             return new CreateUidReply("Unable to check if uid is in use");
         }
-        if ($count_check->entrys != 0) {
+        if ($count_check->items != 0) {
             if ($attempts > 3) {
                 return new CreateUidReply("created uid in use, please try again");
             }
@@ -135,9 +135,9 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     {
         $bits = [];
         $fields = $this->getFields();
-        foreach ($fields as $fieldname) {
-            if (in_array($fieldname, $exclude_fields) == false) {
-                $bits[] = $this->getField($fieldname);
+        foreach ($fields as $fieldName) {
+            if (in_array($fieldName, $exclude_fields) == false) {
+                $bits[] = $this->getField($fieldName);
             }
         }
         return hash("sha256", implode("||", $bits));
@@ -154,9 +154,9 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     public function objectToMappedArray(array $ignoreFields = [], bool $invertIgnore = false): array
     {
         $reply = [];
-        foreach ($this->fields as $fieldname) {
-            if (in_array($fieldname, $ignoreFields) == $invertIgnore) {
-                $reply[$fieldname] = $this->getField($fieldname);
+        foreach ($this->fields as $fieldName) {
+            if (in_array($fieldName, $ignoreFields) == $invertIgnore) {
+                $reply[$fieldName] = $this->getField($fieldName);
             }
         }
         return $reply;
@@ -175,31 +175,31 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * hasField
      * checks if the object has the selected field
      */
-    public function hasField(string $fieldname): bool
+    public function hasField(string $fieldName): bool
     {
-        return in_array($fieldname, $this->fields);
+        return in_array($fieldName, $this->fields);
     }
     /**
      * getFieldType
      * returns the field type as a string
      * or null if not found, null also creates an error
      */
-    public function getFieldType(string $fieldname, bool $as_mysqli_code = false): ?string
+    public function getFieldType(string $fieldName, bool $as_mysqli_code = false): ?string
     {
-        if (in_array($fieldname, $this->fields) == false) {
-            $error_meesage = " Attempting to read a fieldtype [" . $fieldname . "] has failed";
+        if (in_array($fieldName, $this->fields) == false) {
+            $error_meesage = " Attempting to read a fieldtype [" . $fieldName . "] has failed";
             $this->addError(get_class($this) . $error_meesage);
             return null;
         }
         if ($as_mysqli_code == true) {
-            if ($this->dataset[$fieldname]["type"] == "str") {
+            if ($this->dataset[$fieldName]["type"] == "str") {
                 return "s";
-            } elseif ($this->dataset[$fieldname]["type"] == "float") {
+            } elseif ($this->dataset[$fieldName]["type"] == "float") {
                 return "d";
             }
             return "i";
         }
-        return $this->dataset[$fieldname]["type"];
+        return $this->dataset[$fieldName]["type"];
     }
     /**
      * getId
@@ -238,21 +238,21 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * returns the value of a field
      * or null if not supported/not loaded,
      */
-    protected function getField(string $fieldname): mixed
+    protected function getField(string $fieldName): mixed
     {
-        if (in_array($fieldname, $this->fields) == false) {
+        if (in_array($fieldName, $this->fields) == false) {
             $this->addError(get_class($this) . " Attempting to get field that does not exist");
             return null;
         }
-        $value = $this->dataset[$fieldname]["value"];
+        $value = $this->dataset[$fieldName]["value"];
         if ($value === null) {
             return null;
         }
-        if ($this->dataset[$fieldname]["type"] == "int") {
+        if ($this->dataset[$fieldName]["type"] == "int") {
             $value = intval($value);
-        } elseif ($this->dataset[$fieldname]["type"] == "bool") {
+        } elseif ($this->dataset[$fieldName]["type"] == "bool") {
             $value = in_array($value, [1,"1","true",true,"yes"], true);
-        } elseif ($this->dataset[$fieldname]["type"] == "float") {
+        } elseif ($this->dataset[$fieldName]["type"] == "float") {
             $value = floatval($value);
         }
         return $value;
@@ -321,7 +321,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * call 'saveChanges' to apply the changes to the DB!
      * Note: Setting the ID can lead to weird side effects!
      */
-    protected function updateField(string $fieldname, $value, bool $ignore_set_id_warning = false): UpdateReply
+    protected function updateField(string $fieldName, $value, bool $ignore_set_id_warning = false): UpdateReply
     {
         if ($this->disableUpdates == true) {
             $this->addError("Attempt to update with limitFields enabled!");
@@ -330,16 +330,16 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
         if (count($this->dataset) != count($this->save_dataset)) {
             $this->save_dataset = $this->dataset;
         }
-        $check = $this->checkUpdateField($fieldname, $value, $ignore_set_id_warning);
+        $check = $this->checkUpdateField($fieldName, $value, $ignore_set_id_warning);
         if ($check->status == false) {
             return new UpdateReply($this->myLastErrorBasic);
         }
-        $this->dataset[$fieldname]["value"] = $value;
-        if ($this->getFieldType($fieldname) == "bool") {
-            $this->dataset[$fieldname]["value"] = 0;
+        $this->dataset[$fieldName]["value"] = $value;
+        if ($this->getFieldType($fieldName) == "bool") {
+            $this->dataset[$fieldName]["value"] = 0;
         }
         if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
-            $this->dataset[$fieldname]["value"] = 1;
+            $this->dataset[$fieldName]["value"] = 1;
         }
         return new UpdateReply("value set", true, 1);
     }
@@ -347,14 +347,14 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * checkUpdateField
      * checks if the update field request can be accepted
      */
-    protected function checkUpdateField(string $fieldname, $value, bool $ignore_set_id_warning = false): UpdateReply
+    protected function checkUpdateField(string $fieldName, $value, bool $ignore_set_id_warning = false): UpdateReply
     {
         if (is_object($value) == true) {
-            $this->addError("System error: Attempt to put a object onto field: " . $fieldname);
+            $this->addError("System error: Attempt to put a object onto field: " . $fieldName);
             return new UpdateReply($this->myLastErrorBasic);
         }
         if (is_array($value) == true) {
-            $this->addError("System error: Attempt to put a array onto field: " . $fieldname);
+            $this->addError("System error: Attempt to put a array onto field: " . $fieldName);
             return new UpdateReply($this->myLastErrorBasic);
         }
         if ($this->disabled == true) {
@@ -365,11 +365,11 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
             $this->addError("update_field is not allowed for this object");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (in_array($fieldname, $this->fields) == false) {
-            $this->addError("Sorry this object does not have the field: " . $fieldname);
+        if (in_array($fieldName, $this->fields) == false) {
+            $this->addError("Sorry this object does not have the field: " . $fieldName);
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (($fieldname == "id") && ($ignore_set_id_warning == false)) {
+        if (($fieldName == "id") && ($ignore_set_id_warning == false)) {
             $this->addError("Sorry this object does not allow you to set the id field!");
             return new UpdateReply($this->myLastErrorBasic);
         }

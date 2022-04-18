@@ -25,7 +25,7 @@ class MysqliSearchTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($results->message, "ok");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 2);
+        $this->assertSame($results->items, 2);
     }
 
     public function testSearchNoMatchs()
@@ -34,16 +34,16 @@ class MysqliSearchTest extends TestCase
         $results = $this->sql->searchTables($tables, "message", "none", "s", "=", 99, "id");
         $this->assertSame($results->message, "ok");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchMissingField()
     {
         $tables = ["twintables1","twintables2"];
         $results = $this->sql->searchTables($tables, "notafield", "none", "s", "=", 99, "id");
-        $this->assertSame($results->message, "Unable to prepair: Unknown column 'tb1.notafield' in 'where clause'");
+        $this->assertSame($results->message, "Unable to prepare: Unknown column 'tb1.notafield' in 'where clause'");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchMissingTable()
@@ -51,9 +51,9 @@ class MysqliSearchTest extends TestCase
         $tables = ["notatable","twintables2"];
         $results = $this->sql->searchTables($tables, "title", "harry potter", "s", "=", 99, "id");
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($results->message, "Unable to prepair: Table 'test.notatable' doesn't exist");
+        $this->assertSame($results->message, "Unable to prepare: Table 'test.notatable' doesn't exist");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchOnly1Table()
@@ -63,7 +63,7 @@ class MysqliSearchTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($results->message, "Requires 2 or more tables to use search");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchEmptyMatchField()
@@ -73,17 +73,17 @@ class MysqliSearchTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($results->message, "Requires a match field to be sent");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
-    public function testSearchInvaildMatchSqlType()
+    public function testSearchInValidMatchSqlType()
     {
         $tables = ["notatable","twintables2"];
         $results = $this->sql->searchTables($tables, "title", "harry potter", "q", "=", 99, "id");
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($results->message, "Match type is not vaild");
+        $this->assertSame($results->message, "Match type is not valid");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchIsNull()
@@ -93,7 +93,7 @@ class MysqliSearchTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($results->message, "ok");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchNullValueNoIs()
@@ -103,19 +103,19 @@ class MysqliSearchTest extends TestCase
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($results->message, "Match value can not be null");
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 
     public function testSearchNoSqlConnection()
     {
         $this->sql->shutdown();
-        $this->sql->dbUser = "invaild";
+        $this->sql->dbUser = "InValid";
         $this->sql->dbPass = null;
         $tables = ["twintables1","twintables2"];
         $results = $this->sql->searchTables($tables, "title", "title", "s", "=", 99, "id");
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($results->message, "Connect attempt died in a fire");
+        $this->assertSame($results->message, 'sqlStartConnection returned false!');
         $this->assertSame($results->status, false);
-        $this->assertSame($results->entrys, 0);
+        $this->assertSame($results->items, 0);
     }
 }

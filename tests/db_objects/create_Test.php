@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Endoftestwithfourentrys;
-use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
 class DbObjectsCreateTest extends TestCase
 {
@@ -37,7 +36,7 @@ class DbObjectsCreateTest extends TestCase
         $this->assertSame($testing->getId(), 2);
     }
 
-    public function testCreateInvaild()
+    public function testCreateInValid()
     {
         $testing = new Endoftestwithfourentrys();
         $result = $testing->createEntry();

@@ -67,7 +67,7 @@ class RedisCacheTests extends TestCase
         $loadResult = $countto->loadAll();
         $this->assertSame("ok", $loadResult->message, "Failed to load from DB");
         $this->assertSame(true, $loadResult->status, "Failed to load from DB");
-        $this->assertSame(100, $countto->getCount(), "Incorrect number of entrys");
+        $this->assertSame(100, $countto->getCount(), "Incorrect number of items");
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "Failed to read from the DB");
         $cache->shutdown();
 
@@ -176,7 +176,7 @@ not get hit until after this run has finished.
         "allowChanged" => false,
         "tableName" => "test.counttoonehundo",
         ];
-        $this->assertSame(true, $cache->cacheVaild("test.counttoonehundo", $hashid), "Exepected entry is missing");
+        $this->assertSame(true, $cache->cacheValid("test.counttoonehundo", $hashid), "Exepected entry is missing");
         $reply = $cache->readHash("test.counttoonehundo", $hashid);
         $cache->forceWrite(
             "test.counttoonehundo",
@@ -450,12 +450,12 @@ not get hit until after this run has finished.
 
     protected function getCacheHashId(Cache $cache): string
     {
-        $where_config = null;
+        $whereConfig = null;
         $basic_config = ["table" => "test.counttoonehundo"];
-        $order_config = ["ordering_enabled" => true,"order_field" => "id","order_dir" => "DESC"];
-        $limit_config = ["page_number" => 0,"max_entrys" => 1];
+        $order_config = ["enabled" => true,"byField" => "id","dir" => "DESC"];
+        $limit_config = ["pageNumber" => 0,"limit" => 1];
         return $cache->getHash(
-            $where_config,
+            $whereConfig,
             $order_config,
             $limit_config,
             $basic_config,

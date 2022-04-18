@@ -11,22 +11,22 @@ class SimpleConfig extends ErrorLogging
 {
     // Cache
     protected ?Cache $Cache = null;
-    protected bool $cache_enabled = false;
+    protected bool $cacheEnabled = false;
 
     // Cache / Redis
-    protected bool $use_redis_cache = false;
+    protected bool $redisCache = false;
 
     // Cache / Redis / Unix socket
     protected bool $redisUnix = false;
-    protected string $redis_socket = "/var/run/redis/redis.sock";
+    protected string $redisSocket = "/var/run/redis/redis.sock";
 
     // Cache / Redis / TCP
-    protected string $redis_host = "redis";
-    protected int $redis_port = 6379;
-    protected int $redis_timeout = 3;
+    protected string $redisHost = "redis";
+    protected int $redisPort = 6379;
+    protected int $redisTimeout = 1;
 
     // docker flag
-    protected bool $dockerConfigLocked = false;
+    protected bool $usingDocker = false;
 
     // SQL connection
     protected ?MysqliEnabled $sql = null;
@@ -89,36 +89,36 @@ class SimpleConfig extends ErrorLogging
 
     public function configCacheDisabled(): void
     {
-        if ($this->dockerConfigLocked == true) {
+        if ($this->usingDocker == true) {
             return;
         }
-        $this->use_redis_cache = false;
+        $this->redisCache = false;
     }
     public function configCacheRedisUnixSocket(string $socket = "/var/run/redis/redis.sock"): void
     {
-        if ($this->dockerConfigLocked == true) {
+        if ($this->usingDocker == true) {
             return;
         }
-        $this->use_redis_cache = true;
+        $this->redisCache = true;
         $this->redisUnix = true;
-        $this->redis_socket = $socket;
+        $this->redisSocket = $socket;
     }
     public function configCacheRedisTCP(string $host = "redis", int $port = 6379, int $timeout = 3): void
     {
-        if ($this->dockerConfigLocked == true) {
+        if ($this->usingDocker == true) {
             return;
         }
-        $this->use_redis_cache = true;
+        $this->redisCache = true;
         $this->redisUnix = false;
-        $this->redis_host = $host;
-        $this->redis_port = $port;
-        $this->redis_timeout = $timeout;
+        $this->redisHost = $host;
+        $this->redisPort = $port;
+        $this->redisTimeout = $timeout;
     }
 
     public function setupCache(): void
     {
         $this->Cache = null;
-        if ($this->use_redis_cache == true) {
+        if ($this->redisCache == true) {
             $this->startRedisCache();
         }
         return;
@@ -134,7 +134,7 @@ class SimpleConfig extends ErrorLogging
     public function startCache(): void
     {
         $this->setupCacheTables();
-        if ($this->use_redis_cache == true) {
+        if ($this->redisCache == true) {
             $this->Cache->start(false);
         }
         return;
@@ -144,10 +144,10 @@ class SimpleConfig extends ErrorLogging
     {
         $this->Cache = new Redis();
         if ($this->redisUnix == true) {
-            $this->Cache->connectUnix($this->redis_socket);
+            $this->Cache->connectUnix($this->redisSocket);
             return;
         }
-        $this->Cache->setTimeout($this->redis_timeout);
-        $this->Cache->connectTCP($this->redis_host, $this->redis_port);
+        $this->Cache->setTimeout($this->redisTimeout);
+        $this->Cache->connectTCP($this->redisHost, $this->redisPort);
     }
 }

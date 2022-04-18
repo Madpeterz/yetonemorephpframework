@@ -67,10 +67,10 @@ class SetModelFactory extends SingleModelFactory
         $this->file_lines[] = ' * getObjectByField';
         $this->file_lines[] = ' * returns the first object in a collection that matchs the field and value checks';
         $this->file_lines[] = ' */';
-        $this->file_lines[] = 'public function getObjectByField(string $fieldname, $value): ?' . $this->classname . '';
+        $this->file_lines[] = 'public function getObjectByField(string $fieldName, $value): ?' . $this->classname . '';
         $this->file_lines[] = '{';
         $this->file_lines[] = [2];
-        $this->file_lines[] = 'return parent::getObjectByField($fieldname, $value);';
+        $this->file_lines[] = 'return parent::getObjectByField($fieldName, $value);';
         $this->file_lines[] = [1];
         $this->file_lines[] = '}';
         $this->file_lines[] = '/**';
@@ -157,7 +157,7 @@ class SetModelFactory extends SingleModelFactory
             $this->file_lines[] = 'public function ' . $functionloadname . '(array $values): SetsLoadReply';
             $this->file_lines[] = '{';
             $this->file_lines[] = [2];
-            $this->file_lines[] = 'return $this->loadIndexs("' . $row_two["COLUMN_NAME"] . '", $values);';
+            $this->file_lines[] = 'return $this->loadIndexes("' . $row_two["COLUMN_NAME"] . '", $values);';
             $this->file_lines[] = [1];
             $this->file_lines[] = '}';
         }
@@ -174,10 +174,10 @@ class SetModelFactory extends SingleModelFactory
             if ($entry["source_table"] == $this->table) {
                 $targetclass = ucfirst(strtolower($entry["target_table"]));
                 $fromField = ucfirst($entry["source_field"]);
-                $loadField = ucfirst($entry["target_field"]);
+                $loadField = ucfirst($entry["targetField"]);
             } elseif ($entry["target_table"] == $this->table) {
                 $targetclass = ucfirst(strtolower($entry["source_table"]));
-                $fromField = ucfirst($entry["target_field"]);
+                $fromField = ucfirst($entry["targetField"]);
                 $loadField = ucfirst($entry["source_field"]);
             }
             if ($targetclass == "") {

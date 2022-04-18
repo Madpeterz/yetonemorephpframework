@@ -60,7 +60,7 @@ class CollectionSetTest extends TestCase
         $testing = new CounttoonehundoSet();
         $result = $testing->purgeCollection();
         $this->assertSame($result->message, "Collection empty to start with");
-        $this->assertSame($result->entrysRemoved, 0);
+        $this->assertSame($result->itemsRemoved, 0);
         $this->assertSame($result->status, true);
     }
     public function testBulkUpdateSet()
@@ -85,7 +85,7 @@ class CollectionSetTest extends TestCase
         $this->assertSame($result->changes, 0);
         $this->assertSame($result->status, false);
     }
-    public function testBulkUpdateInvaildField()
+    public function testBulkUpdateInValidField()
     {
         $testing = new CounttoonehundoSet();
         $testing->loadAll();
@@ -107,42 +107,42 @@ class CollectionSetTest extends TestCase
     {
         $testing = new CounttoonehundoSet();
         $testing->loadLimited(4);
-        $seen_entrys = 0;
+        $seen_items = 0;
         $expected_keys = [1,2,3,4];
         $seen_keys = [];
         foreach($testing as $key => $value)
         {
             if($value->isLoaded() == true)
             {
-                $seen_entrys++;
+                $seen_items++;
                 $seen_keys[] = $key;
             }
         }
-        $this->assertSame(4,$seen_entrys,"Foreach with key has failed");
+        $this->assertSame(4,$seen_items,"Foreach with key has failed");
         $this->assertSame(implode(",",$seen_keys),implode(",",$expected_keys),"Keys do not match as expected");
-        $seen_entrys = 0;
+        $seen_items = 0;
         foreach($testing as $value)
         {
             if($value->isLoaded() == true)
             {
-                $seen_entrys++;
+                $seen_items++;
             }
         }
-        $this->assertSame(4,$seen_entrys,"Foreach without key has failed");
+        $this->assertSame(4,$seen_items,"Foreach without key has failed");
         $Counttoonehundo = new Counttoonehundo();
         $Counttoonehundo->setCvalue(99);
         $reply = $Counttoonehundo->createEntry();
         $this->assertSame(true,$reply->status,"Failed to crate testing object");
         $testing->addToCollected($Counttoonehundo);
-        $seen_entrys = 0;
+        $seen_items = 0;
         foreach($testing as $value)
         {
             if($value->isLoaded() == true)
             {
-                $seen_entrys++;
+                $seen_items++;
             }
         }
-        $this->assertSame(5,$seen_entrys,"Foreach without key and added entry has failed");
+        $this->assertSame(5,$seen_items,"Foreach without key and added entry has failed");
     }
     public function testGetCollection()
     {
@@ -222,7 +222,7 @@ class CollectionSetTest extends TestCase
         $result = $countto->getAllByField("cvalue");
         $this->assertSame(count($result), 10);
     }
-    public function testGetAllIds()
+    public function testgetAllIds()
     {
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
@@ -244,7 +244,7 @@ class CollectionSetTest extends TestCase
         $status = $endoftest->loadFromIds([4]);
         $this->assertSame("ok", $status->message);
         $this->assertSame(true, $status->status);
-        $this->assertSame(1, $status->entrys);
+        $this->assertSame(1, $status->items);
 
         $Endoftestempty = new Endoftestempty();
         $result = $Endoftestempty->loadID(4);

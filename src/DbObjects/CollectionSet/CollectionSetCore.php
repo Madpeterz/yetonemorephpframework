@@ -2,15 +2,14 @@
 
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
-use Error;
-use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
+use YAPF\Framework\Core\SQLi\SqlConnectedClass;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
 
 abstract class CollectionSetCore extends SqlConnectedClass
 {
     protected array $collected = [];
-    protected $indexs = [];
-    protected ?string $worker_class = null;
+    protected $indexes = [];
+    protected ?string $workerClass = null;
     protected ?GenClass $worker = null;
 
     protected bool $cacheAllowChanged = false;
@@ -26,17 +25,17 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * removing: CollectionSet
      * to get: Tree as the base class for this collection
      */
-    public function __construct(string $worker_class)
+    public function __construct(string $workerClass)
     {
         global $system;
         $this->cache = $system->getCacheDriver();
-        $this->worker_class = $worker_class;
+        $this->workerClass = $workerClass;
         parent::__construct();
     }
 
     /**
      * countInDB
-     * $where_config: see selectV2.readme
+     * $whereConfig: see selectV2.readme
      * Requires a id field
      * @return ?int  returns the count or null if failed
      */
@@ -46,9 +45,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $whereConfig = $this->worker->extendWhereConfig($whereConfig);
         // Cache support
         $hitCache = false;
-        $hashme = "";
+        $currentHash = "";
         if ($this->cache != null) {
-            $hashme = $this->cache->getHash(
+            $currentHash = $this->cache->getHash(
                 $whereConfig,
                 ["countDB" => "yep"],
                 ["countDB" => "yep"],
@@ -56,9 +55,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
                 $this->worker->getTable(),
                 count($this->worker->getFields())
             );
-            $hitCache = $this->cache->cacheVaild($this->worker->getTable(), $hashme);
+            $hitCache = $this->cache->cacheValid($this->worker->getTable(), $currentHash);
             if ($hitCache == true) {
-                $reply = $this->cache->readHash($this->worker->getTable(), $hashme);
+                $reply = $this->cache->readHash($this->worker->getTable(), $currentHash);
                 if (is_array($reply) == true) {
                     return $reply["count"];
                 }
@@ -72,9 +71,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
         }
         if (($this->cache != null) && ($reply->status == true)) {
             // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->worker->getTable(), $hashme, ["count" => $reply->entrys], false);
+            $this->cache->writeHash($this->worker->getTable(), $currentHash, ["count" => $reply->items], false);
         }
-        return $reply->entrys;
+        return $reply->items;
     }
 
     public function limitFields(array $fields): void
@@ -93,7 +92,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
 
     protected function rebuildIndex(): void
     {
-        $this->indexs = array_keys($this->collected);
+        $this->indexes = array_keys($this->collected);
     }
 
 
@@ -107,11 +106,12 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * creates the worker object for the collection set
      * if one has not already been created.
      */
-    protected function makeWorker(): void
+    protected function makeWorker(): ?GenClass
     {
         if ($this->worker == null) {
-            $this->worker = new $this->worker_class();
+            $this->worker = new $this->workerClass();
         }
+        return $this->worker;
     }
     /**
      * addToCollected
@@ -125,7 +125,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
     }
 
     protected $fastObjectArrayIndex = [];
-    protected $fast_get_object_array_dataset = [];
+    protected $fastIndexDataset = [];
     /**
      * buildObjectGetIndex
      * processes the collected objects and builds a fast index
@@ -139,19 +139,17 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * object with index 5 would return C and not A
      * for objects with the bad_id flag
      * the object is stored and not the ID
-     * again please dont use bad_id objects unless you have to
-     * they suck so bad [god I hate wordpress]
      */
-    protected function buildObjectGetIndex(string $fieldname, bool $force_rebuild = false): void
+    protected function buildObjectGetIndex(string $fieldName, bool $force_rebuild = false): void
     {
         $this->makeWorker();
-        if ((in_array($fieldname, $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
-            $loadstring = "get" . ucfirst($fieldname);
-            if (method_exists($this->worker, $loadstring)) {
-                $this->fastObjectArrayIndex[] = $fieldname;
+        if ((in_array($fieldName, $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
+            $loadString = "get" . ucfirst($fieldName);
+            if (method_exists($this->worker, $loadString)) {
+                $this->fastObjectArrayIndex[] = $fieldName;
                 $index = [];
                 foreach ($this->collected as $key => $object) {
-                    $indexValue = $object->$loadstring();
+                    $indexValue = $object->$loadString();
                     if ($indexValue === true) {
                         $indexValue = 1;
                     } elseif ($indexValue == false) {
@@ -162,35 +160,35 @@ abstract class CollectionSetCore extends SqlConnectedClass
                     }
                     $index[$indexValue][] = $object->getId();
                 }
-                $this->fast_get_object_array_dataset[$fieldname] = $index;
+                $this->fastIndexDataset[$fieldName] = $index;
             }
         }
     }
     /**
-     * objectIndexSearcher
+     * indexSearch
      * returns an array of objects that matched the search settings
      * @return mixed[] [object,...]
     */
-    protected function objectIndexSearcher(string $fieldname, $fieldvalue): array
+    protected function indexSearch(string $fieldName, $fieldValue): array
     {
         $this->makeWorker();
-        $this->buildObjectGetIndex($fieldname);
+        $this->buildObjectGetIndex($fieldName);
         $return_objects = [];
-        if (array_key_exists($fieldname, $this->fast_get_object_array_dataset) == false) {
+        if (array_key_exists($fieldName, $this->fastIndexDataset) == false) {
             $this->addError("Field was not found as part of search array dataset");
             return [];
         }
-        $loadstring = "get" . ucfirst($fieldname);
-        if (method_exists($this->worker, $loadstring) == false) {
+        $loadString = "get" . ucfirst($fieldName);
+        if (method_exists($this->worker, $loadString) == false) {
             $this->addError("get function is not supported");
             return [];
         }
-        if (array_key_exists($fieldvalue, $this->fast_get_object_array_dataset[$fieldname]) == false) {
+        if (array_key_exists($fieldValue, $this->fastIndexDataset[$fieldName]) == false) {
             $this->addError("value does not match dataset search");
             return [];
         }
         $return_objects = [];
-        foreach ($this->fast_get_object_array_dataset[$fieldname][$fieldvalue] as $objectid) {
+        foreach ($this->fastIndexDataset[$fieldName][$fieldValue] as $objectid) {
             if (array_key_exists($objectid, $this->collected) == true) {
                 $return_objects[] = $this->collected[$objectid];
             }

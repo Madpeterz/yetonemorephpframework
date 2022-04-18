@@ -11,26 +11,26 @@ abstract class MysqliProcess extends MysqliWhere
      * Do stuff then talk to Sql.
      */
     protected function processSqlRequest(
-        string $bind_text,
-        array $bind_args,
+        string $bindText,
+        array $bindArgs,
         string &$sql,
-        ?array $where_config = null,
+        ?array $whereConfig = null,
         ?array $order_config = null,
         ?array $options_config = null,
         ?array $join_tables = null
     ): ?mysqli_stmt {
         $failed = false;
-        $failed_on = "";
+        $failedWhy = "";
 
-        $this->selectBuildJoins($join_tables, $sql, $failed, $failed_on);
+        $this->selectBuildJoins($join_tables, $sql, $failed, $failedWhy);
         if ($failed == true) {
-            $this->addError("failed with message:" . $failed_on);
+            $this->addError("failed with message:" . $failedWhy);
             return null;
         }
 
-        $failed = !$this->processWhere($sql, $where_config, $bind_text, $bind_args, $failed_on, $failed);
+        $failed = !$this->processWhere($sql, $whereConfig, $bindText, $bindArgs, $failedWhy, $failed);
         if ($failed == true) {
-            $this->addError("Where config failed: " . $failed_on);
+            $this->addError("Where config failed: " . $failedWhy);
             return null;
         }
         if ($sql == "empty_in_array") {
@@ -43,6 +43,6 @@ abstract class MysqliProcess extends MysqliWhere
         if (is_array($options_config) == true) {
             $this->buildOption($sql, $options_config);
         }
-        return $this->SQLprepairBindExecute($sql, $bind_args, $bind_text);
+        return $this->prepareBindExecute($sql, $bindArgs, $bindText);
     }
 }

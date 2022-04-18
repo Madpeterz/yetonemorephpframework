@@ -20,9 +20,9 @@ class BrokenObjectThatSetsWhatever extends genClass
     /**
     * setCvalue
     */
-    public function setCvalue($newvalue, string $fieldname = "cvalue"): UpdateReply
+    public function setCvalue($newvalue, string $fieldName = "cvalue"): UpdateReply
     {
-        return $this->updateField($fieldname, $newvalue);
+        return $this->updateField($fieldName, $newvalue);
     }
 }
 class DbObjectsSupportTest extends TestCase
@@ -51,11 +51,11 @@ class DbObjectsSupportTest extends TestCase
         $testing = new liketests();
         $this->assertSame($testing->getLastSql(), "");
     }
-    public function testPassSetupInvaildFields()
+    public function testPassSetupInValidFields()
     {
         $testing = new Counttoonehundo();
         $result = $testing->setup(["fake" => true]);
-        $this->assertSame(true,$result); // invaild fields are ignored
+        $this->assertSame(true,$result); // InValid fields are ignored
     }
     public function testSetTable()
     {
