@@ -1,3 +1,3 @@
 @ECHO OFF
-SET BIN_TARGET="C:/Users/madpe/AppData/Roaming/Composer/vendor/phpunit/phpunit/phpunit"
+SET BIN_TARGET="D:\php\yetonemorephpframework\vendor\phpunit\phpunit\phpunit"
 php "%BIN_TARGET%" %*

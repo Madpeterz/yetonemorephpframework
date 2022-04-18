@@ -39,18 +39,18 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
-        $this->assertSame($load_status, true);
-        $this->assertSame($countto->getId(), 44);
-        $this->assertSame($countto->getCvalue(), 8);
+        $this->assertSame(true, $load_status->status);
+        $this->assertSame(44, $countto->getId());
+        $this->assertSame(8, $countto->getCvalue());
     }
 
     public function testLoadSet()
     {
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadAll();
-        $this->assertSame($load_status->message, "ok");
-        $this->assertSame($load_status->status, true);
-        $this->assertSame($load_status->entrys, 100);
+        $this->assertSame("ok", $load_status->message);
+        $this->assertSame(true, $load_status->status);
+        $this->assertSame(100, $load_status->entrys);
     }
 
     public function testLoadRange()
@@ -87,7 +87,7 @@ class DbObjectsLoadTest extends TestCase
             "matches" => [">=",">="],
         ];
         $load_status = $countto->loadWithConfig($where_config);
-        $this->assertSame($load_status, true);
+        $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->getId(), 100);
     }
 
@@ -109,27 +109,27 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("id", 44);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result->status);
         $countto = new Counttoonehundo();
         $countto->makedisabled();
         $result = $countto->loadByField("id", 44);
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
         $weird = new Weirdtable();
         $result = $weird->loadByField("weirdb", 3);
         $this->assertSame($weird->getId(), null);
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("cvalue", 128);
         $this->assertSame($countto->getLastSql(), "SELECT * FROM test.counttoonehundo  WHERE `cvalue` = ?");
         $this->assertSame($countto->getLastErrorBasic(), "Load error incorrect number of entrys expected 1 but got:10");
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
     }
 
     public function testLoadByFieldInvaildField()
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("fake", 44);
-        $this->assertSame($result, false);
+        $this->assertSame(false, $result->status);
         $this->assertSame($countto->getLastErrorBasic(), "Attempted to get field type: fake but its not supported!");
     }
 
@@ -185,7 +185,7 @@ class DbObjectsLoadTest extends TestCase
             "values" => [91],
         ];
         $load_status = $countto->loadWithConfig($where_config);
-        $this->assertSame($load_status, true);
+        $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->getId(), 91);
 
         $EndEmptySet = new CounttoonehundoSet();
@@ -202,7 +202,7 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadMatching(["id"=>4,"cvalue"=>8]);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result->status);
         $this->assertSame($countto->getCvalue(), 8);
     }
 

@@ -19,7 +19,6 @@ class BrokenObjectThatSetsWhatever extends genClass
     ];
     /**
     * setCvalue
-    * @return mixed[] [status =>  bool, message =>  string]
     */
     public function setCvalue($newvalue, string $fieldname = "cvalue"): UpdateReply
     {
@@ -56,7 +55,7 @@ class DbObjectsSupportTest extends TestCase
     {
         $testing = new Counttoonehundo();
         $result = $testing->setup(["fake" => true]);
-        $this->assertSame($result, true); // invaild fields are ignored
+        $this->assertSame(true,$result); // invaild fields are ignored
     }
     public function testSetTable()
     {

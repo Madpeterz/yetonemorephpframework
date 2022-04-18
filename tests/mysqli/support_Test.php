@@ -87,10 +87,10 @@ class MysqliSupportTest extends TestCase
         $startup = $this->sql->sqlStart();
         $this->assertSame($startup, true);
         $result = $this->sql->shutdown();
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result);
         $this->assertSame($this->sql->getLastErrorBasic(), "No changes made");
         $result = $this->sql->shutdown();
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result);
         $this->assertSame($this->sql->getLastErrorBasic(), "Not connected");
     }
 
@@ -204,7 +204,7 @@ class MysqliSupportTest extends TestCase
         // good host / good details / good DB
         $this->sql->fullSqlErrors = false;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "information_schema", true);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result);
     }
 
     public function testSqlStartBadConfig()

@@ -248,7 +248,7 @@ class CollectionSetTest extends TestCase
 
         $Endoftestempty = new Endoftestempty();
         $result = $Endoftestempty->loadID(4);
-        $this->assertSame(true, $result);
+        $this->assertSame($result->status, true);
 
         $reply = $Endoftestempty->getFieldType("id",true);
         $this->assertSame("i", $reply);

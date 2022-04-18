@@ -26,7 +26,7 @@ class DbObjectsUpdateTest extends TestCase
     {
         $target = new Endoftestempty();
         $result = $target->loadByField("name", "yes");
-        $this->assertSame(true, $result, "Load by field failed");
+        $this->assertSame($result->status, true, "Load by field failed");
         $result = $target->setName("Magic");
         $this->assertSame(true, $result->status, "Set field via helper failed");
         $result = $target->updateEntry();
@@ -37,7 +37,7 @@ class DbObjectsUpdateTest extends TestCase
         $this->setUp();
         $target = new Endoftestempty();
         $result = $target->loadID(1);
-        $this->assertSame(true, $result, "Unable to load id 1 from end of test empty");
+        $this->assertSame($result->status,true, "Unable to load id 1 from end of test empty");
         $this->assertSame("Magic", $target->getName(), "Incorrect name value");
     }
 

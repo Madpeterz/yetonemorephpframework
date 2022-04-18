@@ -26,7 +26,7 @@ class DbObjectsRemoveTest extends TestCase
     {
         $target = new Alltypestable();
         $result = $target->loadID(1);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result->status);
         $result = $target->removeEntry();
         $this->assertSame($result->message, "ok");
         $this->assertSame($result->status, true);
@@ -54,7 +54,7 @@ class DbObjectsRemoveTest extends TestCase
     {
         $target = new Relationtestingb();
         $result = $target->loadID(1);
-        $this->assertSame($result, true);
+        $this->assertSame(true,$result->status);
         $result = $target->removeEntry();
         $reject_message = 'Unable to execute because: Cannot delete or update a parent row: ';
         $reject_message .= 'a foreign key constraint fails (`test`.`relationtestinga`, CONSTRAINT `testingb_in_use` ';

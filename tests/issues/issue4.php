@@ -4,34 +4,16 @@ namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
-use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
-
-$sql = null;
 class Issue4Test extends TestCase
 {
-    /* @var YAPF\Framework\MySQLi\MysqliEnabled $sql */
-    protected $sql = null;
-    protected function setUp(): void
-    {
-        global $sql;
-        $sql = new MysqliConnector();
-    }
-    protected function tearDown(): void
-    {
-        global $sql;
-        $sql->sqlSave(true);
-        $sql = null;
-    }
-
     public function testIssue4()
     {
-        global $sql;
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
-        $this->assertSame($load_status, true);
+        $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->getId(), 44);
-        $this->assertSame($countto->getCvalue(), 10);
+        $this->assertSame($countto->getCvalue(), 9);
         $reply = $countto->bulkChange(["cvalue" => 55]);
         $this->assertSame("ok", $reply->message, "Wrong error message");
         $this->assertSame(true, $reply->status, "bulk change failed");
