@@ -285,26 +285,67 @@ abstract class Cache extends CacheWorker implements CacheInterface
         }
     }
 
+    protected function cacheEnabledForTable(string $tableName): bool
+    {
+        if (array_key_exists($tableName, $this->tablesConfig) == false) {
+            $this->addErrorlog("cacheEnabledForTable: Table is not supported by cache");
+            $this->missedNotUsedCount++;
+            return false; // not a table supported by cache
+        }
+        if (array_key_exists($tableName, $this->tableLastChanged) == false) {
+            $this->addErrorlog("cacheEnabledForTable: Table last changed is missed (new table?)");
+            $this->missedChangedCount++;
+            return false; // last changed entry missing (maybe its new)
+        }
+        if (in_array($tableName, $this->changedTables) == true) {
+            $this->addErrorlog("cacheEnabledForTable: table has had changes from startup");
+            $this->missedChangedCount++;
+            return false; // table has had a change at some point miss the cache for now
+        }
+        return true;
+    }
+
+    protected function validateCacheRead(string $tableName, string $hash): bool
+    {
+        $info_file = $this->getHashInfo($tableName, $hash);
+        $this->addErrorlog("validateCacheRead: info_file: " . json_encode($info_file));
+        if (array_key_exists("expires", $info_file) == false) {
+            $this->addErrorlog("validateCacheRead: expires info is missing");
+            $this->missedNotFoundCount++;
+            $this->removeKey($this->getKeyPath($tableName, $hash));
+            return false;
+        }
+        if ($info_file["expires"] < time()) {
+            $dif = time() - $info_file["expires"];
+            $this->addErrorlog("validateCacheRead: entry has expired " . $dif . " secs ago");
+            $this->missedExpiredCount++;
+            $this->removeKey($this->getKeyPath($tableName, $hash));
+            return false; // cache has expired
+        }
+        if ($info_file["changeID"] != $this->tableLastChanged[$tableName]) {
+            if ($info_file["allowChanged"] == false) {
+                // cache is old
+                $this->addErrorlog("validateCacheRead: entry is old");
+                $this->missedExpiredCount++;
+                $this->removeKey($this->getKeyPath($tableName, $hash));
+                return false;
+            }
+        }
+        $this->markConnected();
+        $this->hitCount++;
+        $this->addErrorlog($this->driverName . " validateCacheRead: ok [" . $info_file["expires"] . " vs " . time() .
+        " dif: " . (time() - $info_file["expires"]));
+        return true; // cache is valid
+    }
+
     public function cacheValid(string $tableName, string $hash, bool $asSingle = false): bool
     {
         if ($this->disconnected == true) {
             return false;
         }
         $this->addErrorlog("cacheValid: checking: " . $tableName . " " . $hash);
-        if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            $this->addErrorlog("cacheValid: Table is not supported by cache");
-            $this->missedNotUsedCount++;
-            return false; // not a table supported by cache
-        }
-        if (array_key_exists($tableName, $this->tableLastChanged) == false) {
-            $this->addErrorlog("cacheValid: Table last changed is missed (new table?)");
-            $this->missedChangedCount++;
-            return false; // last changed entry missing (maybe its new)
-        }
-        if (in_array($tableName, $this->changedTables) == true) {
-            $this->addErrorlog("cacheValid: table has had changes from startup");
-            $this->missedChangedCount++;
-            return false; // table has had a change at some point miss the cache for now
+        if ($this->cacheEnabledForTable($tableName) == false) {
+            return false;
         }
         if ($asSingle == true) {
             if ($this->tablesConfig[$tableName]["singlesEnabled"] == false) {
@@ -314,35 +355,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
             }
         }
         $this->addErrorlog("cacheValid: attempting to get info blob");
-        $info_file = $this->getHashInfo($tableName, $hash);
-        $this->addErrorlog("cacheValid: info_file: " . json_encode($info_file));
-        if (array_key_exists("expires", $info_file) == false) {
-            $this->addErrorlog("cacheValid: expires info is missing");
-            $this->missedNotFoundCount++;
-            $this->removeKey($this->getKeyPath($tableName, $hash));
-            return false;
-        }
-        if ($info_file["expires"] < time()) {
-            $dif = time() - $info_file["expires"];
-            $this->addErrorlog("cacheValid: entry has expired " . $dif . " secs ago");
-            $this->missedExpiredCount++;
-            $this->removeKey($this->getKeyPath($tableName, $hash));
-            return false; // cache has expired
-        }
-        if ($info_file["changeID"] != $this->tableLastChanged[$tableName]) {
-            if ($info_file["allowChanged"] == false) {
-                // cache is old
-                $this->addErrorlog("cacheValid: entry is old");
-                $this->missedExpiredCount++;
-                $this->removeKey($this->getKeyPath($tableName, $hash));
-                return false;
-            }
-        }
-        $this->markConnected();
-        $this->hitCount++;
-        $this->addErrorlog($this->driverName . " cacheValid: ok [" . $info_file["expires"] . " vs " . time() . " dif: "
-        . (time() - $info_file["expires"]));
-        return true; // cache is valid
+        return $this->validateCacheRead($tableName, $hash);
     }
 
     /**
