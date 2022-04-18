@@ -4,11 +4,9 @@ namespace YAPF\Framework\DbObjects\GenClass;
 
 use Iterator;
 use Throwable;
-use YAPF\Framework\Cache\Cache;
 use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 use YAPF\Framework\Responses\DbObjects\CreateUidReply;
 use YAPF\Framework\Responses\DbObjects\UpdateReply;
-use YAPF\Framework\Responses\MySQLi\UpdateReply as MySQLiUpdateReply;
 
 abstract class GenClassControl extends SqlConnectedClass implements Iterator
 {
@@ -239,9 +237,8 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * getField
      * returns the value of a field
      * or null if not supported/not loaded,
-     * @return mixed
      */
-    protected function getField(string $fieldname)
+    protected function getField(string $fieldname): mixed
     {
         if (in_array($fieldname, $this->fields) == false) {
             $this->addError(get_class($this) . " Attempting to get field that does not exist");
