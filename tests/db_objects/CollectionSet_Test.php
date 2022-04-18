@@ -290,15 +290,27 @@ class CollectionSetTest extends TestCase
         $relationtestinga->loadAll();
         $this->assertSame(2, $relationtestinga->getCount());
         $reply = [];
+        $loop = 1;
         foreach($relationtestinga as $entry)
         {
             $obj = [];
-            foreach($entry as $value)
+            foreach($entry as $key => $value)
             {
-                $obj[] = $value;
+                $obj[$key] = $value;
             }
-            $reply[] = $obj;
+            $reply[$loop] = $obj;
+            $loop++;
         }
-        $this->assertSame('[[1,"group1",1],[2,"group2",4]]',json_encode($reply), "not the same json :/");
+        $testObj = [
+            1 => ["id" => 1,"name" => "group1","linkid" => 1],
+            2 => ["id" => 2,"name" => "group2","linkid" => 4],
+        ];
+        foreach($reply as $key => $entry)
+        {
+            $vs = $testObj[$key];
+            $this->assertSame($vs["id"], $entry["id"], "id does not match");
+            $this->assertSame($vs["name"], $entry["name"], "name does not match");
+            $this->assertSame($vs["linkid"], $entry["linkid"], "linkid does not match");
+        }
     }
 }
