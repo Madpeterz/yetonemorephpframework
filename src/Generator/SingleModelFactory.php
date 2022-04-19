@@ -105,7 +105,7 @@ class SingleModelFactory extends ModelFactoryShared
             $functionLoadName = 'loadBy' . ucfirst($rowTwo["COLUMN_NAME"]);
 
             $this->fileLines[] = 'public function ' . $functionLoadName . '('
-            . $useType . ' $' . $rowTwo["COLUMN_NAME"] . '): bool';
+            . $useType . ' $' . $rowTwo["COLUMN_NAME"] . '): SingleLoadReply';
             $this->fileLines[] = '{';
             $this->fileLines[] = [2];
             $this->fileLines[] = 'return $this->loadByField(';
@@ -201,6 +201,8 @@ class SingleModelFactory extends ModelFactoryShared
         $this->fileLines[] = '';
         $this->fileLines[] = 'use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;';
         $this->fileLines[] = 'use YAPF\Framework\Responses\DbObjects\UpdateReply as UpdateReply;';
+        $this->fileLines[] = 'use YAPF\Framework\Responses\DbObjects\SingleLoadReply as SingleLoadReply;';
+        ;
 
         $seenUsing = [];
         foreach ($this->links as $entry) {
