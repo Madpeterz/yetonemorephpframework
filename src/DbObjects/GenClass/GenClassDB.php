@@ -201,10 +201,9 @@ abstract class GenClassDB extends GenClassControl
         return new SingleLoadReply("Ok", true);
     }
     /**
-     * removeMe
+     * removeEntry
      * removes the loaded object from the database
      * and marks the object as unloaded by setting its id to -1
-     * @return mixed[] [status =>  bool, message =>  string]
      */
     public function removeEntry(): RemoveReply
     {
