@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\Helpers;
 
+use YAPF\Core\ErrorControl\ErrorLogging;
+
 /*
     YAPF/Helpers/FunctionHelper.php
 
@@ -9,14 +11,14 @@ namespace YAPF\Framework\Helpers;
     quick access to
 */
 
-class FunctionHelper
+class FunctionHelper extends ErrorLogging
 {
-    public static function sha256(string $input): string
+    protected function sha256(string $input): string
     {
         return hash("sha256", $input, false);
     }
 
-    public static function userAgentIdToName(int $agentId): string
+    protected function userAgentIdToName(int $agentId): string
     {
         $agents = [
             1 => 'Unknown',
@@ -33,7 +35,7 @@ class FunctionHelper
         return $agents[$agentId];
     }
 
-    public static function timeDisplay(int $secs): string
+    protected function timeDisplay(int $secs): string
     {
         $mins = floor($secs / 60);
         $secs -= $mins * 60;
@@ -65,7 +67,7 @@ class FunctionHelper
         return $output;
     }
 
-    public function expiredAgo(
+    protected function expiredAgo(
         $unixtime = 0,
         bool $withSeconds = false,
         string $expiredWord = "Expired",
@@ -81,7 +83,7 @@ class FunctionHelper
      * get_opts
      * @return mixed[]
      */
-    public function getOpts(): array
+    protected function getOpts(): array
     {
         $opts = [];
         foreach ($_SERVER["argv"] as $argKey => $argValue) {
@@ -104,7 +106,7 @@ class FunctionHelper
         }
         return $opts;
     }
-    public function timeRemainingHumanReadable(
+    protected function timeRemainingHumanReadable(
         $unixtime = 0,
         bool $withSeconds = false,
         string $expiredWord = "Expired"
@@ -134,7 +136,7 @@ class FunctionHelper
         return $dif . " secs";
     }
 
-    public function isChecked(bool $input_value): string
+    protected function isChecked(bool $input_value): string
     {
         if ($input_value == true) {
             return " checked ";

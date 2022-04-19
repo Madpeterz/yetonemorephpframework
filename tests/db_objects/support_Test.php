@@ -20,9 +20,9 @@ class BrokenObjectThatSetsWhatever extends genClass
     /**
     * setCvalue
     */
-    public function setCvalue($newvalue, string $fieldName = "cvalue"): UpdateReply
+    public function setCvalue($newValue, string $fieldName = "cvalue"): UpdateReply
     {
-        return $this->updateField($fieldName, $newvalue);
+        return $this->updateField($fieldName, $newValue);
     }
 }
 class DbObjectsSupportTest extends TestCase

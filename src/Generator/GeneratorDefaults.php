@@ -5,7 +5,7 @@ namespace YAPF\Framework\Generator;
 class GeneratorDefaults extends GeneratorTypes
 {
     protected $tab_lookup = [];
-    protected $file_lines = [];
+    protected $fileLines = [];
     protected $output = "";
 
     public function getOutput(): string

@@ -4,14 +4,17 @@ namespace YAPF\Framework\Generator;
 
 abstract class ModelFactoryShared
 {
-    protected $string_types = ["varchar","text","char","longtext","mediumtext","tinytext","date","datetime"];
-    protected $int_types = ["tinyint", "int","smallint","bigint","mediumint","enum","timestamp"];
-    protected $float_types = ["decimal","float","double"];
-    protected $known_types = [];
+    protected const STRING_TYPES = ["varchar","text","char","longtext","mediumtext","tinytext","date","datetime"];
+    protected const INT_TYPES = ["tinyint", "int","smallint","bigint","mediumint","enum","timestamp"];
+    protected const FLOAT_TYPES = ["decimal","float","double"];
+    protected const KNOWN_TYPES = [
+        "varchar","text","char","longtext","mediumtext","tinytext","date","datetime",
+        "tinyint", "int","smallint","bigint","mediumint","enum","timestamp",
+        "decimal","float","double",
+    ];
 
-
-    protected array $file_lines = [];
-    protected string $classname = "";
+    protected array $fileLines = [];
+    protected string $className = "";
     protected string $namespaceSingle = "";
     protected string $namespaceSet = "";
     protected string $database = "";
@@ -24,7 +27,7 @@ abstract class ModelFactoryShared
     protected string $output = "";
 
     public function __construct(
-        string $classname,
+        string $className,
         string $namespaceSingle,
         string $namespaceSet,
         string $database,
@@ -33,7 +36,7 @@ abstract class ModelFactoryShared
         array $relatedLinks,
         bool $addDbToTable
     ) {
-        $this->classname = $classname;
+        $this->className = $className;
         $this->namespaceSingle = $namespaceSingle;
         $this->namespaceSet = $namespaceSet;
         $this->database = $database;
@@ -41,8 +44,20 @@ abstract class ModelFactoryShared
         $this->cols = $cols;
         $this->links = $relatedLinks;
         $this->addDbToTable = $addDbToTable;
-        $this->known_types = array_merge($this->string_types, $this->int_types, $this->float_types);
         $this->createNow();
+    }
+
+    protected function writeOutput(string $message): void
+    {
+        if ($this->use_output == false) {
+            return;
+        }
+        if ($this->console_output == true) {
+            echo $message . "\n";
+            return;
+        }
+        $this->output .= $message;
+        $this->output .= "<br/>";
     }
 
     public function createNow(): void
@@ -84,7 +99,7 @@ abstract class ModelFactoryShared
      */
     public function getLines(): array
     {
-        return $this->file_lines;
+        return $this->fileLines;
     }
 
    /**
@@ -92,31 +107,24 @@ abstract class ModelFactoryShared
      * returns the col type for the selected target_table
      */
     protected function getColType(
-        string $target_type,
-        string $col_type,
+        string $targetType,
+        string $columnType,
         string $table,
-        string $colname
+        string $columnName
     ): string {
-        if (in_array($target_type, $this->known_types) == false) {
-            $error_msg = "Table: " . $table . " Column: " . $colname . " unknown type: ";
-            $error_msg .= $target_type . " defaulting to string!<br/>";
-            if ($this->use_output == true) {
-                if ($this->console_output == true) {
-                    echo "Error: " . $error_msg . " \n";
-                } else {
-                    $this->output .=  $error_msg;
-                    $this->output .=  "<br/>";
-                }
-            }
+        if (in_array($targetType, self::KNOWN_TYPES) == false) {
+            $error_msg = "Table: " . $table . " Column: " . $columnName . " unknown type: ";
+            $error_msg .= $targetType . " defaulting to string!<br/>";
+            $this->writeOutput("Error: " . $error_msg);
             return "str";
         }
-        if (in_array($target_type, $this->int_types)) {
-            if (strpos($col_type, 'tinyint(1)') !== false) {
+        if (in_array($targetType, self::INT_TYPES)) {
+            if (strpos($columnType, 'tinyint(1)') !== false) {
                 return "bool";
             }
             return "int";
         }
-        if (in_array($target_type, $this->float_types)) {
+        if (in_array($targetType, self::FLOAT_TYPES)) {
             return "float";
         }
         return "str";

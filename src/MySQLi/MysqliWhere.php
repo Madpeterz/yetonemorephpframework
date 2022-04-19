@@ -168,19 +168,19 @@ abstract class MysqliWhere extends MysqliFunctions
         string &$failedWhy
     ): void {
         $matchTypes = [
-            "=",
-            "<=",
-            ">=",
-            "!=",
-            "<",
-            ">",
-            "IS",
-            "IS NOT",
-            "% LIKE",
-            "LIKE %",
-            "% LIKE %",
-            "IN",
-            "NOT IN",
+        "=",
+        "<=",
+        ">=",
+        "!=",
+        "<",
+        ">",
+        "IS",
+        "IS NOT",
+        "% LIKE",
+        "LIKE %",
+        "% LIKE %",
+        "IN",
+        "NOT IN",
         ];
         if (in_array($match, $matchTypes) == false) {
             $failed = true;
@@ -252,10 +252,10 @@ abstract class MysqliWhere extends MysqliFunctions
         }
     }
 
-    protected function helperArrayElementInArray(array $a, array $b): bool
+    protected function helperArrayElementInArray(array $sourceElements, array $testIn): bool
     {
-        foreach ($a as $entry) {
-            if (in_array($entry, $b) == true) {
+        foreach ($sourceElements as $entry) {
+            if (in_array($entry, $testIn) == true) {
                 return true;
             }
         }
@@ -308,6 +308,69 @@ abstract class MysqliWhere extends MysqliFunctions
             }
         }
     }
+    protected function complexBuildWhere(
+        string &$sql,
+        string &$bindText,
+        array &$bindArgs,
+        array $whereConfig,
+        bool &$failed,
+        string &$failedWhy
+    ): void {
+        $whereCode = "";
+        $this->whereJoinBuilder(
+            $sql,
+            $bindText,
+            $bindArgs,
+            $whereConfig,
+            $failed,
+            $failedWhy,
+            $whereCode
+        );
+        if ($sql != "empty_in_array") {
+            if ($whereCode != "") {
+                $whereCode = trim($whereCode);
+                $sql .= " WHERE " . $whereCode;
+            }
+        }
+    }
+    protected function simpleBuildWhere(
+        string &$sql,
+        string &$bindText,
+        array &$bindArgs,
+        array $whereConfig,
+        bool &$failed,
+        string &$failedWhy
+    ): void {
+        $whereCode = "";
+        $loop = 0;
+        $this->openGroups = 0;
+        $this->pending_closer = 0;
+        while ($loop < count($whereConfig["fields"])) {
+            $this->whereCaseWriter(
+                $whereConfig,
+                $loop,
+                $whereCode,
+                $bindText,
+                $bindArgs,
+                $sql,
+                $failed,
+                $failedWhy
+            );
+            if ($failed == true) {
+                break;
+            }
+            if ($sql == "empty_in_array") {
+                break;
+            }
+            $loop++;
+        }
+        if ($sql != "empty_in_array") {
+            if ($whereCode != "") {
+                $whereCode = trim($whereCode);
+                $sql .= " WHERE " . $whereCode;
+            }
+        }
+    }
     /**
      * buildWhere
      * oh lord, he coming,
@@ -322,47 +385,10 @@ abstract class MysqliWhere extends MysqliFunctions
         bool &$failed,
         string &$failedWhy
     ): void {
-        $whereCode = "";
-        $complex_builder_triggers = ["( AND", "( OR",") AND", ") OR"];
-        if ($this->helperArrayElementInArray($complex_builder_triggers, $whereConfig["joinWith"]) == true) {
-            $this->whereJoinBuilder(
-                $sql,
-                $bindText,
-                $bindArgs,
-                $whereConfig,
-                $failed,
-                $failedWhy,
-                $whereCode
-            );
-        } else {
-            $loop = 0;
-            $this->openGroups = 0;
-            $this->pending_closer = 0;
-            while ($loop < count($whereConfig["fields"])) {
-                $this->whereCaseWriter(
-                    $whereConfig,
-                    $loop,
-                    $whereCode,
-                    $bindText,
-                    $bindArgs,
-                    $sql,
-                    $failed,
-                    $failedWhy
-                );
-                if ($failed == true) {
-                    break;
-                }
-                if ($sql == "empty_in_array") {
-                    break;
-                }
-                $loop++;
-            }
+        if ($this->helperArrayElementInArray(["( AND", "( OR",") AND", ") OR"], $whereConfig["joinWith"]) == true) {
+            $this->complexBuildWhere($sql, $bindText, $bindArgs, $whereConfig, $failed, $failedWhy);
+            return;
         }
-        if ($sql != "empty_in_array") {
-            if ($whereCode != "") {
-                $whereCode = trim($whereCode);
-                $sql .= " WHERE " . $whereCode;
-            }
-        }
+        $this->simpleBuildWhere($sql, $bindText, $bindArgs, $whereConfig, $failed, $failedWhy);
     }
 }

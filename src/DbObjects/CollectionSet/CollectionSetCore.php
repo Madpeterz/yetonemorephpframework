@@ -145,8 +145,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->indexes = array_keys($this->collected);
     }
 
-
-
     public function setCacheAllowChanged(bool $status = true): void
     {
         $this->cacheAllowChanged = $status;
@@ -198,7 +196,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
             if (method_exists($this->worker, $loadString)) {
                 $this->fastObjectArrayIndex[] = $fieldName;
                 $index = [];
-                foreach ($this->collected as $key => $object) {
+                foreach ($this->collected as $object) {
                     $indexValue = $object->$loadString();
                     if ($indexValue === true) {
                         $indexValue = 1;

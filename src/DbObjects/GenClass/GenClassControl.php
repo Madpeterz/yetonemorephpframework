@@ -321,7 +321,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * call 'saveChanges' to apply the changes to the DB!
      * Note: Setting the ID can lead to weird side effects!
      */
-    protected function updateField(string $fieldName, $value, bool $ignore_set_id_warning = false): UpdateReply
+    protected function updateField(string $fieldName, $value, bool $ignoreIdWarning = false): UpdateReply
     {
         if ($this->disableUpdates == true) {
             $this->addError("Attempt to update with limitFields enabled!");
@@ -330,7 +330,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
         if (count($this->dataset) != count($this->save_dataset)) {
             $this->save_dataset = $this->dataset;
         }
-        $check = $this->checkUpdateField($fieldName, $value, $ignore_set_id_warning);
+        $check = $this->checkUpdateField($fieldName, $value, $ignoreIdWarning);
         if ($check->status == false) {
             return new UpdateReply($this->myLastErrorBasic);
         }
@@ -347,7 +347,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
      * checkUpdateField
      * checks if the update field request can be accepted
      */
-    protected function checkUpdateField(string $fieldName, $value, bool $ignore_set_id_warning = false): UpdateReply
+    protected function checkUpdateField(string $fieldName, $value, bool $ignoreIdWarning = false): UpdateReply
     {
         if (is_object($value) == true) {
             $this->addError("System error: Attempt to put a object onto field: " . $fieldName);
@@ -369,7 +369,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
             $this->addError("Sorry this object does not have the field: " . $fieldName);
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (($fieldName == "id") && ($ignore_set_id_warning == false)) {
+        if (($fieldName == "id") && ($ignoreIdWarning == false)) {
             $this->addError("Sorry this object does not allow you to set the id field!");
             return new UpdateReply($this->myLastErrorBasic);
         }

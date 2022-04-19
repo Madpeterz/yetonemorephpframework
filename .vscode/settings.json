@@ -4,8 +4,13 @@
     ],
     "cSpell.words": [
         "hashs",
+        "longtext",
+        "mediumint",
+        "mediumtext",
         "Predis",
         "setex",
+        "tinyint",
+        "tinytext",
         "uids",
         "Unixtime"
     ]

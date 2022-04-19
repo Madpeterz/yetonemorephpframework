@@ -2,8 +2,6 @@
 
 namespace YAPF\Framework\Cache;
 
-use YAPF\Framework\Helpers\FunctionHelper;
-
 abstract class Cache extends CacheWorker implements CacheInterface
 {
     protected $tempStorage = [];
@@ -67,7 +65,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     // saves unneeded writes if we make a change after loading.
     public function __destruct()
     {
-        $this->addErrorlog("Shutting down:" . $this->getCacheUTimeID());
+        $this->addError("Shutting down:" . $this->getCacheUTimeID());
         $this->shutdown();
     }
 
@@ -104,7 +102,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     {
         if ($this->setupCache() == false) {
             $this->disconnected = true;
-            $this->addErrorlog("Connection has dropped on setup of cache!");
+            $this->addError("Connection has dropped on setup of cache!");
             return;
         }
         $this->intLastChanged();
@@ -116,8 +114,8 @@ abstract class Cache extends CacheWorker implements CacheInterface
         if ($this->disconnected == true) {
             return;
         }
-        $this->addErrorlog("Finalizing with: " . count($this->tempStorage) . " items");
-        foreach ($this->tempStorage as $tmpKey => $dataset) {
+        $this->addError("Finalizing with: " . count($this->tempStorage) . " items");
+        foreach ($this->tempStorage as $dataset) {
             /*
             "key" => $key,
             "data" => $data,
@@ -126,13 +124,13 @@ abstract class Cache extends CacheWorker implements CacheInterface
             "expires" => int
             */
             if ($dataset["versionID"] != $this->tableLastChanged[$dataset["table"]]) {
-                $this->addErrorlog("Skipping writing: " . json_encode($dataset) . " version has changed");
+                $this->addError("Skipping writing: " . json_encode($dataset) . " version has changed");
                 continue; // skipped write, table changed from read
             }
             $status = $this->writeKeyReal($dataset["key"], $dataset["data"], $dataset["expires"]);
             if ($status == false) {
                 $this->disconnected = true;
-                $this->addErrorlog("Marking cache as disconnected (failed to write)");
+                $this->addError("Marking cache as disconnected (failed to write)");
                 break;
             }
             $this->writesCount++;
@@ -151,7 +149,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         if ($this->disconnected == true) {
             return;
         }
-        $this->addErrorlog("Warning calling forceWrite is a bad idea unless your in testing!");
+        $this->addError("Warning calling forceWrite is a bad idea unless your in testing!");
         $key = $this->getKeyPath($tableName, $hash);
         $this->writeKeyReal($key . ".dat", $data, $expires);
         $this->writeKeyReal($key . ".inf", $info, $expires);
@@ -160,7 +158,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     public function getChangeID(string $tableName): int
     {
         if (array_key_exists($tableName, $this->tableLastChanged) == false) {
-            $this->addErrorlog("getChangeID: " . $tableName . " is not tracked");
+            $this->addError("getChangeID: " . $tableName . " is not tracked");
             return 0;
         }
         return $this->tableLastChanged[$tableName];
@@ -175,30 +173,30 @@ abstract class Cache extends CacheWorker implements CacheInterface
             return;
         }
         $keys = $this->getKeys();
-        $this->addErrorlog("cleanup: got keys: " . json_encode($keys));
+        $this->addError("cleanup: got keys: " . json_encode($keys));
         $this->removed_counters = 0;
         foreach ($keys as $key) {
             if ($this->removed_counters >= $max_counter) {
                 break;
             }
-            $this->addErrorlog("cleanup: fetching info for: " . $key);
+            $this->addError("cleanup: fetching info for: " . $key);
             $info_file = $this->getKeyInfo($key);
             if (array_key_exists("expires", $info_file) == false) {
                 // key is broken (dat but no inf)
-                $this->addErrorlog("Cleanup: removing " . $key . " missing expires");
+                $this->addError("Cleanup: removing " . $key . " missing expires");
                 $this->removeKey($key);
                 continue;
             }
             if (array_key_exists($info_file["tableName"], $this->tableLastChanged) == false) {
                 // table is not tracked by cache remove entry
-                $this->addErrorlog("Cleanup: removing " . $key . " table " . $info_file["tableName"] . " not tracked");
+                $this->addError("Cleanup: removing " . $key . " table " . $info_file["tableName"] . " not tracked");
                 $this->removeKey($key);
                 continue;
             }
             if ($info_file["changeID"] != $this->tableLastChanged[$info_file["tableName"]]) {
                 if ($info_file["allowChanged"] == false) {
                     // table has changed from cache creation remove entry.
-                    $this->addErrorlog("Cleanup: removing " . $key . " table has changes");
+                    $this->addError("Cleanup: removing " . $key . " table has changes");
                     $this->removeKey($key);
                     continue;
                 }
@@ -206,7 +204,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
             $dif = $info_file["expires"] - time();
             if ($dif < 0) {
                 // cache has expired.
-                $this->addErrorlog("Cleanup: removing " . $key . " cache has expired");
+                $this->addError("Cleanup: removing " . $key . " cache has expired");
                 $this->removeKey($key);
                 continue;
             }
@@ -256,7 +254,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         bool $sharedDataset = false,
         bool $enableSingleLoads = false
     ): void {
-        $this->addErrorlog("addTableToCache: enabled cache for: " . $tableName . " with expires: " . $autoExpireMins);
+        $this->addError("addTableToCache: enabled cache for: " . $tableName . " with expires: " . $autoExpireMins);
         if ($autoExpireMins < 3) {
             $autoExpireMins = 3;
         }
@@ -270,7 +268,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
     public function markChangeToTable(string $tableName): void
     {
         if (array_key_exists($tableName, $this->tableLastChanged) == false) {
-            $this->addErrorlog("markChangeToTable: " . $tableName . " is not tracked");
+            $this->addError("markChangeToTable: " . $tableName . " is not tracked");
             return;
         }
         $this->tableVersionUpdatesCount++;
@@ -279,7 +277,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
             $this->tableLastChanged[$tableName] = 1;
         }
         $this->lastChangedUpdated = true;
-        $this->addErrorlog("markChangeToTable: " . $tableName . " has changed");
+        $this->addError("markChangeToTable: " . $tableName . " has changed");
         if (in_array($tableName, $this->changedTables) == false) {
             $this->changedTables[] = $tableName;
         }
@@ -288,17 +286,17 @@ abstract class Cache extends CacheWorker implements CacheInterface
     protected function cacheEnabledForTable(string $tableName): bool
     {
         if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            $this->addErrorlog("cacheEnabledForTable: Table is not supported by cache");
+            $this->addError("cacheEnabledForTable: Table is not supported by cache");
             $this->missedNotUsedCount++;
             return false; // not a table supported by cache
         }
         if (array_key_exists($tableName, $this->tableLastChanged) == false) {
-            $this->addErrorlog("cacheEnabledForTable: Table last changed is missed (new table?)");
+            $this->addError("cacheEnabledForTable: Table last changed is missed (new table?)");
             $this->missedChangedCount++;
             return false; // last changed entry missing (maybe its new)
         }
         if (in_array($tableName, $this->changedTables) == true) {
-            $this->addErrorlog("cacheEnabledForTable: table has had changes from startup");
+            $this->addError("cacheEnabledForTable: table has had changes from startup");
             $this->missedChangedCount++;
             return false; // table has had a change at some point miss the cache for now
         }
@@ -308,16 +306,16 @@ abstract class Cache extends CacheWorker implements CacheInterface
     protected function validateCacheRead(string $tableName, string $hash): bool
     {
         $info_file = $this->getHashInfo($tableName, $hash);
-        $this->addErrorlog("validateCacheRead: info_file: " . json_encode($info_file));
+        $this->addError("validateCacheRead: info_file: " . json_encode($info_file));
         if (array_key_exists("expires", $info_file) == false) {
-            $this->addErrorlog("validateCacheRead: expires info is missing");
+            $this->addError("validateCacheRead: expires info is missing");
             $this->missedNotFoundCount++;
             $this->removeKey($this->getKeyPath($tableName, $hash));
             return false;
         }
         if ($info_file["expires"] < time()) {
             $dif = time() - $info_file["expires"];
-            $this->addErrorlog("validateCacheRead: entry has expired " . $dif . " secs ago");
+            $this->addError("validateCacheRead: entry has expired " . $dif . " secs ago");
             $this->missedExpiredCount++;
             $this->removeKey($this->getKeyPath($tableName, $hash));
             return false; // cache has expired
@@ -325,7 +323,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         if ($info_file["changeID"] != $this->tableLastChanged[$tableName]) {
             if ($info_file["allowChanged"] == false) {
                 // cache is old
-                $this->addErrorlog("validateCacheRead: entry is old");
+                $this->addError("validateCacheRead: entry is old");
                 $this->missedExpiredCount++;
                 $this->removeKey($this->getKeyPath($tableName, $hash));
                 return false;
@@ -333,7 +331,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         }
         $this->markConnected();
         $this->hitCount++;
-        $this->addErrorlog($this->driverName . " validateCacheRead: ok [" . $info_file["expires"] . " vs " . time() .
+        $this->addError($this->driverName . " validateCacheRead: ok [" . $info_file["expires"] . " vs " . time() .
         " dif: " . (time() - $info_file["expires"]));
         return true; // cache is valid
     }
@@ -343,18 +341,18 @@ abstract class Cache extends CacheWorker implements CacheInterface
         if ($this->disconnected == true) {
             return false;
         }
-        $this->addErrorlog("cacheValid: checking: " . $tableName . " " . $hash);
+        $this->addError("cacheValid: checking: " . $tableName . " " . $hash);
         if ($this->cacheEnabledForTable($tableName) == false) {
             return false;
         }
         if ($asSingle == true) {
             if ($this->tablesConfig[$tableName]["singlesEnabled"] == false) {
-                $this->addErrorlog("cacheValid: table " . $tableName . " does not allow singles");
+                $this->addError("cacheValid: table " . $tableName . " does not allow singles");
                 $this->missedNoSingleCount++;
                 return false;
             }
         }
-        $this->addErrorlog("cacheValid: attempting to get info blob");
+        $this->addError("cacheValid: attempting to get info blob");
         return $this->validateCacheRead($tableName, $hash);
     }
 
@@ -368,7 +366,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         if ($this->disconnected == true) {
             return null;
         }
-        $this->addErrorlog("readHash: " . $tableName . " " . $hash);
+        $this->addError("readHash: " . $tableName . " " . $hash);
         $key = $this->getKeyPath($tableName, $hash) . ".dat";
         if (in_array($key, $this->keyData) == true) {
             $this->markConnected();
@@ -390,13 +388,13 @@ abstract class Cache extends CacheWorker implements CacheInterface
             return false;
         }
         if (array_key_exists($tableName, $this->tablesConfig) == false) {
-            $this->addErrorlog("(writeHash) table " . $tableName . " is not supported");
+            $this->addError("(writeHash) table " . $tableName . " is not supported");
             return false;
         }
         $path = $this->getKeyPath($tableName, $hash);
         $expiresUnixtime = time() + 10 + (60 * $this->tablesConfig[$tableName]["autoExpire"]);
         if ($expiresUnixtime < (time() + (60 * 3))) {
-            $this->addErrorlog("Warning - short timer for table " . $tableName . " this should not be below 3 mins");
+            $this->addError("Warning - short timer for table " . $tableName . " this should not be below 3 mins");
         }
         $info_file = [
         "changeID" => $this->tableLastChanged[$tableName],
@@ -438,11 +436,11 @@ abstract class Cache extends CacheWorker implements CacheInterface
         string $tableName,
         int $fields
     ): string {
-        $bit1 = FunctionHelper::sha256("bit1" . json_encode($this->giveArrayOnNull($whereConfig)));
-        $bit2 = FunctionHelper::sha256("bit2" . json_encode($this->giveArrayOnNull($order_config)));
-        $bit3 = FunctionHelper::sha256("bit3" . json_encode($this->giveArrayOnNull($options_config)));
-        $bit4 = FunctionHelper::sha256("bit4" . json_encode($this->giveArrayOnNull($joinTables)));
-        $shaHash = FunctionHelper::sha256(
+        $bit1 = $this->sha256("bit1" . json_encode($this->giveArrayOnNull($whereConfig)));
+        $bit2 = $this->sha256("bit2" . json_encode($this->giveArrayOnNull($order_config)));
+        $bit3 = $this->sha256("bit3" . json_encode($this->giveArrayOnNull($options_config)));
+        $bit4 = $this->sha256("bit4" . json_encode($this->giveArrayOnNull($joinTables)));
+        $shaHash = $this->sha256(
             $bit1 .
             $bit2 .
             $bit3 .

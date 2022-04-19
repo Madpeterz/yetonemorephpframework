@@ -6,6 +6,14 @@ use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Helpers\FunctionHelper;
 use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
+class sha256Helper extends FunctionHelper
+{
+    public function getSha256(string $input): string
+    {
+        return $this->sha256($input);
+    }
+}
+
 class mysqli_add_test extends TestCase
 {
     protected ?MysqliConnector $sql;
@@ -21,12 +29,13 @@ class mysqli_add_test extends TestCase
 
     public function testAdd()
     {
+        $helper = new sha256Helper();
         $loop = 0;
         while ($loop < 4) {
             $config = [
                 "table" => "endoftestwithfourentrys",
                 "fields" => ["value"],
-                "values" => [FunctionHelper::sha256("testAdd" . $loop)],
+                "values" => [$helper->getSha256("testAdd" . $loop)],
                 "types" => ["s"]
             ];
             $results = $this->sql->addV2($config);

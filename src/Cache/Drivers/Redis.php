@@ -70,7 +70,7 @@ class Redis extends Cache implements CacheInterface
             $this->client->pipeline();
             return true;
         } catch (Throwable $ex) {
-            $this->addErrorlog("Marking cache as disconnected (failed to connect) " . $ex->getMessage());
+            $this->addError("Marking cache as disconnected (failed to connect) " . $ex->getMessage());
             $this->disconnected = true;
             $this->enabled = false;
             return false;
@@ -79,7 +79,7 @@ class Redis extends Cache implements CacheInterface
 
     protected function setupCache(): bool
     {
-        $this->addErrorlog("Cache server: Redis - Please do not mess it up");
+        $this->addError("Cache server: Redis - Please do not mess it up");
         return true;
     }
 
@@ -97,7 +97,7 @@ class Redis extends Cache implements CacheInterface
                 return true;
             }
         } catch (Throwable $ex) {
-            $this->addErrorlog("hasKey error: " . $ex->getMessage());
+            $this->addError("hasKey error: " . $ex->getMessage());
         }
         return false;
     }
@@ -108,11 +108,11 @@ class Redis extends Cache implements CacheInterface
             return false;
         }
         if ($this->enabled == false) {
-            $this->addErrorlog("[deleteKey] Skipped redis is not connected");
+            $this->addError("[deleteKey] Skipped redis is not connected");
             return false;
         }
         if ($this->hasKey($key) == false) {
-            $this->addErrorlog("[deleteKey] Skipped " . $key . " its not found");
+            $this->addError("[deleteKey] Skipped " . $key . " its not found");
             return true;
         }
         if (in_array($key, $this->seenKeys) == true) {
@@ -120,13 +120,13 @@ class Redis extends Cache implements CacheInterface
         }
         try {
             if ($this->client->del($key) == 1) {
-                $this->addErrorlog("[deleteKey] Removed key " . $key . " from server");
+                $this->addError("[deleteKey] Removed key " . $key . " from server");
                 return true;
             }
-            $this->addErrorlog("[deleteKey] failed to remove " . $key . " from server");
+            $this->addError("[deleteKey] failed to remove " . $key . " from server");
         } catch (Throwable $ex) {
             $this->disconnected = true;
-            $this->addErrorlog("Marking cache as disconnected (failed to delete key) " . $ex->getMessage());
+            $this->addError("Marking cache as disconnected (failed to delete key) " . $ex->getMessage());
         }
         return false;
     }
@@ -134,20 +134,20 @@ class Redis extends Cache implements CacheInterface
     protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool
     {
         if ($this->disconnected == true) {
-            $this->addErrorlog("writeKeyReal: redis is marked is gone");
+            $this->addError("writeKeyReal: redis is marked is gone");
             return false;
         }
         if ($this->enabled == false) {
-            $this->addErrorlog("writeKeyReal: error redis not connected");
+            $this->addError("writeKeyReal: error redis not connected");
             return false;
         }
         try {
             $reply = $this->client->setex($key, $expiresUnixtime - time(), $data);
-            $this->addErrorlog("writeKeyReal: " . $reply . " for " . $key);
+            $this->addError("writeKeyReal: " . $reply . " for " . $key);
             $this->markConnected();
             return true;
         } catch (Throwable $ex) {
-            $this->addErrorlog("Marking cache as disconnected (failed to write key) " .
+            $this->addError("Marking cache as disconnected (failed to write key) " .
             $ex->getMessage() . " Details\n Key: " . $key . " Data: " . $data);
             $this->disconnected = true;
         }
@@ -165,7 +165,7 @@ class Redis extends Cache implements CacheInterface
         try {
             return $this->client->get($key);
         } catch (Throwable $ex) {
-            $this->addErrorlog("Marking cache as disconnected (failed to read key) " . $ex->getMessage());
+            $this->addError("Marking cache as disconnected (failed to read key) " . $ex->getMessage());
             $this->disconnected = true;
         }
         return null;
@@ -174,16 +174,16 @@ class Redis extends Cache implements CacheInterface
     public function purge($attempts = 0): bool
     {
         if ($this->enabled == false) {
-            $this->addErrorlog("Redis unable to purge its not connected");
+            $this->addError("Redis unable to purge its not connected");
             return false;
         }
         $keys = $this->getKeys();
         if ($keys == null) {
-            $this->addErrorlog("Redis unable to get keys");
+            $this->addError("Redis unable to get keys");
             return false;
         }
         if ((count($keys) == 0) || ($attempts > 3)) {
-            $this->addErrorlog("Redis should be clean now");
+            $this->addError("Redis should be clean now");
             return true;
         }
         foreach ($keys as $key) {
@@ -210,7 +210,7 @@ class Redis extends Cache implements CacheInterface
             }
             return $reply;
         } catch (Throwable $ex) {
-            $this->addErrorlog("readKey error: " . $ex->getMessage());
+            $this->addError("readKey error: " . $ex->getMessage());
         }
         return [];
     }

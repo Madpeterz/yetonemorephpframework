@@ -21,11 +21,12 @@ class MysqliSupportTest extends TestCase
 
     public function testLastSql()
     {
+        $helper = new sha256Helper();
         $this->assertSame($this->sql->getLastSQl(), "");
         $config = [
             "table" => "endoftestwithfourentrys",
             "fields" => ["value"],
-            "values" => [FunctionHelper::sha256("testAdd888")],
+            "values" => [$helper->getSha256("testAdd888")],
             "types" => ["s"]
         ];
         $this->sql->addV2($config);
@@ -42,10 +43,11 @@ class MysqliSupportTest extends TestCase
 
     public function testAddv2IncorrectFieldstoValues()
     {
+        $helper = new sha256Helper();
         $config = [
             "table" => "endoftestwithfourentrys",
             "fields" => ["value","asdasda"],
-            "values" => [FunctionHelper::sha256("testAdd888")],
+            "values" => [$helper->getSha256("testAdd888")],
             "types" => ["s"]
         ];
         $result = $this->sql->addV2($config);
@@ -55,10 +57,11 @@ class MysqliSupportTest extends TestCase
     }
     public function testAddv2IncorrectValuesToTypes()
     {
+        $helper = new sha256Helper();
         $config = [
             "table" => "endoftestwithfourentrys",
             "fields" => ["value"],
-            "values" => [FunctionHelper::sha256("testAdd888")],
+            "values" => [$helper->getSha256("testAdd888")],
             "types" => ["s","asdasda"]
         ];
         $result = $this->sql->addV2($config);
@@ -69,12 +72,13 @@ class MysqliSupportTest extends TestCase
 
     public function testAddv2SqlStartupError()
     {
+        $helper = new sha256Helper();
         $this->sql->sqlSave(true);
         $this->sql->dbName = "InValid";
         $config = [
             "table" => "endoftestwithfourentrys",
             "fields" => ["value"],
-            "values" => [FunctionHelper::sha256("testAdd888")],
+            "values" => [$helper->getSha256("testAdd888")],
             "types" => ["s"]
         ];
         $result = $this->sql->addV2($config);

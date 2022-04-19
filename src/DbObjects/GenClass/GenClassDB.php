@@ -349,28 +349,28 @@ abstract class GenClassDB extends GenClassControl
         ];
         $had_error = false;
         $error_msg = "";
-
         foreach ($this->save_dataset as $key => $value) {
-            if ($key != "id") {
-                if (array_key_exists($key, $this->dataset) == false) {
-                    $had_error = true;
-                    $error_msg = "Key: " . $key . " is missing from dataset!";
-                    break;
-                } elseif (array_key_exists("value", $this->dataset[$key]) == false) {
-                    $had_error = true;
-                    $error_msg = "Key: " . $key . " is missing its value index!";
-                    break;
-                } elseif ($this->dataset[$key]["value"] != $this->save_dataset[$key]["value"]) {
-                    $update_code = "i";
-                    if ($this->dataset[$key]["type"] == "str") {
-                        $update_code = "s";
-                    } elseif ($this->dataset[$key]["type"] == "float") {
-                        $update_code = "d";
-                    }
-                    $updateConfig["fields"][] = $key;
-                    $updateConfig["values"][] = $this->dataset[$key]["value"];
-                    $updateConfig["types"][] = $update_code;
+            if ($key == "id") {
+                continue;
+            }
+            if (array_key_exists($key, $this->dataset) == false) {
+                $had_error = true;
+                $error_msg = "Key: " . $key . " is missing from dataset!";
+                break;
+            } elseif (array_key_exists("value", $this->dataset[$key]) == false) {
+                $had_error = true;
+                $error_msg = "Key: " . $key . " is missing its value index!";
+                break;
+            } elseif ($this->dataset[$key]["value"] != $value) {
+                $update_code = "i";
+                if ($this->dataset[$key]["type"] == "str") {
+                    $update_code = "s";
+                } elseif ($this->dataset[$key]["type"] == "float") {
+                    $update_code = "d";
                 }
+                $updateConfig["fields"][] = $key;
+                $updateConfig["values"][] = $this->dataset[$key]["value"];
+                $updateConfig["types"][] = $update_code;
             }
         }
         if ($had_error == true) {

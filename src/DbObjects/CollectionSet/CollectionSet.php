@@ -194,7 +194,7 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
     public function getCollectionToMappedArray(array $ignoreFields, bool $invertIgnore = false): array
     {
         $results = [];
-        foreach ($this->collected as $key => $entry) {
+        foreach ($this->collected as $entry) {
             /** @var GenClass $entry */
             $results[$entry->getId()] = $entry->objectToMappedArray($ignoreFields, $invertIgnore);
         }

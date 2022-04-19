@@ -25,9 +25,9 @@ class BrokenDbObject extends genClass
     * setCvalue
     * @return mixed[] [status =>  bool, message =>  string]
     */
-    public function setCvalue(?int $newvalue): UpdateReply
+    public function setCvalue(?int $newValue): UpdateReply
     {
-        return $this->updateField("cvalue", $newvalue);
+        return $this->updateField("cvalue", $newValue);
     }
     public function getMissingIndex(): ?string
     {
@@ -51,9 +51,9 @@ class VeryBrokenDbObject extends genClass
     * setCvalue
     * @return mixed[] [status =>  bool, message =>  string]
     */
-    public function setCvalue(?int $newvalue): array
+    public function setCvalue(?int $newValue): array
     {
-        $this->updateField("cvalue", $newvalue);
+        $this->updateField("cvalue", $newValue);
         $this->save_dataset = [];
         $this->save_dataset["id"] = ["type" => "int", "value" => 99];
         return ["status" => true,"message" => "ok"];

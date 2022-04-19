@@ -2,8 +2,6 @@
 
 namespace YAPF\Framework\Cache;
 
-use YAPF\Framework\Helpers\FunctionHelper;
-
 abstract class CacheWorker extends CacheRequired
 {
     protected array $tablesConfig = [];
@@ -24,7 +22,7 @@ abstract class CacheWorker extends CacheRequired
             unset($this->seenKeys[$key]);
             unset($this->keyInfo[$key]);
         }
-        $this->addErrorlog("Removing key: " . $key);
+        $this->addError("Removing key: " . $key);
         $this->deleteKey($key . ".dat");
         $this->deleteKey($key . ".inf");
         $this->removed_counters++;
@@ -36,7 +34,7 @@ abstract class CacheWorker extends CacheRequired
         if ($this->lastChangedUpdated == false) {
             $statusMessage = "no";
         }
-        $this->addErrorlog("Save last changed: " . $statusMessage);
+        $this->addError("Save last changed: " . $statusMessage);
         if ($this->lastChangedUpdated == true) {
             $this->tableLastChanged["lastChanged"] = time();
             $this->writeKey(
@@ -50,7 +48,7 @@ abstract class CacheWorker extends CacheRequired
 
     protected function writeKey(string $key, string $data, string $table, int $expiresUnixtime): bool
     {
-        $tempKey = substr(FunctionHelper::sha256($key), 0, 6);
+        $tempKey = substr($this->sha256($key), 0, 6);
         $storage = [
             "key" => $key,
             "data" => $data,
@@ -82,17 +80,17 @@ abstract class CacheWorker extends CacheRequired
         $this->lastChangedUpdated = true;
         $path = $this->getLastChangedPath();
         if ($this->hasKey($path) == false) {
-            $this->addErrorlog("loadLastChanged: missing key");
+            $this->addError("loadLastChanged: missing key");
             return;
         }
         $cacheInfoRead = $this->readKey($path);
         if ($cacheInfoRead == null) {
-            $this->addErrorlog("loadLastChanged: key found but data missing");
+            $this->addError("loadLastChanged: key found but data missing");
             return;
         }
         $info_file = json_decode($cacheInfoRead, true);
         if (array_key_exists("lastChanged", $info_file) == false) {
-            $this->addErrorlog("loadLastChanged: missing updated unixtime");
+            $this->addError("loadLastChanged: missing updated unixtime");
             return;
         }
         $this->markConnected();
@@ -100,13 +98,13 @@ abstract class CacheWorker extends CacheRequired
         if ($dif > (60 * 60)) {
             // info dataset is to old to be used
             // everything is marked as changed right now
-            $this->addErrorlog("loadLastChanged: to old");
+            $this->addError("loadLastChanged: to old");
             return;
         }
         foreach (array_keys($this->tablesConfig) as $table) {
             if (array_key_exists($table, $info_file) == true) {
                 $this->tableLastChanged[$table] = $info_file[$table];
-                $this->addErrorlog("Last changed: setting table: " . $table . " to " . $info_file[$table]);
+                $this->addError("Last changed: setting table: " . $table . " to " . $info_file[$table]);
             }
         }
         $this->lastChangedUpdated = false;
@@ -129,7 +127,7 @@ abstract class CacheWorker extends CacheRequired
     protected function getHashInfo(string $tableName, string $hash): array
     {
         $path = $this->getKeyPath($tableName, $hash);
-        $this->addErrorlog("getHashInfo: loading from: " . $path);
+        $this->addError("getHashInfo: loading from: " . $path);
         return $this->getKeyInfo($path);
     }
 
@@ -141,7 +139,7 @@ abstract class CacheWorker extends CacheRequired
     protected function getKeyInfo(string $key): array
     {
         if ($this->hasKey($key . ".inf") == false) {
-            $this->addErrorlog("getKeyInfo: " . $key . ".inf is missing");
+            $this->addError("getKeyInfo: " . $key . ".inf is missing");
             return []; // cache missing info dataset
         }
         $cacheInfoRead = "";
@@ -151,10 +149,10 @@ abstract class CacheWorker extends CacheRequired
         }
         $cacheInfoRead = $this->readKey($key . ".inf");
         if ($cacheInfoRead == null) {
-            $this->addErrorlog("getKeyInfo: read key for info returned nothing");
+            $this->addError("getKeyInfo: read key for info returned nothing");
             return [];
         }
-        $this->addErrorlog("getKeyInfo: " . $key . " data: " . $cacheInfoRead);
+        $this->addError("getKeyInfo: " . $key . " data: " . $cacheInfoRead);
         $this->keyInfo[$key] = $cacheInfoRead;
         $this->markConnected();
         return json_decode($cacheInfoRead, true);
