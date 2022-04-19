@@ -90,9 +90,9 @@ abstract class MysqliFunctions extends Db
         if ($order["enabled"] == true) {
             if (array_key_exists("as_string", $order) == true) {
                 $sql .= " ORDER BY " . $order["as_string"] . " ";
-            } else {
-                $sql .= " ORDER BY " . $order["byField"] . " " . $order["dir"] . " ";
+                return;
             }
+            $sql .= " ORDER BY " . $order["byField"] . " " . $order["dir"] . " ";
         }
     }
     /**
@@ -137,24 +137,22 @@ abstract class MysqliFunctions extends Db
     }
 
     /**
-     * RawSQL
-     * runs a stored sql file from disk
+     * commandsFromSqlLines
+     * It takes a file path and returns an array of SQL commands
+     * @param string pathToFile The path to the file containing the SQL commands.
+     * @return string[] An array of commands.
      */
-    public function rawSQL(string $path_to_file): RawReply
+    protected function commandsFromSqlLines(string $pathToFile): array
     {
-        if (file_exists($path_to_file) == false) {
+        if (file_exists($pathToFile) == false) {
             $this->addError("Unable to see file to read");
-            return new RawReply($this->myLastErrorBasic);
+            return [];
         }
-        if ($this->sqlStart() == false) {
-            return new RawReply($this->myLastErrorBasic);
-        }
-
         $commands = [];
-        $lines = file($path_to_file);
+        $lines = file($pathToFile);
         if (count($lines) == 0) {
             $this->addError("File is empty");
-            return new RawReply($this->myLastErrorBasic);
+            return [];
         }
 
         $current_command = "";
@@ -182,6 +180,23 @@ abstract class MysqliFunctions extends Db
         }
         if (count($commands) == 0) {
             $this->addError("No commands processed from file");
+        }
+        return $commands;
+    }
+
+
+    /**
+     * RawSQL
+     * runs a stored sql file from disk
+     */
+    public function rawSQL(string $pathToFile): RawReply
+    {
+        if ($this->sqlStart() == false) {
+            return new RawReply($this->myLastErrorBasic);
+        }
+
+        $commands = $this->commandsFromSqlLines($pathToFile);
+        if (count($commands) == 0) {
             return new RawReply($this->myLastErrorBasic);
         }
 
@@ -209,17 +224,18 @@ abstract class MysqliFunctions extends Db
         $this->needToSave = true;
         return new RawReply("ok", true, $commands_run);
     }
-    protected function selectBuildJoins(?array $join_tables, string &$sql, bool &$failed, string &$failedWhy): void
+
+    protected function checkSelectBuildJoins(?array $joinTables, bool &$failed, string &$failedWhy): bool
     {
-        if ($join_tables == null) {
-            return;
+        $counts_match = true;
+        if ($joinTables == null) {
+            return false;
         }
         $all_found = true;
-        $counts_match = true;
         $required_keys = ["tables","types","onFieldLeft","onFieldMatch","onFieldRight"];
         $missing_join_key = "";
         foreach ($required_keys as $key) {
-            if (array_key_exists($key, $join_tables) == false) {
+            if (array_key_exists($key, $joinTables) == false) {
                 $missing_join_key = $key;
                 $all_found = false;
                 break;
@@ -227,12 +243,12 @@ abstract class MysqliFunctions extends Db
         }
         if ($all_found == false) {
             $failedWhy = "Join tables config missing key: " . $missing_join_key;
-            return;
+            return false;
         }
         $last_key = "";
         foreach ($required_keys as $key) {
             if ($last_key != "") {
-                if (count($join_tables[$key]) != count($join_tables[$last_key])) {
+                if (count($joinTables[$key]) != count($joinTables[$last_key])) {
                     $failedWhy = "counts match error " . $key . " <=> " . $last_key;
                     $counts_match = false;
                     break;
@@ -242,34 +258,43 @@ abstract class MysqliFunctions extends Db
         }
         if ($counts_match == false) {
             $failed = true;
+            return false;
+        }
+        return true;
+    }
+
+    protected function selectBuildJoins(?array $joinTables, string &$sql, bool &$failed, string &$failedWhy): void
+    {
+        $failed = false;
+        $continueAction = $this->checkSelectBuildJoins($joinTables, $failed, $failedWhy);
+        if ($continueAction == false) {
             return;
         }
-        $failed = false;
         $loop = 0;
-        while ($loop < count($join_tables["tables"])) {
-            $sql .= " " . $join_tables["types"][$loop] . " " . $join_tables["tables"][$loop] . "";
-            if ($join_tables["onFieldLeft"][$loop] != "") {
-                $sql .= " ON " . $join_tables["onFieldLeft"][$loop] . " ";
-                $sql .= $join_tables["onFieldMatch"][$loop] . " " . $join_tables["onFieldRight"][$loop] . "";
+        while ($loop < count($joinTables["tables"])) {
+            $sql .= " " . $joinTables["types"][$loop] . " " . $joinTables["tables"][$loop] . "";
+            if ($joinTables["onFieldLeft"][$loop] != "") {
+                $sql .= " ON " . $joinTables["onFieldLeft"][$loop] . " ";
+                $sql .= $joinTables["onFieldMatch"][$loop] . " " . $joinTables["onFieldRight"][$loop] . "";
             }
             $loop++;
         }
     }
     protected function selectBuildTableIds(
-        ?array $join_tables,
-        string &$main_table_id,
+        ?array $joinTables,
+        string &$mainTableId,
         bool &$auto_ids,
         bool &$clean_ids
     ): void {
-        if (is_array($join_tables) == true) {
-            $main_table_id = "mtb";
+        if (is_array($joinTables) == true) {
+            $mainTableId = "mtb";
             $clean_ids = true;
-            if (array_key_exists("main_table_id", $join_tables) == true) {
-                $main_table_id = $join_tables["main_table_id"];
+            if (array_key_exists("mainTableId", $joinTables) == true) {
+                $mainTableId = $joinTables["mainTableId"];
                 $auto_ids = false;
             }
-            if (array_key_exists("cleanIds", $join_tables) == true) {
-                $clean_ids = $join_tables["cleanIds"];
+            if (array_key_exists("cleanIds", $joinTables) == true) {
+                $clean_ids = $joinTables["cleanIds"];
                 $auto_ids = false;
             }
         }
@@ -281,9 +306,9 @@ abstract class MysqliFunctions extends Db
     ): void {
         if (array_key_exists("fields", $basic_config) == false) {
             $sql .= " *";
-        } else {
-            $sql .= " " . implode(", ", $basic_config["fields"]);
+            return;
         }
+        $sql .= " " . implode(", ", $basic_config["fields"]);
     }
     /**
      * prepareBindExecute
@@ -400,9 +425,9 @@ abstract class MysqliFunctions extends Db
         } catch (Throwable $e) {
             if ($this->fullSqlErrors == true) {
                 $this->addError("SQL connection error: " . $e->getMessage());
-            } else {
-                $this->addError("Connect attempt died in a fire");
+                return false;
             }
+            $this->addError("Connect attempt died in a fire");
             return false;
         }
     }

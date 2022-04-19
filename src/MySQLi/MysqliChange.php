@@ -58,53 +58,63 @@ abstract class MysqliChange extends MysqliProcess
         }
         return new RemoveReply("ok", true, $rowsChanged);
     }
-    /**
-     * updateV2
-     * takes a V2 update config,
-     * and a V2 where config,
-     * to apply a change to the database.
-     * $update_config = ["fields" => string[], "values" => mixed[], "types" => string1[]]
-     * $whereConfig: see selectV2.readme
-     */
-    public function updateV2(string $table, array $update_config, ?array $whereConfig = null): UpdateReply
+
+    protected function checkUpdateV2(string $table, array $updateConfig): UpdateReply
     {
         if (strlen($table) == 0) {
             $this->addError("No table given");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (count($update_config["types"]) == 0) {
+        if (count($updateConfig["types"]) == 0) {
             $this->addError("No types given for update");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (count($update_config["fields"]) != count($update_config["values"])) {
+        if (count($updateConfig["fields"]) != count($updateConfig["values"])) {
             $this->addError("count issue fields <=> values");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (count($update_config["values"]) != count($update_config["types"])) {
+        if (count($updateConfig["values"]) != count($updateConfig["types"])) {
             $this->addError("count issue values <=> types");
             return new UpdateReply($this->myLastErrorBasic);
         }
         if ($this->sqlStart() == false) {
             return new UpdateReply($this->myLastErrorBasic);
         }
+        return new UpdateReply("continue", true);
+    }
+
+    /**
+     * updateV2
+     * takes a V2 update config,
+     * and a V2 where config,
+     * to apply a change to the database.
+     * $updateConfig = ["fields" => string[], "values" => mixed[], "types" => string1[]]
+     * $whereConfig: see selectV2.readme
+     */
+    public function updateV2(string $table, array $updateConfig, ?array $whereConfig = null): UpdateReply
+    {
+        $reply = $this->checkUpdateV2($table, $updateConfig);
+        if ($reply->status == false) {
+            return $reply;
+        }
         $bindText = "";
         $bindArgs = [];
         $sql = "UPDATE " . $table . " ";
         $loop = 0;
         $addon = "";
-        while ($loop < count($update_config["values"])) {
+        while ($loop < count($updateConfig["values"])) {
             if ($loop == 0) {
                 $sql .= "SET ";
             }
             $sql .= $addon;
-            $sql .= $update_config["fields"][$loop] . "=";
-            $update_config["values"][$loop] = $this->convertIfBool($update_config["values"][$loop]);
-            if (($update_config["values"][$loop] == null) && ($update_config["values"][$loop] !== 0)) {
+            $sql .= $updateConfig["fields"][$loop] . "=";
+            $updateConfig["values"][$loop] = $this->convertIfBool($updateConfig["values"][$loop]);
+            if (($updateConfig["values"][$loop] == null) && ($updateConfig["values"][$loop] !== 0)) {
                 $sql .= "NULL";
             } else {
                 $sql .= "?";
-                $bindText .= $update_config["types"][$loop];
-                $bindArgs[] = $update_config["values"][$loop];
+                $bindText .= $updateConfig["types"][$loop];
+                $bindArgs[] = $updateConfig["values"][$loop];
             }
             $addon = ", ";
             $loop++;
@@ -120,13 +130,8 @@ abstract class MysqliChange extends MysqliProcess
         $this->needToSave = true;
         return new UpdateReply("ok", true, $changes);
     }
-    /**
-     * addV2
-     * takes a V2 add config
-     * and inserts it into the database.
-     * $config = ["table" => string, "fields" => string[], "values" => mixed[], "types" => string[]]
-     */
-    public function addV2($config = []): AddReply
+
+    protected function checkAddV2(array $config): AddReply
     {
         $required_keys = ["table", "fields","values","types"];
         foreach ($required_keys as $key) {
@@ -145,6 +150,21 @@ abstract class MysqliChange extends MysqliProcess
         }
         if ($this->sqlStart() == false) {
             return new AddReply($this->myLastErrorBasic);
+        }
+        return new AddReply("continue", true);
+    }
+
+    /**
+     * addV2
+     * takes a V2 add config
+     * and inserts it into the database.
+     * $config = ["table" => string, "fields" => string[], "values" => mixed[], "types" => string[]]
+     */
+    public function addV2(array $config = []): AddReply
+    {
+        $reply = $this->checkAddV2($config);
+        if ($reply->status == false) {
+            return $reply;
         }
         $this->queryStats["adds"]++;
         $sql = "INSERT INTO " . $config["table"] . " (" . implode(', ', $config["fields"]) . ") VALUES (";

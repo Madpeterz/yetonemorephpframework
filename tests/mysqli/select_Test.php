@@ -302,8 +302,8 @@ class MysqliSelectTest extends TestCase
         "table" => "relationtestinga",
         "fields" => ["mtb.id","mtb.name","tw2.extended1","tw2.extended2","tw2.extended3"],
         ];
-        $join_tables = [
-        "main_table_id" => "mtb",
+        $joinTables = [
+        "mainTableId" => "mtb",
         "types" => ["LEFT JOIN"],
         "tables" => ["relationtestingb tw2"],
         "onFieldLeft" => ["tw2.id"],
@@ -315,7 +315,7 @@ class MysqliSelectTest extends TestCase
         "byField" => "id",
         "dir" => "DESC"
         ];
-        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
+        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $this->assertSame($result->message, "ok");
         $expected_sql = "SELECT mtb.id, mtb.name, tw2.extended1, tw2.extended2, tw2.extended3 FROM ";
         $expected_sql .= "relationtestinga mtb LEFT JOIN relationtestingb tw2 ON tw2.id = mtb.linkid ORDER BY id DESC";
@@ -332,8 +332,8 @@ class MysqliSelectTest extends TestCase
         "table" => "twintables1",
         "fields" => ["mtb.id","mtb.message as table1message","tw2.message as table2message"],
         ];
-        $join_tables = [
-        "main_table_id" => "mtb",
+        $joinTables = [
+        "mainTableId" => "mtb",
         "cleanIds" => true,
         "types" => ["JOIN"],
         "tables" => ["twintables2 tw2"],
@@ -346,7 +346,7 @@ class MysqliSelectTest extends TestCase
         "byField" => "id",
         "dir" => "DESC"
         ];
-        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
+        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $expected_sql = "SELECT mtb.id, mtb.message as table1message, tw2.message as table2message FROM ";
         $expected_sql .= "twintables1 mtb JOIN twintables2 tw2 ORDER BY id DESC";
         $this->assertSame($this->sql->getLastSql(), $expected_sql);
@@ -363,8 +363,8 @@ class MysqliSelectTest extends TestCase
         "table" => "twintables1",
         "fields" => ["mtb.id","mtb.message as table1message","tw2.message as table2message"],
         ];
-        $join_tables = [
-        "main_table_id" => "mtb",
+        $joinTables = [
+        "mainTableId" => "mtb",
         "cleanIds" => true,
         "types" => ["JOIN"],
         "tables" => ["twintables2 tw2"],
@@ -377,7 +377,7 @@ class MysqliSelectTest extends TestCase
         "byField" => "id",
         "dir" => "DESC"
         ];
-        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
+        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $this->assertSame($result->message, "failed with message:counts match error onFieldRight <=> onFieldMatch");
         $this->assertSame($result->status, false);
     }
@@ -388,8 +388,8 @@ class MysqliSelectTest extends TestCase
         "table" => "relationtestinga",
         "fields" => ["mtb.id","mtb.name","tw2.extended1","tw2.extended2","tw2.extended3"],
         ];
-        $join_tables = [
-        "main_table_id" => "mtb",
+        $joinTables = [
+        "mainTableId" => "mtb",
         "types" => ["LEFT JOIN"],
         "tables" => ["relationtestingb tw2"],
         "onFieldLeft" => ["tw2.id"],
@@ -400,7 +400,7 @@ class MysqliSelectTest extends TestCase
         "byField" => "id",
         "dir" => "DESC"
         ];
-        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $join_tables);
+        $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $this->assertSame($result->message, "Unable to prepare: Unknown column 'tw2.extended1' in 'field list'");
         $this->assertSame($result->status, false);
     }

@@ -28,7 +28,7 @@ abstract class MysqliQuery extends MysqliChange
         ?array $order_config = null,
         ?array $whereConfig = null,
         ?array $options_config = null,
-        ?array $join_tables = null,
+        ?array $joinTables = null,
         bool $clean_ids = false
     ): SelectReply {
         if (array_key_exists("table", $basic_config) == false) {
@@ -42,13 +42,13 @@ abstract class MysqliQuery extends MysqliChange
         if ($this->sqlStart() == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
-        $main_table_id = "";
+        $mainTableId = "";
         $auto_ids = false;
 
-        $this->selectBuildTableIds($join_tables, $main_table_id, $auto_ids, $clean_ids);
+        $this->selectBuildTableIds($joinTables, $mainTableId, $auto_ids, $clean_ids);
         $sql = "SELECT ";
         $this->selectBuildFields($sql, $basic_config);
-        $sql .= " FROM " . $basic_config["table"] . " " . $main_table_id . " ";
+        $sql .= " FROM " . $basic_config["table"] . " " . $mainTableId . " ";
         $this->queryStats["selects"]++;
         $stmt = $this->processSqlRequest(
             "",
@@ -57,7 +57,7 @@ abstract class MysqliQuery extends MysqliChange
             $whereConfig,
             $order_config,
             $options_config,
-            $join_tables
+            $joinTables
         );
         if ($stmt === null) {
             return new SelectReply($this->myLastErrorBasic);
@@ -105,18 +105,23 @@ abstract class MysqliQuery extends MysqliChange
         }
         return $dataset;
     }
+
     /**
-     * searchTables
-     * search multiple tables to find a match
+     * > This function checks the parameters sent to the SearchTables function
+     * @param array targetTables An array of table names to search.
+     * @param string matchField The field to match on.
+     * @param matchValue The value to match against.
+     * @param string matchType s = string, d = date, i = integer, b = boolean
+     * @param string matchCode The code to use for the match.  This can be any valid SQL code.  For
+     * example, "=", ">", "<", ">=", "<=", "LIKE", "NOT LIKE", "IS", "IS NOT", etc.
+     * @return SelectReply A SelectReply object.
      */
-    public function searchTables(
+    protected function checkSearchTables(
         array $targetTables,
         string $matchField,
         $matchValue,
         string $matchType = "s",
         string $matchCode = "=",
-        int $limit = 1,
-        string $targetField = "id"
     ): SelectReply {
         if (count($targetTables) <= 1) {
             $this->addError("Requires 2 or more tables to use search");
@@ -130,9 +135,7 @@ abstract class MysqliQuery extends MysqliChange
             $this->addError("Match type is not valid");
             return new SelectReply($this->myLastErrorBasic);
         }
-        $match_symbol = "?";
         if ($matchValue === null) {
-            $match_symbol = "NULL";
             if (in_array($matchCode, ["IS","IS NOT"]) == false) {
                 $this->addError("Match value can not be null");
                 return new SelectReply($this->myLastErrorBasic);
@@ -141,6 +144,44 @@ abstract class MysqliQuery extends MysqliChange
         if ($this->sqlStart() == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
+        return new SelectReply("continue", true);
+    }
+
+    /**
+     * searchTables
+     * Search multiple tables for a value in a field
+     * @param array targetTables An array of table names to search.
+     * @param string matchField The field to match against.
+     * @param mixed matchValue The value to match against.
+     * @param string matchType s = string, i = integer, d = double, b = blob
+     * @param string matchCode The operator to use in the WHERE clause.
+     * @param int limit The maximum number of results to return.
+     * @param string targetField The field you want to return.
+     */
+    public function searchTables(
+        array $targetTables,
+        string $matchField,
+        $matchValue,
+        string $matchType = 's',
+        string $matchCode = "=",
+        int $limit = 1,
+        string $targetField = "id"
+    ): SelectReply {
+        $check = $this->checkSearchTables(
+            $targetTables,
+            $matchField,
+            $matchValue,
+            $matchType,
+            $matchCode
+        );
+        if ($check->status == false) {
+            return $check;
+        }
+        $match_symbol = "?";
+        if ($matchValue === null) {
+            $match_symbol = "NULL";
+        }
+
         $bindArgs = [];
         $bindText = "";
         $sql = "";

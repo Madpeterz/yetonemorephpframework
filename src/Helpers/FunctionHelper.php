@@ -84,18 +84,23 @@ class FunctionHelper
     public function getOpts(): array
     {
         $opts = [];
-        foreach ($_SERVER["argv"] as $k => $a) {
-            if (preg_match('@\-\-(.+)=(.+)@', $a, $m)) {
-                $opts[$m[1]] = $m[2];
-            } elseif (preg_match('@\-\-(.+)@', $a, $m)) {
-                $opts[$m[1]] = true;
-            } elseif (preg_match('@\-(.+)=(.+)@', $a, $m)) {
-                $opts[$m[1]] = $m[2];
-            } elseif (preg_match('@\-(.+)@', $a, $m)) {
-                $opts[$m[1]] = true;
-            } else {
-                $opts[$k] = $a;
+        foreach ($_SERVER["argv"] as $argKey => $argValue) {
+            $value = $argValue;
+            $key = $argKey;
+            if (preg_match('@\-\-(.+)=(.+)@', $argValue, $matches)) {
+                $key = $matches[1];
+                $value = $matches[2];
+            } elseif (preg_match('@\-\-(.+)@', $argValue, $matches)) {
+                $key = $matches[1];
+                $value = true;
+            } elseif (preg_match('@\-(.+)=(.+)@', $argValue, $matches)) {
+                $key = $matches[1];
+                $value = $matches[2];
+            } elseif (preg_match('@\-(.+)@', $argValue, $matches)) {
+                $key = $matches[1];
+                $value = true;
             }
+            $opts[$key] = $value;
         }
         return $opts;
     }

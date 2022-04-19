@@ -26,12 +26,12 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => ["NotMadpeter"],
             "types" => ["s"],
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame("ok", $results->message, "Incorrect update status message: ".$this->sql->getLastSql());
         $this->assertSame($results->status, true);
@@ -47,12 +47,12 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => ["NotMadpeter"],
             "types" => [],
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
@@ -67,12 +67,12 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => [],
             "types" => ["s"],
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
@@ -83,12 +83,12 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => ["lol"],
             "types" => ["s","i"],
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
@@ -103,18 +103,18 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => ["NotMadpeter"],
             "types" => ["s"],
         ];
-        $results = $this->sql->updateV2("badtable", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("badtable", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
         $this->assertSame($results->message, "Unable to prepare: Table 'test.badtable' doesn't exist");
 
-        $results = $this->sql->updateV2("", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
@@ -129,12 +129,12 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["s"]
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => ["NotMadpeter"],
             "types" => ["s"]
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
@@ -149,12 +149,12 @@ class MysqliUpdateTest extends TestCase
             "matches" => ["="],
             "types" => ["i"]
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => [null],
             "types" => ["s"]
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         $this->assertSame("Unable to execute because: Column 'username' cannot be null", $results->message,
         "Your mysql server is not setup in strict mode\n 
 change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER");
@@ -170,12 +170,12 @@ change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TR
             "matches" => ["!="],
             "types" => ["i"]
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["value"],
             "values" => ["magic"],
             "types" => ["s"]
         ];
-        $results = $this->sql->updateV2("liketests", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("liketests", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, true);
         $this->assertSame($results->itemsUpdated, 2);
@@ -190,12 +190,12 @@ change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TR
             "matches" => ["% LIKE %"],
             "types" => ["s"]
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["value"],
             "values" => ["woof"],
             "types" => ["s"]
         ];
-        $results = $this->sql->updateV2("liketests", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("liketests", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, true);
         $this->assertSame($results->itemsUpdated, 2);
@@ -213,12 +213,12 @@ change sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION to STRICT_TR
             "matches" => ["="],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => ["username"],
             "values" => ["NotMadpeter"],
             "types" => ["s"],
         ];
-        $results = $this->sql->updateV2("endoftestwithupdates", $update_config, $whereConfig);
+        $results = $this->sql->updateV2("endoftestwithupdates", $updateConfig, $whereConfig);
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);

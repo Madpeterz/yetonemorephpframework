@@ -34,7 +34,7 @@ abstract class GenClassDB extends GenClassControl
 
     /**
      * loadByField
-     * loads a object that matchs in the DB on the field and value
+     * loads a object that matches in the DB on the field and value
      */
     public function loadByField(string $fieldName, $field_value): SingleLoadReply
     {
@@ -57,7 +57,7 @@ abstract class GenClassDB extends GenClassControl
     }
     /**
      * loadId
-     * loads the object from the database that matchs the id
+     * loads the object from the database that matches the id
      */
     public function loadId(?int $id): SingleLoadReply
     {
@@ -79,8 +79,8 @@ abstract class GenClassDB extends GenClassControl
 
     /**
      * loadWithConfig
-     * Fetchs data from the DB and hands it over to processLoad
-     * where it matchs the whereConfig.
+     * Fetch data from the DB and hands it over to processLoad
+     * where it matches the whereConfig.
      * returns false if the class is disabled or the load fails
      */
     public function loadWithConfig(array $whereConfig): SingleLoadReply
@@ -93,7 +93,7 @@ abstract class GenClassDB extends GenClassControl
         if ($this->disableUpdates == true) {
             $basic_config["fields"] = $this->limitedFields;
         }
-        $whereConfig = $this->extendWhereConfig($whereConfig);
+        $whereConfig = $this->autoFillWhereConfig($whereConfig);
         // Cache support
         $hitCache = false;
         $currentHash = "";
@@ -110,7 +110,6 @@ abstract class GenClassDB extends GenClassControl
         }
 
         if ($hitCache == true) {
-            // wooo valid data from cache!
             $loadResult = $this->cache->readHash($this->getTable(), $currentHash);
             if (is_array($loadResult) == true) {
                 return $this->processLoad(new SelectReply("from cache", true, $loadResult));
@@ -126,38 +125,46 @@ abstract class GenClassDB extends GenClassControl
         return $this->processLoad($loadData);
     }
 
+    protected function checkAutoFillWhereConfig(?array $whereConfig): bool
+    {
+        if ($whereConfig === null) {
+            return false;
+        }
+        if (array_key_exists("fields", $whereConfig) == false) {
+            return false;
+        }
+        if (array_key_exists("values", $whereConfig) == false) {
+            return false;
+        }
+        return true;
+    }
+
     /**
-     * extendWhereConfig
+     * autoFillWhereConfig
      * expands whereConfig to include types [as defined by object]
      * and matches [defaulting to =] if not given.
      * @return mixed[] whereConfig
      */
-    public function extendWhereConfig(?array $whereConfig): ?array
+    public function autoFillWhereConfig(?array $whereConfig): ?array
     {
-        if ($whereConfig === null) {
+        if ($this->checkAutoFillWhereConfig($whereConfig) == false) {
             return null;
         }
-        if (array_key_exists("fields", $whereConfig) == false) {
-            return $whereConfig;
-        }
-        if (array_key_exists("values", $whereConfig) == false) {
-            return $whereConfig;
-        }
-        $expandMatchs = false;
+        $expandMatches = false;
         $expendTypes = false;
         if (array_key_exists("matches", $whereConfig) == false) {
-            $expandMatchs = true;
+            $expandMatches = true;
             $whereConfig["matches"] = [];
         }
         if (array_key_exists("types", $whereConfig) == false) {
             $expendTypes = true;
             $whereConfig["types"] = [];
         }
-        if (($expandMatchs == false) && ($expendTypes == false)) {
+        if (($expandMatches == false) && ($expendTypes == false)) {
             return $whereConfig;
         }
         foreach ($whereConfig["fields"] as $field) {
-            if ($expandMatchs == true) {
+            if ($expandMatches == true) {
                 $whereConfig["matches"][] = "=";
             }
             if ($expendTypes == true) {
@@ -221,17 +228,11 @@ abstract class GenClassDB extends GenClassControl
             return new RemoveReply($this->myLastErrorBasic);
         }
         $this->dataset["id"]["value"] = -1;
-        if ($this->cache != null) {
-            $this->cache->markChangeToTable($this->getTable());
-        }
+        $this->touchCacheTable();
         return new RemoveReply("ok", true, $remove_status->itemsRemoved);
     }
-    /**
-     * createEntry
-     * create a new entry in the database for this object
-     * once created it also sets the objects id field
-     */
-    public function createEntry(): CreateReply
+
+    protected function checkCreateEntry(): CreateReply
     {
         if ($this->disableUpdates == true) {
             $this->addError("Attempt to update with limitFields enabled!");
@@ -250,6 +251,20 @@ abstract class GenClassDB extends GenClassControl
         } elseif ($this->save_dataset["id"]["value"] !== null) {
             $this->addError("Attempt to create entry but save dataset id is not null");
             return new CreateReply($this->myLastErrorBasic);
+        }
+        return new CreateReply("continue", true);
+    }
+
+    /**
+     * createEntry
+     * create a new entry in the database for this object
+     * once created it also sets the objects id field
+     */
+    public function createEntry(): CreateReply
+    {
+        $checks = $this->checkCreateEntry();
+        if ($checks->status == false) {
+            return $checks;
         }
         $fields = [];
         $values = [];
@@ -284,18 +299,14 @@ abstract class GenClassDB extends GenClassControl
         if ($return_dataset->status == false) {
             $this->addError($return_dataset->message);
             return new CreateReply($this->myLastErrorBasic);
-        } elseif ($this->cache != null) {
-            $this->cache->markChangeToTable($this->getTable());
         }
+        $this->touchCacheTable();
         $this->dataset["id"]["value"] = $return_dataset->newId;
         $this->save_dataset = $this->dataset;
         return new CreateReply("ok", true, $return_dataset->newId);
     }
-    /**
-     * updateEntry
-     * updates changes to the object in the database
-     */
-    public function updateEntry(): UpdateReply
+
+    protected function checkUpdateEntry(): UpdateReply
     {
         if ($this->disableUpdates == true) {
             $this->addError("Attempt to update with limitFields enabled!");
@@ -310,6 +321,20 @@ abstract class GenClassDB extends GenClassControl
             $this->addError("Object id is not valid for updates");
             return new UpdateReply($this->myLastErrorBasic);
         }
+        return new UpdateReply("continue", true);
+    }
+
+
+    /**
+     * updateEntry
+     * updates changes to the object in the database
+     */
+    public function updateEntry(): UpdateReply
+    {
+        $reply = $this->checkUpdateEntry();
+        if ($reply->status == false) {
+            return $reply;
+        }
 
         $whereConfig = [
             "fields" => ["id"],
@@ -317,7 +342,7 @@ abstract class GenClassDB extends GenClassControl
             "values" => [$this->save_dataset["id"]["value"]],
             "types" => ["i"],
         ];
-        $update_config = [
+        $updateConfig = [
             "fields" => [],
             "values" => [],
             "types" => [],
@@ -342,9 +367,9 @@ abstract class GenClassDB extends GenClassControl
                     } elseif ($this->dataset[$key]["type"] == "float") {
                         $update_code = "d";
                     }
-                    $update_config["fields"][] = $key;
-                    $update_config["values"][] = $this->dataset[$key]["value"];
-                    $update_config["types"][] = $update_code;
+                    $updateConfig["fields"][] = $key;
+                    $updateConfig["values"][] = $this->dataset[$key]["value"];
+                    $updateConfig["types"][] = $update_code;
                 }
             }
         }
@@ -352,17 +377,24 @@ abstract class GenClassDB extends GenClassControl
             $this->addError("request rejected: " . $error_msg);
             return new UpdateReply($this->myLastErrorBasic);
         }
-        $expected_changes = count($update_config["fields"]);
+        $expected_changes = count($updateConfig["fields"]);
         if ($expected_changes == 0) {
             $this->addError("No changes made");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        $reply = $this->sql->updateV2($this->getTable(), $update_config, $whereConfig, 1);
-        if ($reply->status == true) {
-            if ($this->cache != null) {
-                $this->cache->markChangeToTable($this->getTable());
-            }
+        $reply = $this->sql->updateV2($this->getTable(), $updateConfig, $whereConfig, 1);
+        if ($reply->status == false) {
+            $this->addError($reply->message);
+            return new UpdateReply($this->myLastErrorBasic);
         }
+        $this->touchCacheTable();
         return new UpdateReply("ok", true, $reply->itemsUpdated);
+    }
+
+    protected function touchCacheTable(): void
+    {
+        if ($this->cache != null) {
+            $this->cache->markChangeToTable($this->getTable());
+        }
     }
 }

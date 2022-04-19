@@ -34,6 +34,56 @@ abstract class CollectionSetCore extends SqlConnectedClass
     }
 
     /**
+     * getTable
+     * returns the table assigned to the worker
+     */
+    public function getTable(): string
+    {
+        $this->makeWorker();
+        return $this->worker->getTable();
+    }
+
+    /**
+     * getCount
+     * returns the number of objects in this collection set
+     */
+    public function getCount(): int
+    {
+        return count($this->collected);
+    }
+
+        /**
+     * getAllIds
+     * alias of uniqueArray
+     * defaulted to id or use_id_field
+     * @return mixed[] [value,...]
+     */
+    public function getAllIds(): array
+    {
+        $this->makeWorker();
+        return $this->uniqueArray("id");
+    }
+
+    /**
+     * uniqueArray
+     * gets a Unique array of values based on fieldName from
+     * the objects.
+     * @return array<mixed>
+     */
+    protected function uniqueArray(string $fieldName): array
+    {
+        $found_values = [];
+        $getFunction = "get" . ucfirst($fieldName);
+        foreach ($this->collected as $object) {
+            $value = $object->$getFunction();
+            if (in_array($value, $found_values) == false) {
+                $found_values[] = $value;
+            }
+        }
+        return $found_values;
+    }
+
+    /**
      * countInDB
      * $whereConfig: see selectV2.readme
      * Requires a id field
@@ -42,7 +92,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
     public function countInDB(?array $whereConfig = null): ?int
     {
         $this->makeWorker();
-        $whereConfig = $this->worker->extendWhereConfig($whereConfig);
+        $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
         // Cache support
         $hitCache = false;
         $currentHash = "";

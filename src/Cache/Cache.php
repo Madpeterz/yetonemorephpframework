@@ -434,14 +434,14 @@ abstract class Cache extends CacheWorker implements CacheInterface
         ?array $whereConfig,
         ?array $order_config,
         ?array $options_config,
-        ?array $join_tables,
+        ?array $joinTables,
         string $tableName,
         int $fields
     ): string {
         $bit1 = FunctionHelper::sha256("bit1" . json_encode($this->giveArrayOnNull($whereConfig)));
         $bit2 = FunctionHelper::sha256("bit2" . json_encode($this->giveArrayOnNull($order_config)));
         $bit3 = FunctionHelper::sha256("bit3" . json_encode($this->giveArrayOnNull($options_config)));
-        $bit4 = FunctionHelper::sha256("bit4" . json_encode($this->giveArrayOnNull($join_tables)));
+        $bit4 = FunctionHelper::sha256("bit4" . json_encode($this->giveArrayOnNull($joinTables)));
         $shaHash = FunctionHelper::sha256(
             $bit1 .
             $bit2 .

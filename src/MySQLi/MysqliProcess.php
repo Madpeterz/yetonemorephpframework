@@ -17,12 +17,12 @@ abstract class MysqliProcess extends MysqliWhere
         ?array $whereConfig = null,
         ?array $order_config = null,
         ?array $options_config = null,
-        ?array $join_tables = null
+        ?array $joinTables = null
     ): ?mysqli_stmt {
         $failed = false;
         $failedWhy = "";
 
-        $this->selectBuildJoins($join_tables, $sql, $failed, $failedWhy);
+        $this->selectBuildJoins($joinTables, $sql, $failed, $failedWhy);
         if ($failed == true) {
             $this->addError("failed with message:" . $failedWhy);
             return null;

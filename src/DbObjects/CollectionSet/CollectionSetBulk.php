@@ -5,7 +5,7 @@ namespace YAPF\Framework\DbObjects\CollectionSet;
 use YAPF\Framework\Responses\DbObjects\MultiUpdateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 
-abstract class CollectionSetBulk extends CollectionSetGet
+abstract class CollectionSetBulk extends CollectionSetCore
 {
     /**
      * purgeCollection
@@ -63,7 +63,7 @@ abstract class CollectionSetBulk extends CollectionSetGet
     protected function updateMultipleMakeUpdateConfig(array $updateFields, array $newValues): array
     {
         $this->makeWorker();
-        $update_config = [
+        $updateConfig = [
             "fields" => [],
             "values" => [],
             "types" => [],
@@ -85,12 +85,12 @@ abstract class CollectionSetBulk extends CollectionSetGet
                 break;
             }
 
-            $update_config["fields"][] = $updateFields[$loop];
-            $update_config["values"][] = $newValues[$loop];
-            $update_config["types"][] = $this->worker->getFieldType($updateFields[$loop], true);
+            $updateConfig["fields"][] = $updateFields[$loop];
+            $updateConfig["values"][] = $newValues[$loop];
+            $updateConfig["types"][] = $this->worker->getFieldType($updateFields[$loop], true);
             $loop++;
         }
-        return ["status" => $all_ok, "dataset" => $update_config, "message" => $message];
+        return ["status" => $all_ok, "dataset" => $updateConfig, "message" => $message];
     }
 
     /**
@@ -158,16 +158,16 @@ abstract class CollectionSetBulk extends CollectionSetGet
             $this->addError("No fields being updated!");
             return new MultiUpdateReply($this->myLastErrorBasic);
         }
-        $updateConfig = $this->updateMultipleMakeUpdateConfig($updateFields, $newValues);
-        if ($updateConfig["status"] == false) {
-            $this->addError($updateConfig["message"]);
+        $makeUpdateConfig = $this->updateMultipleMakeUpdateConfig($updateFields, $newValues);
+        if ($makeUpdateConfig["status"] == false) {
+            $this->addError($makeUpdateConfig["message"]);
             return new MultiUpdateReply($this->myLastErrorBasic);
         }
         $changeConfig = $this->updateMultipleGetUpdatedIds($updateFields, $newValues);
         if (count($changeConfig) <= 0) {
             return new MultiUpdateReply("No changes made", true);
         }
-        $update_config = $updateConfig["dataset"];
+        $updateConfig = $makeUpdateConfig["dataset"];
         $whereConfig = [
             "fields" => ["id"],
             "matches" => ["IN"],
@@ -177,8 +177,8 @@ abstract class CollectionSetBulk extends CollectionSetGet
         $table = $this->worker->getTable();
         $totalChanges = count($changeConfig);
         unset($changeConfig);
-        unset($updateConfig);
-        $update_status = $this->sql->updateV2($table, $update_config, $whereConfig, $totalChanges);
+        unset($makeUpdateConfig);
+        $update_status = $this->sql->updateV2($table, $updateConfig, $whereConfig, $totalChanges);
         if ($update_status->status == false) {
             $this->addError("Update failed because:" . $update_status->message);
             return new MultiUpdateReply($this->myLastErrorBasic);
