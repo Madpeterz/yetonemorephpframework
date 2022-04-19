@@ -398,21 +398,21 @@ abstract class MysqliFunctions extends Db
      * open, good if you need to hop to other databases.
      */
     public function sqlStartConnection(
-        string $user,
-        string $pass,
-        string $db,
+        string $sqlUser,
+        string $sqlUserPassword,
+        string $databaseName,
         bool $stop = false,
-        ?string $host = null,
+        ?string $sqlHost = null,
         int $timeout = 3
     ): bool {
         $this->sqlStop();
         $this->sqlConnection = mysqli_init();
         mysqli_options($this->sqlConnection, MYSQLI_OPT_CONNECT_TIMEOUT, $timeout);
-        if ($host == null) {
-            $host = $this->dbHost;
+        if ($sqlHost == null) {
+            $sqlHost = $this->dbHost;
         }
         try {
-            $status = mysqli_real_connect($this->sqlConnection, $host, $user, $pass, $db);
+            $status = mysqli_real_connect($this->sqlConnection, $sqlHost, $sqlUser, $sqlUserPassword, $databaseName);
             if ($status == true) {
                 if ($stop == true) {
                     $this->sqlStop();

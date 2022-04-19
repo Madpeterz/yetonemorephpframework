@@ -37,7 +37,7 @@ class ConfigTests extends TestCase
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
         $system->getCacheDriver()->shutdown();
-        $this->assertSame("Redis",$system->getCacheDriver()->getDriverName(),"Wrong cache driver");
+        $this->assertSame("Redis",$system->getCacheDriver()->driverName,"Wrong cache driver");
         $this->assertStringContainsString('"reads":1,',json_encode($system->getCacheDriver()->getStatusCounters()),"incorrect counters");
         $this->assertSame(true,$system->getCacheDriver()->getStatusConnected(),"Redis did not connect");
     }

@@ -4,10 +4,11 @@ namespace YAPF\Framework\Cache;
 
 abstract class Cache extends CacheWorker implements CacheInterface
 {
+    public readonly string $driverName;
+    public readonly string $myUtimeID;
+
     protected $tempStorage = [];
     protected bool $allowCleanup = false;
-
-
     protected int $readsCount = 0;
     protected int $writesCount = 0;
     protected int $missedExpiredCount = 0;
@@ -19,12 +20,6 @@ abstract class Cache extends CacheWorker implements CacheInterface
     protected int $hitCount = 0;
     protected int $pendingWritesCount = 0;
     protected int $hashsCount = 0;
-    protected string $driverName = "NoDriver";
-
-    public function getDriverName(): string
-    {
-        return $this->driverName;
-    }
 
     protected bool $disconnected = false;
 
@@ -42,6 +37,7 @@ abstract class Cache extends CacheWorker implements CacheInterface
         return [
             "config" => [
                 "driver" => $this->driverName,
+                "utime" => $this->myUtimeID,
             ],
             "actions" => [
                 "reads" => $this->readsCount,
@@ -65,19 +61,14 @@ abstract class Cache extends CacheWorker implements CacheInterface
     // saves unneeded writes if we make a change after loading.
     public function __destruct()
     {
-        $this->addError("Shutting down:" . $this->getCacheUTimeID());
+        $this->addError("Shutting down:" . $this->myUtimeID);
         $this->shutdown();
     }
 
-    protected $myUtimeID = "";
+
     public function __construct()
     {
         $this->myUtimeID = microtime() . " " . rand(200, 1000);
-    }
-
-    public function getCacheUTimeID(): string
-    {
-        return $this->myUtimeID;
     }
 
     /**

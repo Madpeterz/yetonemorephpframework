@@ -2,11 +2,12 @@
 
 namespace YAPF\Framework\MySQLi;
 
+use mysqli_stmt;
 use YAPF\Framework\Responses\MySQLi\AddReply;
 use YAPF\Framework\Responses\MySQLi\RemoveReply;
 use YAPF\Framework\Responses\MySQLi\UpdateReply;
 
-abstract class MysqliChange extends MysqliProcess
+abstract class MysqliChange extends MysqliWhere
 {
     protected array $queryStats = [
         "selects" => 0,
@@ -15,6 +16,46 @@ abstract class MysqliChange extends MysqliProcess
         "adds" => 0,
         "total" => 0,
     ];
+
+        /**
+     * processSqlRequest
+     * Do stuff then talk to Sql.
+     */
+    protected function processSqlRequest(
+        string $bindText,
+        array $bindArgs,
+        string &$sql,
+        ?array $whereConfig = null,
+        ?array $order_config = null,
+        ?array $options_config = null,
+        ?array $joinTables = null
+    ): ?mysqli_stmt {
+        $failed = false;
+        $failedWhy = "";
+
+        $this->selectBuildJoins($joinTables, $sql, $failed, $failedWhy);
+        if ($failed == true) {
+            $this->addError("failed with message:" . $failedWhy);
+            return null;
+        }
+
+        $failed = !$this->processWhere($sql, $whereConfig, $bindText, $bindArgs, $failedWhy, $failed);
+        if ($failed == true) {
+            $this->addError("Where config failed: " . $failedWhy);
+            return null;
+        }
+        if ($sql == "empty_in_array") {
+            $this->addError("Targeting IN|NOT IN with no array");
+            return null;
+        }
+        if (is_array($order_config) == true) {
+            $this->buildOrderby($sql, $order_config);
+        }
+        if (is_array($options_config) == true) {
+            $this->buildOption($sql, $options_config);
+        }
+        return $this->prepareBindExecute($sql, $bindArgs, $bindText);
+    }
 
     /**
      * > This function returns an array of the number of queries executed by the database class
@@ -108,16 +149,17 @@ abstract class MysqliChange extends MysqliProcess
             }
             $sql .= $addon;
             $sql .= $updateConfig["fields"][$loop] . "=";
-            $updateConfig["values"][$loop] = $this->convertIfBool($updateConfig["values"][$loop]);
-            if (($updateConfig["values"][$loop] == null) && ($updateConfig["values"][$loop] !== 0)) {
-                $sql .= "NULL";
-            } else {
-                $sql .= "?";
-                $bindText .= $updateConfig["types"][$loop];
-                $bindArgs[] = $updateConfig["values"][$loop];
-            }
             $addon = ", ";
+            $index = $loop;
             $loop++;
+            $updateConfig["values"][$index] = $this->convertIfBool($updateConfig["values"][$index]);
+            if (($updateConfig["values"][$index] == null) && ($updateConfig["values"][$index] !== 0)) {
+                $sql .= "NULL";
+                continue;
+            }
+            $sql .= "?";
+            $bindText .= $updateConfig["types"][$index];
+            $bindArgs[] = $updateConfig["values"][$index];
         }
         // where fields
         $this->queryStats["updates"]++;

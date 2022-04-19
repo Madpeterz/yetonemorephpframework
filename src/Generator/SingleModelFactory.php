@@ -203,7 +203,7 @@ class SingleModelFactory extends ModelFactoryShared
         $this->fileLines[] = 'use YAPF\Framework\Responses\DbObjects\UpdateReply as UpdateReply;';
 
         $seenUsing = [];
-        foreach ($this->links as $id => $entry) {
+        foreach ($this->links as $entry) {
             $targetClass = "";
             if ($entry["source_table"] == $this->table) {
                 $targetClass = ucfirst(strtolower($entry["target_table"]));

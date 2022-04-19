@@ -10,7 +10,7 @@ use YAPF\Framework\Cache\CacheInterface;
 
 class Redis extends Cache implements CacheInterface
 {
-    protected string $driverName = "Redis";
+    public readonly string $driverName;
     protected $tempStorage = [];
     // writes cache to mem first, and then to disk at the end
     // saves unneeded writes if we make a change after loading.
@@ -19,6 +19,11 @@ class Redis extends Cache implements CacheInterface
     protected array $connectionSettings = [];
     protected bool $enabled = false;
 
+    public function __construct()
+    {
+        $this->driverName = "Redis";
+        parent::__construct();
+    }
     public function setTimeout(int $newTimeoutValue = 4): void
     {
         $this->serverTimeout = $newTimeoutValue;

@@ -4,21 +4,9 @@ namespace YAPF\Framework\MySQLi;
 
 abstract class MysqliWhere extends MysqliFunctions
 {
-    /**
-     * processWhere
-     * processes the whereConfig to make
-     * sure its valid and setup fully before passing
-     * it over to the builder
-     * returns the result of the builder if all is ok
-     * returns false if something failed and is on fire
-     */
-    protected function processWhere(
-        string &$sql,
+    protected function checkProcessWhere(
         ?array $whereConfig,
-        string &$bindText,
-        array &$bindArgs,
         string &$failedWhy,
-        bool &$failed
     ): bool {
         if ($whereConfig === null) {
             $failedWhy = "note: Where config is null skipping";
@@ -49,11 +37,35 @@ abstract class MysqliWhere extends MysqliFunctions
         } elseif (count($whereConfig["fields"]) == 0) {
             $failedWhy = "Note: where config keys are empty inside  skipping";
             return true;
-        } elseif (array_key_exists("joinWith", $whereConfig) == false) {
+        }
+        return true;
+    }
+    /**
+     * processWhere
+     * processes the whereConfig to make
+     * sure its valid and setup fully before passing
+     * it over to the builder
+     * returns the result of the builder if all is ok
+     * returns false if something failed and is on fire
+     */
+    protected function processWhere(
+        string &$sql,
+        ?array $whereConfig,
+        string &$bindText,
+        array &$bindArgs,
+        string &$failedWhy,
+        bool &$failed
+    ): bool {
+        $reply = $this->checkProcessWhere($whereConfig, $failedWhy);
+        if ($reply == false) {
+            return false;
+        }
+        if ($failedWhy != "") {
+            return true;
+        }
+        if (array_key_exists("joinWith", $whereConfig) == false) {
             $whereConfig["joinWith"] = "AND";
         }
-
-
         if (is_array($whereConfig["joinWith"]) == false) {
             $new_array = [];
             $loop = 1;
@@ -189,19 +201,21 @@ abstract class MysqliWhere extends MysqliFunctions
         }
         if (in_array($match, ["IS","IS NOT"]) == true) {
             $this->buildWhereCaseIs($whereCode, $field, $match);
+            return;
         } elseif (in_array($match, ["% LIKE","LIKE %","% LIKE %"]) == true) {
             $this->buildWhereCaseLike($whereCode, $field, $match, $bindText, $bindArgs, $value, $type);
+            return;
         } elseif (in_array($match, ["IN","NOT IN"]) == true) {
             $this->buildWhereCaseIn($whereCode, $field, $match, $bindText, $bindArgs, $value, $type, $sql);
-        } else {
-            $whereString = "`" . $field . "` " . $match . " ?";
-            if ($asFunction == 1) {
-                $whereString = $field . " " . $match . " ?";
-            }
-            $whereCode .= $whereString;
-            $bindText .= $type;
-            $bindArgs[] = $this->convertIfBool($value);
+            return;
         }
+        $whereString = "`" . $field . "` " . $match . " ?";
+        if ($asFunction == 1) {
+            $whereString = $field . " " . $match . " ?";
+        }
+        $whereCode .= $whereString;
+        $bindText .= $type;
+        $bindArgs[] = $this->convertIfBool($value);
     }
     protected function whereJoinBuilder(
         string &$sql,

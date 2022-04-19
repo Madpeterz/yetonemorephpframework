@@ -4,7 +4,7 @@ namespace YAPF\Framework\Generator;
 
 class GeneratorDefaults extends GeneratorTypes
 {
-    protected $tab_lookup = [];
+    protected $tabLookup = [];
     protected $fileLines = [];
     protected $output = "";
 
@@ -20,11 +20,11 @@ class GeneratorDefaults extends GeneratorTypes
         parent::__construct();
     }
 
-    public function useTabs($i_want_to_use_spaces_not_tabs = false): void
+    public function useTabs($iAmAMonster = false): void
     {
-        $this->tab_lookup = [0 => "",1 => "    ",2 => "        ",3 => "            "];
-        if ($i_want_to_use_spaces_not_tabs == false) {
-            $this->tab_lookup = [0 => "",1 => "\t",2 => "\t\t",3 => "\t\t\t"];
+        $this->tabLookup = [0 => "",1 => "    ",2 => "        ",3 => "            "];
+        if ($iAmAMonster == false) {
+            $this->tabLookup = [0 => "",1 => "\t",2 => "\t\t",3 => "\t\t\t"];
         }
     }
 }

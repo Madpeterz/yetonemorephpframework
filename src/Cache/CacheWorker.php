@@ -2,7 +2,9 @@
 
 namespace YAPF\Framework\Cache;
 
-abstract class CacheWorker extends CacheRequired
+use YAPF\Framework\Helpers\FunctionHelper;
+
+abstract class CacheWorker extends FunctionHelper
 {
     protected array $tablesConfig = [];
     protected string $accountHash = "None";
@@ -15,6 +17,34 @@ abstract class CacheWorker extends CacheRequired
     protected array $seenKeys = [];
     protected array $keyData = [];
     protected array $keyInfo = [];
+
+    // overloaded by the driver later
+    abstract protected function setupCache(): bool;
+    abstract protected function hasKey(string $key): bool;
+    abstract protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool;
+    abstract protected function readKey(string $key): ?string;
+    abstract protected function deleteKey(string $key): bool;
+
+
+    protected bool $connected = false; // set to true when a read/write passes ok
+
+    protected function markConnected(): void
+    {
+        if ($this->connected == false) {
+            $this->addError("Marking connected");
+            $this->connected = true; // mark redis as connected
+        }
+    }
+
+    public function getKey(string $key): ?string
+    {
+        return $this->readKey($key);
+    }
+
+    public function setKey(string $key, string $value, int $expiresUnixtime): bool
+    {
+        return $this->writeKeyReal($key, $value, $expiresUnixtime);
+    }
 
     protected function removeKey($key): void
     {

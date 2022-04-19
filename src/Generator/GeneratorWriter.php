@@ -12,7 +12,7 @@ class GeneratorWriter extends GeneratorDefaults
             if (is_array($line_data) == false) {
                 if ($file_content != "") {
                     $file_content .= "\n";
-                    $file_content .= $this->tab_lookup[$tabs];
+                    $file_content .= $this->tabLookup[$tabs];
                 }
                 $file_content .= $line_data;
             } else {
