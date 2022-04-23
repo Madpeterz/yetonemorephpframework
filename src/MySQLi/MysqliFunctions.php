@@ -80,12 +80,13 @@ abstract class MysqliFunctions extends Db
         string &$sql,
         array $order
     ): void {
-        if (array_key_exists("enabled", $order) == true) {
-            if (array_key_exists("byField", $order) == false) {
-                $order["byField"] = "id";
-                $order["dir"] = "DESC";
-                $order["enabled"] = true;
-            }
+        if (array_key_exists("enabled", $order) == false) {
+            return;
+        }
+        if (array_key_exists("byField", $order) == false) {
+            $order["byField"] = "id";
+            $order["dir"] = "DESC";
+            $order["enabled"] = true;
         }
         if ($order["enabled"] == true) {
             if (array_key_exists("as_string", $order) == true) {
