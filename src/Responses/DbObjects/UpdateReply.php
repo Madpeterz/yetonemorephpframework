@@ -4,13 +4,10 @@ namespace YAPF\Framework\Responses\DbObjects;
 
 class UpdateReply
 {
-    public readonly bool $status;
-    public readonly string $message;
-    public readonly int $changes;
-    public function __construct(string $message, bool $status = false, int $changes = 0)
-    {
-        $this->status = $status;
-        $this->message = $message;
-        $this->changes = $changes;
+    public function __construct(
+        public readonly string $message,
+        public readonly bool $status = false,
+        public readonly int $changes = 0
+    ) {
     }
 }

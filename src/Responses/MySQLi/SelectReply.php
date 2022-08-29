@@ -4,15 +4,12 @@ namespace YAPF\Framework\Responses\MySQLi;
 
 class SelectReply
 {
-    public readonly bool $status;
-    public readonly string $message;
     public readonly int $items;
-    public readonly ?array $dataset;
-    public function __construct(string $message, bool $status = false, ?array $dataset = null)
-    {
-        $this->status = $status;
-        $this->message = $message;
-        $this->dataset = $dataset;
+    public function __construct(
+        public readonly string $message,
+        public readonly bool $status = false,
+        public readonly ?array $dataset = null
+    ) {
         if ($this->dataset != null) {
             $this->items = count($this->dataset);
             return;
