@@ -203,9 +203,9 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
 
     /**
      * loadMatching
-     * @deprecated
-     * please use use loadWithConfig this function will be going
-     * away at some point.
+     * fields = keys from input
+     * values = values from input
+     * Please use loadWithConfig when you can :P
      */
     public function loadMatching(array $input): SetsLoadReply
     {
