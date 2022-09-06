@@ -191,7 +191,7 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
      * @param bool invertIgnore If true, the ignoreFields will be inverted.
      * @return mixed[] [id => array of mapped object,...]
      */
-    public function getCollectionToMappedArray(array $ignoreFields, bool $invertIgnore = false): array
+    public function getCollectionToMappedArray(array $ignoreFields=[], bool $invertIgnore = false): array
     {
         $results = [];
         foreach ($this->collected as $entry) {
