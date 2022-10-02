@@ -2,13 +2,11 @@
 
 namespace YAPF\Framework\Config;
 
-use Exception;
+use ErrorException;
 use YAPF\Framework\Cache\Cache;
 use YAPF\Framework\Cache\Drivers\Redis;
 use YAPF\Core\ErrorControl\ErrorLogging;
 use YAPF\Framework\MySQLi\MysqliEnabled;
-
-use function PHPUnit\Framework\throwException;
 
 class SimpleConfig extends ErrorLogging
 {
@@ -41,7 +39,7 @@ class SimpleConfig extends ErrorLogging
                 "status" => 0,
                 "message" => "- Service offline -<br/> DB config missing",
             ];
-            throwException(new Exception(json_encode($offline), 911));
+            throw new ErrorException(json_encode($offline), 911, 911);
         }
         mysqli_report(MYSQLI_REPORT_OFF);
     }
