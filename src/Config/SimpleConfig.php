@@ -3,15 +3,15 @@
 namespace YAPF\Framework\Config;
 
 use ErrorException;
-use YAPF\Framework\Cache\Cache;
 use YAPF\Framework\Cache\Drivers\Redis;
 use YAPF\Core\ErrorControl\ErrorLogging;
+use YAPF\Framework\Cache\CacheWorker;
 use YAPF\Framework\MySQLi\MysqliEnabled;
 
 class SimpleConfig extends ErrorLogging
 {
     // Cache
-    protected ?Cache $Cache = null;
+    protected ?CacheWorker $Cache = null;
     protected bool $cacheEnabled = false;
 
     // Cache / Redis
@@ -77,7 +77,7 @@ class SimpleConfig extends ErrorLogging
     /*
         Cache functions
     */
-    public function &getCacheDriver(): ?Cache
+    public function &getCacheDriver(): ?CacheWorker
     {
         if (($this->Cache == null) && ($this->enableRestart == true)) {
             $this->setupCache();
@@ -135,20 +135,18 @@ class SimpleConfig extends ErrorLogging
     public function startCache(): void
     {
         $this->setupCacheTables();
-        if ($this->redisCache == true) {
-            $this->Cache->start(false);
-        }
+        $this->Cache->getDriver()->start();
         return;
     }
 
     protected function startRedisCache(): void
     {
-        $this->Cache = new Redis();
+        $this->Cache = new CacheWorker(new Redis());
         if ($this->redisUnix == true) {
-            $this->Cache->connectUnix($this->redisSocket);
+            $this->Cache->getDriver()->connectUnix($this->redisSocket);
             return;
         }
-        $this->Cache->setTimeout($this->redisTimeout);
-        $this->Cache->connectTCP($this->redisHost, $this->redisPort);
+        $this->Cache->getDriver()->setTimeout($this->redisTimeout);
+        $this->Cache->getDriver()->connectTCP($this->redisHost, $this->redisPort);
     }
 }
