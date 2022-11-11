@@ -35,6 +35,10 @@ class Redis extends CacheDriver implements CacheInterface
         return $this->start();
     }
 
+    public function getKeyLength(): int
+    {
+        return 8;
+    }
 
     /**
      * It sets the connection settings to use TCP, and then starts the connection
