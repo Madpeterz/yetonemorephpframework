@@ -484,4 +484,49 @@ not get hit until after this run has finished.
         $this->assertSame($result->status, true);
         $this->assertSame("group1", $retestA->getFirst()->getName(),"incorrect group value returned");
     }
+
+    public function testCacheWithPrefix()
+    {
+        $whereConfig = [
+            "fields" => ["CHAR_LENGTH(name)","linkid"],
+            "values" => [3,4],
+            "types" => ["i","i"],
+            "matches" => [">=","!="],
+            "asFunction" => [1]
+        ];
+        $cache = $this->getCache();
+        $retestA = new RelationtestingaSet();
+        $retestA->attachCache($cache);
+        $cache->setKeyPrefix("magic");
+        $cache->addTableToCache($retestA->getTable(), 15, false, true);
+        $cache->start();
+        $result = $retestA->loadWithConfig($whereConfig);
+        $this->assertSame($result->message, "ok");
+        $this->assertSame($retestA->getCount(), 1);
+        $this->assertSame($result->status, true);
+        $this->assertSame("group1", $retestA->getFirst()->getName(),"incorrect group value returned");
+        $cache->shutdown();
+        $counters = $cache->getStatusCounters();
+        $this->assertSame(3, $counters["actions"]["writes"], "incorrect number of writes: ".json_encode($counters));
+        $this->assertSame(0, $counters["actions"]["reads"], "incorrect number of reads: ".json_encode($counters));
+        $cache->start();
+        $retestA = new RelationtestingaSet();
+        $retestA->attachCache($cache);
+        $result = $retestA->loadWithConfig($whereConfig);
+        $cache->shutdown();
+        $counters = $cache->getStatusCounters();
+        $this->assertSame(0, $counters["actions"]["writes"], "incorrect number of writes: ".json_encode($counters));
+        $this->assertSame(1, $counters["actions"]["reads"], "incorrect number of reads: ".json_encode($counters));
+        $cache->shutdown();
+        $cache->setKeyPrefix("invaild");
+        $cache->start();
+        $retestA = new RelationtestingaSet();
+        $retestA->attachCache($cache);
+        $result = $retestA->loadWithConfig($whereConfig);
+        $cache->shutdown();
+        $counters = $cache->getStatusCounters();
+        $this->assertSame(3, $counters["actions"]["writes"], "incorrect number of writes: ".json_encode($counters));
+        $this->assertSame(0, $counters["actions"]["reads"], "incorrect number of reads: ".json_encode($counters));
+        
+    }
 }
