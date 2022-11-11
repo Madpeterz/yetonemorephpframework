@@ -2,208 +2,119 @@
 
 namespace YAPF\Framework\Cache;
 
-use YAPF\Framework\Helpers\FunctionHelper;
+use YAPF\Framework\Cache\Framework\CacheDriver;
+use YAPF\Framework\Responses\Cache\DeleteReply;
+use YAPF\Framework\Responses\Cache\ReadReply;
+use YAPF\Framework\Responses\Cache\WriteReply;
 
-abstract class CacheWorker extends FunctionHelper
+class CacheWorker
 {
-    protected array $tablesConfig = [];
-    protected string $accountHash = "None";
-    protected array $tableLastChanged = []; // table => changeID
-    protected bool $lastChangedUpdated = false;
-    protected string $pathStarting = "";
-    protected string $splitter = "-";
-    protected array $changedTables = []; // tables found in this array will always fail cache checks
-    protected int $removed_counters = 0;
-    protected array $seenKeys = [];
-    protected array $keyData = [];
-    protected array $keyInfo = [];
-
-    // overloaded by the driver later
-    abstract protected function setupCache(): bool;
-    abstract protected function hasKey(string $key): bool;
-    abstract protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool;
-    abstract protected function readKey(string $key): ?string;
-    abstract protected function deleteKey(string $key): bool;
-
-
-    protected bool $connected = false; // set to true when a read/write passes ok
-
-    protected function markConnected(): void
+    public function __construct(CacheDriver $driver)
     {
-        if ($this->connected == false) {
-            $this->addError("Marking connected");
-            $this->connected = true; // mark redis as connected
+        $this->driver = $driver;
+    }
+    protected string $keyPrefix = "";
+    protected ?CacheDriver $driver = null;
+
+    public function __destruct()
+    {
+        $this->shutdown();
+    }
+    public function &getDriver(): CacheDriver
+    {
+        return $this->driver;
+    }
+
+    public function shutdown(): void
+    {
+        // write pending changes
+
+        // stop the driver
+        $this->driver->stop();
+    }
+
+    protected function deleteItem(string $key): DeleteReply
+    {
+        $keyPlusPrefix = $this->keyPrefix . $key;
+        if ($this->haveDriver() == false) {
+            return new DeleteReply("No cache driver");
         }
-    }
-
-    public function getKey(string $key): ?string
-    {
-        return $this->readKey($key);
-    }
-
-    public function setKey(string $key, string $value, int $expiresUnixtime): bool
-    {
-        return $this->writeKeyReal($key, $value, $expiresUnixtime);
-    }
-
-    protected function removeKey($key): void
-    {
-        if (in_array($key, $this->seenKeys) == true) {
-            unset($this->seenKeys[$key]);
-            unset($this->keyInfo[$key]);
+        if (array_key_exists($keyPlusPrefix, $this->pendingDeleteKeys) == true) {
+            return new DeleteReply("key already marked as deleted", true);
         }
-        $this->addError("Removing key: " . $key);
-        $this->deleteKey($key . ".dat");
-        $this->deleteKey($key . ".inf");
-        $this->removed_counters++;
-    }
-
-    protected function saveLastChanged(): void
-    {
-        $statusMessage = "No";
-        if ($this->lastChangedUpdated == false) {
-            $statusMessage = "no";
+        if (array_key_exists($keyPlusPrefix, $this->pendingWriteKeys) == true) {
+            unset($this->pendingWriteKeys[$keyPlusPrefix]);
+            unset($this->keys[$keyPlusPrefix]);
         }
-        $this->addError("Save last changed: " . $statusMessage);
-        if ($this->lastChangedUpdated == true) {
-            $this->tableLastChanged["lastChanged"] = time();
-            $this->writeKey(
-                $this->getLastChangedPath(),
-                json_encode($this->tableLastChanged),
-                "lastChanged",
-                time() + (60 * 60)
+        $this->pendingDeleteKeys[$keyPlusPrefix] = true;
+        return new DeleteReply("key marked to be removed", true);
+    }
+    protected function writeItem(string $key, string $value): WriteReply
+    {
+        $keyPlusPrefix = $this->keyPrefix . $key;
+        if ($this->haveDriver() == false) {
+            return new WriteReply("No cache driver");
+        }
+        if (array_key_exists($keyPlusPrefix, $this->pendingDeleteKeys) == true) {
+            unset($this->pendingDeleteKeys[$keyPlusPrefix]);
+        }
+        $this->pendingWriteKeys[$keyPlusPrefix] = true;
+        $this->loadKey($keyPlusPrefix, $value);
+        return new WriteReply("added to write Q, call save to write", true);
+    }
+    protected function getItem(string $key): ReadReply
+    {
+        $keyPlusPrefix = $this->keyPrefix . $key;
+        if ($this->haveDriver() == false) {
+            return new ReadReply("No cache driver");
+        }
+        if (array_key_exists($key, $this->pendingDeleteKeys) == true) {
+            return new ReadReply("key marked as deleted");
+        }
+        if ($this->seenKey($keyPlusPrefix) == true) {
+            return new ReadReply(
+                message:"from keys DB",
+                value:$this->keys[$keyPlusPrefix],
+                status:true
             );
         }
+        $reply = $this->driver->readKey($keyPlusPrefix);
+        if ($reply->status == false) {
+            return $reply;
+        }
+        $this->loadKey($keyPlusPrefix, $reply->value);
+        return new ReadReply("ok", $reply->value, true);
     }
 
-    protected function writeKey(string $key, string $data, string $table, int $expiresUnixtime): bool
+    protected function haveDriver(): bool
     {
-        $tempKey = substr($this->sha256($key), 0, 6);
-        $storage = [
-            "key" => $key,
-            "data" => $data,
-            "table" => $table,
-            "versionID" => $this->tableLastChanged[$table],
-            "expires" => $expiresUnixtime,
-        ];
-        $this->tempStorage[$tempKey] = $storage;
+        if ($this->driver == null) {
+            return false;
+        }
+        return $this->driver->connected();
+    }
+
+    // self store keys loaded in memory
+    protected array $keys = [];
+    protected array $pendingWriteKeys = [];
+    protected array $pendingDeleteKeys = [];
+
+    public function seenKey(string $key): bool
+    {
+        return array_key_exists($key, $this->keys);
+    }
+
+    public function loadKey(string $key, string $value): void
+    {
+        $this->keys[$key] = $value;
+    }
+
+    public function removeKey(string $key): bool
+    {
+        if ($this->seenKey($key) == false) {
+            return false;
+        }
+        unset($this->keys[$key]);
         return true;
-    }
-
-    private function getLastChangedPath(): string
-    {
-        return $this->getWorkerPath() . "tablesLastUpdated";
-    }
-
-    private function getWorkerPath(): string
-    {
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        return $path;
-    }
-
-    protected function loadLastChanged(): void
-    {
-        $this->lastChangedUpdated = true;
-        $path = $this->getLastChangedPath();
-        if ($this->hasKey($path) == false) {
-            $this->addError("loadLastChanged: missing key");
-            return;
-        }
-        $cacheInfoRead = $this->readKey($path);
-        if ($cacheInfoRead == null) {
-            $this->addError("loadLastChanged: key found but data missing");
-            return;
-        }
-        $info_file = json_decode($cacheInfoRead, true);
-        if (array_key_exists("lastChanged", $info_file) == false) {
-            $this->addError("loadLastChanged: missing updated unixtime");
-            return;
-        }
-        $this->markConnected();
-        $dif = time() - $info_file["lastChanged"];
-        if ($dif > (60 * 60)) {
-            // info dataset is to old to be used
-            // everything is marked as changed right now
-            $this->addError("loadLastChanged: to old");
-            return;
-        }
-        foreach (array_keys($this->tablesConfig) as $table) {
-            if (array_key_exists($table, $info_file) == true) {
-                $this->tableLastChanged[$table] = $info_file[$table];
-                $this->addError("Last changed: setting table: " . $table . " to " . $info_file[$table]);
-            }
-        }
-        $this->lastChangedUpdated = false;
-    }
-
-    protected function intLastChanged(): void
-    {
-        $this->lastChangedUpdated = true;
-        $this->tableLastChanged["lastChanged"] = time();
-        foreach (array_keys($this->tablesConfig) as $table) {
-            $this->tableLastChanged[$table] = 1;
-        }
-    }
-
-    /**
-     * getHashInfo
-     * returns the hash info dataset if found or a empty array
-     * @return mixed[] ["unixtime" => int, "expires" => int, "allowChanged" => bool]
-    */
-    protected function getHashInfo(string $tableName, string $hash): array
-    {
-        $path = $this->getKeyPath($tableName, $hash);
-        $this->addError("getHashInfo: loading from: " . $path);
-        return $this->getKeyInfo($path);
-    }
-
-    /**
-     * getKeyInfo
-     * returns the key info dataset if found or a empty array
-     * @return mixed[] ["unixtime" => int, "expires" => int, "allowChanged" => bool]
-    */
-    protected function getKeyInfo(string $key): array
-    {
-        if ($this->hasKey($key . ".inf") == false) {
-            $this->addError("getKeyInfo: " . $key . ".inf is missing");
-            return []; // cache missing info dataset
-        }
-        $cacheInfoRead = "";
-        if (in_array($key, $this->keyInfo) == true) {
-            $this->markConnected();
-            return json_decode($this->keyInfo[$key], true);
-        }
-        $cacheInfoRead = $this->readKey($key . ".inf");
-        if ($cacheInfoRead == null) {
-            $this->addError("getKeyInfo: read key for info returned nothing");
-            return [];
-        }
-        $this->addError("getKeyInfo: " . $key . " data: " . $cacheInfoRead);
-        $this->keyInfo[$key] = $cacheInfoRead;
-        $this->markConnected();
-        return json_decode($cacheInfoRead, true);
-    }
-
-    protected function getKeyPath(string $tableName, string $hash): string
-    {
-        $use_account_hash = $this->accountHash;
-        if ($this->tablesConfig[$tableName]["shared"] == true) {
-            $use_account_hash = "None";
-        }
-        $path = "";
-        if ($this->pathStarting != "") {
-            $path = $this->pathStarting;
-            $path .= $this->splitter;
-        }
-        $path .= $tableName;
-        $path .= $this->splitter;
-        $path .= $use_account_hash;
-        $path .= $this->splitter;
-        $path .= $hash;
-        return $path;
     }
 }
