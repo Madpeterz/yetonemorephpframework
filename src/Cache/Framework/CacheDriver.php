@@ -17,7 +17,6 @@ abstract class CacheDriver extends ErrorLogging implements CacheInterface
     {
         return new StatsReply($this->keyReads, $this->keyWrites, $this->keyDeletes);
     }
-
     public function connected(): bool
     {
         return !$this->disconnected;
