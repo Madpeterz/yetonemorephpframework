@@ -12,8 +12,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected ?string $workerClass = null;
     protected ?GenClass $worker = null;
 
-    protected bool $cacheAllowChanged = false;
-
     protected bool $disableUpdates = false;
     protected ?array $limitedFields = null;
 
