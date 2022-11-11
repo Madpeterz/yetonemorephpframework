@@ -3,42 +3,28 @@
 namespace YAPF\Framework\Cache\Drivers;
 
 use Predis\Client as RedisClient;
-use Predis\Connection\ConnectionException;
 use Throwable;
-use YAPF\Framework\Cache\Cache;
-use YAPF\Framework\Cache\CacheInterface;
+use YAPF\Framework\Cache\Framework\CacheDriver;
+use YAPF\Framework\Cache\Framework\CacheInterface;
+use YAPF\Framework\Responses\Cache\CacheStatusReply;
+use YAPF\Framework\Responses\Cache\DeleteReply;
+use YAPF\Framework\Responses\Cache\ListKeysReply;
+use YAPF\Framework\Responses\Cache\PurgeReply;
+use YAPF\Framework\Responses\Cache\ReadReply;
+use YAPF\Framework\Responses\Cache\WriteReply;
 
-class Redis extends Cache implements CacheInterface
+class Redis extends CacheDriver implements CacheInterface
 {
-    public readonly string $driverName;
-    protected $tempStorage = [];
-    // writes cache to mem first, and then to disk at the end
-    // saves unneeded writes if we make a change after loading.
+    protected int $timeout = 2;
     protected ?RedisClient $client;
-    protected int $serverTimeout = 2;
-    protected array $connectionSettings = [];
-    protected bool $enabled = false;
-
-    public function __construct()
-    {
-        $this->driverName = "Redis";
-        parent::__construct();
-    }
-    public function setTimeout(int $newTimeoutValue = 4): void
-    {
-        $this->serverTimeout = $newTimeoutValue;
-    }
-
-    public function shutdown(): void
-    {
-        parent::shutdown();
-        if ($this->enabled == true) {
-            $this->client->disconnect();
-        }
-    }
+    protected ?array $connectionSettings = null;
 
 
-    public function connectUnix(string $unixSocket): bool
+    /**
+     * It sets the connection settings to use a unix socket, and then starts the connection
+     * @return CacheStatusReply A CacheStatusReply object.
+     */
+    public function connectUnix(string $unixSocket): CacheStatusReply
     {
         $this->setConnectionSettings([
             'scheme' => 'unix',
@@ -46,10 +32,15 @@ class Redis extends Cache implements CacheInterface
             'timeout' => $this->serverTimeout,
             'read_write_timeout' => $this->serverTimeout,
         ]);
-        return $this->connectNow();
+        return $this->start();
     }
 
-    public function connectTCP(string $serverIP, int $serverPort = 6379): bool
+
+    /**
+     * It sets the connection settings to use TCP, and then starts the connection
+     * @return CacheStatusReply A CacheStatusReply object.
+     */
+    public function connectTCP(string $serverIP = "127.0.0.1", int $serverPort = 6379): CacheStatusReply
     {
         $this->setConnectionSettings([
             'scheme' => 'tcp',
@@ -58,7 +49,7 @@ class Redis extends Cache implements CacheInterface
             'timeout' => $this->serverTimeout,
             'read_write_timeout' => $this->serverTimeout,
         ]);
-        return $this->connectNow();
+        return $this->start();
     }
 
     public function setConnectionSettings(array $settings): void
@@ -66,157 +57,162 @@ class Redis extends Cache implements CacheInterface
         $this->connectionSettings = $settings;
     }
 
-    protected function connectNow(): bool
+    public function driverName(): string
     {
-        try {
-            $this->client = new RedisClient($this->connectionSettings);
-            $this->client->connect();
-            $this->enabled = true;
-            $this->client->pipeline();
-            return true;
-        } catch (Throwable $ex) {
-            $this->addError("Marking cache as disconnected (failed to connect) " . $ex->getMessage());
-            $this->disconnected = true;
-            $this->enabled = false;
-            return false;
-        }
+        return "Predis";
     }
 
-    protected function setupCache(): bool
+    public function setTimeout(int $timeout = 2): bool
     {
-        $this->addError("Cache server: Redis - Please do not mess it up");
+        if (($timeout < 1) || ($timeout > 5)) {
+            return false;
+        }
+        $this->timeout = $timeout;
         return true;
     }
 
-    protected function hasKey(string $key): bool
+    public function deleteKeys(array $keys): PurgeReply
     {
-        if ($this->enabled == false) {
-            return false;
+        if ($this->readyToTakeAction() == false) {
+            return new PurgeReply($this->getLastErrorBasic());
         }
-        if (in_array($key, $this->seenKeys) == true) {
-            return true;
+        if (count($keys) < 0) {
+            return new PurgeReply("no keys given", 0, true);
         }
-        try {
-            if ($this->client->exists($key) == 1) {
-                $this->seenKeys[] = $key;
-                return true;
+        $deleteOk = true;
+        $deleteMessage = "All keys deleted";
+        $deleteCount = 0;
+        foreach ($keys as $key) {
+            $reply = $this->deleteKey($key);
+            if ($reply->status == false) {
+                $deleteOk = false;
+                $deleteMessage = $reply->message;
+                break;
             }
-        } catch (Throwable $ex) {
-            $this->addError("hasKey error: " . $ex->getMessage());
+            $deleteCount++;
         }
-        return false;
+        return new PurgeReply($deleteMessage, $deleteCount, $deleteOk);
     }
 
-    protected function deleteKey(string $key): bool
+    public function purgeAllKeys(): PurgeReply
     {
-        if ($this->disconnected == true) {
-            return false;
+        if ($this->readyToTakeAction() == false) {
+            return new PurgeReply($this->getLastErrorBasic());
         }
-        if ($this->enabled == false) {
-            $this->addError("[deleteKey] Skipped redis is not connected");
-            return false;
+        $reply = $this->listKeys();
+        if ($reply->status == false) {
+            return new PurgeReply($reply->message);
         }
-        if ($this->hasKey($key) == false) {
-            $this->addError("[deleteKey] Skipped " . $key . " its not found");
-            return true;
-        }
-        if (in_array($key, $this->seenKeys) == true) {
-            unset($this->seenKeys[$key]);
-        }
-        try {
-            if ($this->client->del($key) == 1) {
-                $this->addError("[deleteKey] Removed key " . $key . " from server");
-                return true;
-            }
-            $this->addError("[deleteKey] failed to remove " . $key . " from server");
-        } catch (Throwable $ex) {
-            $this->disconnected = true;
-            $this->addError("Marking cache as disconnected (failed to delete key) " . $ex->getMessage());
-        }
-        return false;
+        return $this->deleteKeys($reply->keys);
     }
 
-    protected function writeKeyReal(string $key, string $data, int $expiresUnixtime): bool
+    public function readKey(string $key): ReadReply
     {
-        if ($this->disconnected == true) {
-            $this->addError("writeKeyReal: redis is marked is gone");
-            return false;
-        }
-        if ($this->enabled == false) {
-            $this->addError("writeKeyReal: error redis not connected");
-            return false;
+        if ($this->readyToTakeAction() == false) {
+            return new ReadReply($this->getLastErrorBasic(), $key);
         }
         try {
-            $reply = $this->client->setex($key, $expiresUnixtime - time(), $data);
-            $this->addError("writeKeyReal: " . $reply . " for " . $key);
-            $this->markConnected();
-            return true;
+            $value = $this->client->get($key);
+            $this->keyReads++;
+            return new ReadReply("ok", $value, true);
         } catch (Throwable $ex) {
-            $this->addError("Marking cache as disconnected (failed to write key) " .
-            $ex->getMessage() . " Details\n Key: " . $key . " Data: " . $data);
-            $this->disconnected = true;
-        }
-        return false;
-    }
-
-    protected function readKey(string $key): ?string
-    {
-        if ($this->disconnected == true) {
-            return false;
-        }
-        if ($this->enabled == false) {
-            return null;
-        }
-        try {
-            return $this->client->get($key);
-        } catch (Throwable $ex) {
-            $this->addError("Marking cache as disconnected (failed to read key) " . $ex->getMessage());
+            $this->addError("Failed to read key: " . $ex->getMessage());
             $this->disconnected = true;
         }
         return null;
     }
 
-    public function purge($attempts = 0): bool
+    public function writeKey(string $key, string $value, ?int $expireUnixtime = null): WriteReply
     {
-        if ($this->enabled == false) {
-            $this->addError("Redis unable to purge its not connected");
-            return false;
+        if ($this->readyToTakeAction() == false) {
+            return new WriteReply($this->getLastErrorBasic());
         }
-        $keys = $this->getKeys();
-        if ($keys == null) {
-            $this->addError("Redis unable to get keys");
-            return false;
+        try {
+            $this->client->setex($key, $expireUnixtime - time(), $value);
+            $this->keyWrites++;
+            return new WriteReply("ok", true);
+        } catch (Throwable $ex) {
+            $this->addError("failed to write key: " .
+            $ex->getMessage() . " Key: " . $key);
+            $this->disconnected = true;
         }
-        if ((count($keys) == 0) || ($attempts > 3)) {
-            $this->addError("Redis should be clean now");
-            return true;
-        }
-        foreach ($keys as $key) {
-            $this->deleteKey($key);
-        }
-        sleep(1);
-        return $this->purge($attempts + 1);
+        return new WriteReply($this->getLastErrorBasic());
     }
 
-    /**
-     * getKeys
-     * returns null on failed, otherwise an array of keys
-     * @return mixed[]
-     */
-    public function getKeys(): ?array
+    public function deleteKey(string $key): DeleteReply
     {
-        if ($this->enabled == false) {
-            return null;
+        if ($this->readyToTakeAction() == false) {
+            return new DeleteReply($this->getLastErrorBasic());
+        }
+        if ($this->hasKey($key) == false) {
+            $this->keyDeletes++;
+            return new DeleteReply("not found but thats fine", true);
+        }
+        try {
+            if ($this->client->del($this->keyPrefix . $key) == 1) {
+                $this->keyDeletes++;
+                return new DeleteReply("ok", true);
+            }
+            $this->addError("Failed to remove " . $key . " from server");
+        } catch (Throwable $ex) {
+            $this->disconnected = true;
+            $this->addError("failed to delete key: " . $ex->getMessage());
+        }
+        return new DeleteReply($this->getLastErrorBasic());
+    }
+
+    public function listKeys(): ListKeysReply
+    {
+        if ($this->readyToTakeAction() == false) {
+            return new ListKeysReply($this->getLastErrorBasic());
         }
         try {
             $reply = $this->client->keys("*");
             if ($reply != null) {
-                $this->seenKeys = $reply;
+                return new ListKeysReply("ok", $reply, true);
             }
-            return $reply;
+            return new ListKeysReply("keys list is null", status:true);
         } catch (Throwable $ex) {
-            $this->addError("readKey error: " . $ex->getMessage());
+            $this->addError($ex->getMessage());
         }
-        return [];
+        return new ListKeysReply($this->getLastErrorBasic(), status:true);
+    }
+
+    public function hasKey(string $key): CacheStatusReply
+    {
+        if ($this->readyToTakeAction() == false) {
+            return new CacheStatusReply($this->getLastErrorBasic());
+        }
+        try {
+            if ($this->client->exists($key) == 1) {
+                return new CacheStatusReply("ok", true);
+            }
+        } catch (Throwable $ex) {
+            $this->addError($ex->getMessage());
+        }
+        return new CacheStatusReply($this->getLastErrorBasic());
+    }
+
+    public function start(): CacheStatusReply
+    {
+        $this->disconnected = true;
+        try {
+            $this->client = new RedisClient($this->connectionSettings);
+            $this->client->connect();
+            $this->client->pipeline();
+            $this->disconnected = false;
+            return new CacheStatusReply("predis client started", true);
+        } catch (Throwable $ex) {
+            $this->addError("Failed to connect: " . $ex->getMessage());
+        }
+        return new CacheStatusReply($ex->getMessage());
+    }
+
+    public function stop(): void
+    {
+        if ($this->disconnected == false) {
+            $this->client->disconnect();
+        }
+        $this->disconnected = true;
     }
 }
