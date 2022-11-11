@@ -107,7 +107,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
     public function createUID(string $onfield, int $length, int $attempts = 0): CreateUidReply
     {
         $feedValues = [time(), microtime(), rand(200, 300), $attempts];
-        $testuid = substr(md5(implode(".", $feedValues)), 0, $length);
+        $testuid = substr(sha1(implode(".", $feedValues)), 0, $length);
         $whereConfig = [
             "fields" => [$onfield],
             "values" => [$testuid],
