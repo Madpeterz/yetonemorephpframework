@@ -23,4 +23,5 @@ interface CacheInterface
     public function stop(): void;
     public function driverName(): string;
     public function setTimeout(int $timeout = 2): bool;
+    public function getKeyLength(): int;
 }
