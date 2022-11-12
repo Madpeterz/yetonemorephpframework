@@ -60,12 +60,26 @@ class RedisTests extends TestCase
     }
 
     /**
+     * @depends testStart
+     */
+    public function testReadNull(): void
+    {
+        $cache = $this->getCache();
+        $cache->start();
+        $result = $cache->readKey("invaildkey");
+        $this->assertSame(false, $result->status, "Expected false status");
+        $this->assertSame(null, $result->value, "Expected null but got something");
+        $this->assertSame("null result", $result->message,  "Message changed, please check and update the tests");
+    }
+
+    /**
      * @depends testDeleteEntry
      */
     public function testPurgeAll(): void
     {
         $cache = $this->getCache();
         $cache->start();
+        $cache->purgeAllKeys();
         $loop = 0;
         while($loop < 100)
         {

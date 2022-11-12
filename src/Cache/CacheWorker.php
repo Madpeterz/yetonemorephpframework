@@ -58,7 +58,7 @@ abstract class CacheWorker extends CacheLinkDriver
             return false;
         }
         foreach ($this->pendingWriteKeys as $key => $table) {
-            $reply = $this->driver->writeKey($key, $this->keys[$key], time() + ($this->tableConfig[$table] * 60));
+            $reply = $this->driver->writeKey($key, $this->keys[$key], time() + ($this->tableConfig[$table]["maxAge"] * 60));
             if ($reply->status == false) {
                 $this->addError($reply->message);
                 $allOk = false;
@@ -78,13 +78,13 @@ abstract class CacheWorker extends CacheLinkDriver
     }
 
     public function getHash(
+        string $table,
+        int $numberOfFields,
+        bool $asSingle,
         ?array $whereConfig = null,
         ?array $orderConfig = null,
         ?array $optionsConfig = null,
-        ?array $basicConfig = null,
-        string $table,
-        int $numberOfFields,
-        bool $asSingle
+        ?array $basicConfig = null
     ): ?string {
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return null;

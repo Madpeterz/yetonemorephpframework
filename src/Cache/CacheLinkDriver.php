@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\Cache;
 
+use YAPF\Framework\Responses\Cache\CacheStatusReply;
 use YAPF\Framework\Responses\Cache\DeleteReply;
 use YAPF\Framework\Responses\Cache\ReadReply;
 use YAPF\Framework\Responses\Cache\WriteReply;
@@ -36,24 +37,22 @@ abstract class CacheLinkDriver extends CacheTables
         string $hash,
         array $data,
         bool $asSingle
-    ): bool {
+    ): WriteReply {
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return false;
         }
-        $data = $this->writeItem($hash, $this->tablePackString($table, $data), $table);
-        return $data->status;
+        return $this->writeItem($hash, $this->tablePackString($table, $data), $table);
     }
 
     public function deleteHash(
         string $table,
         string $hash,
         bool $asSingle
-    ): bool {
+    ): DeleteReply {
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return false;
         }
-        $data = $this->deleteItem($hash);
-        return $data->status;
+        return $this->deleteItem($hash);
     }
 
     protected function deleteItem(string $key): DeleteReply

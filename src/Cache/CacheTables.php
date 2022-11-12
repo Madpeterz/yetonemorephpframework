@@ -153,11 +153,6 @@ abstract class CacheTables extends CacheDatastore
             // ignore the data and reload
             return null;
         }
-        $age = time() - $dataset["time"];
-        $maxage = (60 * $this->tableConfig[$table]["maxAge"]);
-        if ($age > $maxage) {
-            return null;
-        }
         $data = $dataset["data"];
         if ($this->tableConfig[$table]["encrypt"] == true) {
             $data = $this->decrypt($data, $table . $this->encryptKeycode); // decode teh data

@@ -316,13 +316,13 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
                 $mergedData = array_merge($basic_config, $joinTables);
             }
             $currentHash = $this->cache->getHash(
+                $this->getTable(),
+                count($this->worker->getFields()),
+                false,
                 $whereConfig,
                 $order_config,
                 $options_config,
-                $mergedData,
-                $this->getTable(),
-                count($this->worker->getFields()),
-                false
+                $mergedData
             );
             $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, false);
         }

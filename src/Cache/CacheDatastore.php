@@ -36,12 +36,12 @@ abstract class CacheDatastore extends FunctionHelper
     protected array $pendingWriteKeys = [];
     protected array $pendingDeleteKeys = [];
 
-    public function seenKey(string $key): bool
+    protected function seenKey(string $key): bool
     {
         return array_key_exists($key, $this->keys);
     }
 
-    public function loadKey(string $key, string $value): void
+    protected function loadKey(string $key, string $value): void
     {
         $this->keys[$key] = $value;
     }

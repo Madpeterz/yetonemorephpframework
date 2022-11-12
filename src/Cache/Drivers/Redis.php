@@ -129,12 +129,15 @@ class Redis extends CacheDriver implements CacheInterface
         try {
             $value = $this->client->get($key);
             $this->keyReads++;
+            if ($value == null) {
+                return new ReadReply("null result");
+            }
             return new ReadReply("ok", $value, true);
         } catch (Throwable $ex) {
             $this->addError("Failed to read key: " . $ex->getMessage());
             $this->disconnected = true;
         }
-        return null;
+        return new ReadReply($this->getLastErrorBasic());
     }
 
     public function writeKey(string $key, string $value, ?int $expireUnixtime = null): WriteReply

@@ -96,13 +96,13 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $currentHash = "";
         if ($this->cache != null) {
             $currentHash = $this->cache->getHash(
+                $this->worker->getTable(),
+                count($this->worker->getFields()),
+                false,
                 $whereConfig,
                 ["countDB" => "yep"],
                 ["countDB" => "yep"],
-                ["countDB" => "yep"],
-                $this->worker->getTable(),
-                count($this->worker->getFields()),
-                false
+                ["countDB" => "yep"]
             );
             $hitCache = $this->cache->cacheValid($this->worker->getTable(), $currentHash, false);
             if ($hitCache == true) {

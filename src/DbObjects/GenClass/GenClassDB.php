@@ -99,13 +99,13 @@ abstract class GenClassDB extends GenClassControl
         $currentHash = "";
         if ($this->cache != null) {
             $currentHash = $this->cache->getHash(
+                $this->getTable(),
+                count($this->getFields()),
+                true,
                 $whereConfig,
                 ["single" => true],
                 ["single" => true],
-                $basic_config,
-                $this->getTable(),
-                count($this->getFields()),
-                true
+                $basic_config
             );
             $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, true);
         }
