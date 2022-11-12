@@ -2,13 +2,22 @@
 
 namespace YAPF\Framework\Cache;
 
-use YAPF\Framework\Cache\Framework\CacheDriver;
+use YAPF\Framework\Cache\Drivers\Framework\CacheDriver;
 
 abstract class CacheWorker extends CacheLinkDriver
 {
-    public function __construct(CacheDriver $driver)
+    public function __construct(CacheDriver $driver, ?string $prefix = null)
     {
         $this->driver = $driver;
+        if ($prefix != null) {
+            $this->keyPrefix = $prefix;
+        }
+        $this->startup();
+    }
+
+    public function setKeySuffix(string $suffix): void
+    {
+        $this->keySuffix = $suffix;
     }
 
     public function __destruct()
@@ -16,10 +25,54 @@ abstract class CacheWorker extends CacheLinkDriver
         $this->shutdown();
     }
 
+    protected function startup(): void
+    {
+        $reply = $this->driver->start();
+        if ($reply->status == false) {
+            $this->addError("cache startup error: " . $reply->message);
+            $this->driver = null;
+            return;
+        }
+        $key = $this->keyPrefix . "tablesChangedInfo" . $this->keySuffix;
+        $reply = $this->driver->readKey($key);
+        if ($reply->status == true) {
+            $this->tablesLastChanged = json_decode($reply->value, true);
+        }
+    }
+
+    public function save(): bool
+    {
+        $allOk = true;
+        $key = $this->keyPrefix . "tablesChangedInfo" . $this->keySuffix;
+        $reply = $this->driver->writeKey($key, json_encode($this->tablesLastChanged), time() + (15 * 60));
+        if ($reply->status == false) {
+            return false;
+        }
+        $reply = $this->driver->deleteKeys(array_keys($this->pendingDeleteKeys));
+        if ($reply->status == false) {
+            $allOk = false;
+            $this->addError($reply->message);
+        }
+        $this->pendingDeleteKeys = [];
+        if ($allOk == false) {
+            return false;
+        }
+        foreach ($this->pendingWriteKeys as $key => $table) {
+            $reply = $this->driver->writeKey($key, $this->keys[$key], time() + ($this->tableConfig[$table] * 60));
+            if ($reply->status == false) {
+                $this->addError($reply->message);
+                $allOk = false;
+                break;
+            }
+        }
+        $this->pendingWriteKeys = [];
+        return $reply->status;
+    }
+
     public function shutdown(): void
     {
         // write pending changes
-
+        $this->save();
         // stop the driver
         $this->driver->stop();
     }
@@ -31,9 +84,9 @@ abstract class CacheWorker extends CacheLinkDriver
         ?array $basicConfig = null,
         string $table,
         int $numberOfFields,
-        bool $asSingle = true
+        bool $asSingle
     ): ?string {
-        if ($this->haveDriver() == false) {
+        if ($this->tableUsesCache($table, $asSingle) == false) {
             return null;
         }
         $raw = $this->giveJsonEncoded($whereConfig);
@@ -52,44 +105,11 @@ abstract class CacheWorker extends CacheLinkDriver
         return json_encode($input);
     }
 
-    public function cacheValid(string $table, string $hash, bool $asSingle = true): bool
+    public function cacheValid(string $table, string $hash, bool $asSingle): bool
     {
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return false;
         }
         return $this->getItem($table . $hash)->status;
-    }
-
-    /**
-     * It reads a hash from the cache
-     * @param string table The name of the table you want to read from.
-     * @param string hash The hash to read from the table.
-     * @param bool asSingle If true, the table is a single row table. If false, the table is a multi-row
-     * table.
-     * @return ?mixed[] The data from the cache.
-     */
-    public function readHash(string $table, string $hash, bool $asSingle = true): ?array
-    {
-        if ($this->tableUsesCache($table, $asSingle) == false) {
-            return null;
-        }
-        $data = $this->getItem($table . $hash);
-        if ($data->status == false) {
-            return null;
-        }
-        return $this->tableUnpackString($table, $data->value);
-    }
-
-    public function writeHash(
-        string $table,
-        string $hash,
-        array $data,
-        bool $asSingle = true
-    ): bool {
-        if ($this->tableUsesCache($table, $asSingle) == false) {
-            return null;
-        }
-        $data = $this->writeItem($table . $hash, $this->tablePackString($table, $data));
-        return $data->status;
     }
 }

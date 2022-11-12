@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Framework\Cache\Framework;
+namespace YAPF\Framework\Cache\Drivers\Framework;
 
 use YAPF\Framework\Responses\Cache\CacheStatusReply;
 use YAPF\Framework\Responses\Cache\DeleteReply;

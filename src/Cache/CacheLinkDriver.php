@@ -2,7 +2,6 @@
 
 namespace YAPF\Framework\Cache;
 
-use YAPF\Framework\Cache\Framework\CacheDriver;
 use YAPF\Framework\Responses\Cache\DeleteReply;
 use YAPF\Framework\Responses\Cache\ReadReply;
 use YAPF\Framework\Responses\Cache\WriteReply;
@@ -11,18 +10,7 @@ abstract class CacheLinkDriver extends CacheTables
 {
     protected string $keyPrefix = "";
     protected string $keySuffix = "";
-    protected ?CacheDriver $driver = null;
-    public function &getDriver(): CacheDriver
-    {
-        return $this->driver;
-    }
-    protected function haveDriver(): bool
-    {
-        if ($this->driver == null) {
-            return false;
-        }
-        return $this->driver->connected();
-    }
+
     /**
      * It reads a hash from the cache
      * @param string table The name of the table you want to read from.
@@ -36,7 +24,7 @@ abstract class CacheLinkDriver extends CacheTables
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return null;
         }
-        $data = $this->getItem($table . $hash);
+        $data = $this->getItem($hash);
         if ($data->status == false) {
             return null;
         }
@@ -47,21 +35,30 @@ abstract class CacheLinkDriver extends CacheTables
         string $table,
         string $hash,
         array $data,
-        bool $asSingle = true
+        bool $asSingle
     ): bool {
         if ($this->tableUsesCache($table, $asSingle) == false) {
-            return null;
+            return false;
         }
-        $data = $this->writeItem($table . $hash, $this->tablePackString($table, $data));
+        $data = $this->writeItem($hash, $this->tablePackString($table, $data), $table);
+        return $data->status;
+    }
+
+    public function deleteHash(
+        string $table,
+        string $hash,
+        bool $asSingle
+    ): bool {
+        if ($this->tableUsesCache($table, $asSingle) == false) {
+            return false;
+        }
+        $data = $this->deleteItem($hash);
         return $data->status;
     }
 
     protected function deleteItem(string $key): DeleteReply
     {
         $keyPlus = $this->keyPrefix . $key . $this->keySuffix;
-        if ($this->haveDriver() == false) {
-            return new DeleteReply("No cache driver");
-        }
         if (array_key_exists($keyPlus, $this->pendingDeleteKeys) == true) {
             return new DeleteReply("key already marked as deleted", true);
         }
@@ -73,25 +70,20 @@ abstract class CacheLinkDriver extends CacheTables
         return new DeleteReply("key marked to be removed", true);
     }
 
-    protected function writeItem(string $key, string $value): WriteReply
+    protected function writeItem(string $key, string $value, string $table): WriteReply
     {
         $keyPlus = $this->keyPrefix . $key . $this->keySuffix;
-        if ($this->haveDriver() == false) {
-            return new WriteReply("No cache driver");
-        }
         if (array_key_exists($keyPlus, $this->pendingDeleteKeys) == true) {
             unset($this->pendingDeleteKeys[$keyPlus]);
         }
-        $this->pendingWriteKeys[$keyPlus] = true;
+        $this->pendingWriteKeys[$keyPlus] = $table;
         $this->loadKey($keyPlus, $value);
         return new WriteReply("added to write Q, call save to write", true);
     }
+
     protected function getItem(string $key): ReadReply
     {
         $keyPlus = $this->keyPrefix . $key . $this->keySuffix;
-        if ($this->haveDriver() == false) {
-            return new ReadReply("No cache driver");
-        }
         if (array_key_exists($keyPlus, $this->pendingDeleteKeys) == true) {
             return new ReadReply("key marked as deleted");
         }

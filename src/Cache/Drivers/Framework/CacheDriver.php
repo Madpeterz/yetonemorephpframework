@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPF\Framework\Cache\Framework;
+namespace YAPF\Framework\Cache\Drivers\Framework;
 
 use YAPF\Core\ErrorControl\ErrorLogging;
 use YAPF\Framework\Responses\Cache\CacheStatusReply;
@@ -50,7 +50,7 @@ abstract class CacheDriver extends ErrorLogging implements CacheInterface
         return new CacheStatusReply("TCP Not supported for this driver");
     }
 
-    protected function __destruct()
+    public function __destruct()
     {
         $this->stop();
     }

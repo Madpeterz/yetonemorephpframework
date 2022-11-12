@@ -321,9 +321,10 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
                 $options_config,
                 $mergedData,
                 $this->getTable(),
-                count($this->worker->getFields())
+                count($this->worker->getFields()),
+                false
             );
-            $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash);
+            $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, false);
         }
         if ($hitCache == true) {
             // Valid data from cache!

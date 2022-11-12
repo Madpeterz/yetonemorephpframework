@@ -3,11 +3,10 @@
 namespace YAPF\Framework\Cache;
 
 use Exception;
+use YAPF\Framework\Responses\Cache\CacheStatusReply;
 
 abstract class CacheTables extends CacheDatastore
 {
-    protected array $tableConfig = [];
-    // table => singles [true|false], sets [true|false], encryptData [true|false]
     protected ?string $encryptKeycode = null;
 
     public function setEncryptKeyCode(?string $code): void
@@ -20,18 +19,33 @@ abstract class CacheTables extends CacheDatastore
         int $maxAgeInMins = 15,
         bool $enableForSingles = true,
         bool $enableForSets = false,
-        bool $encryptData = false
-    ): void {
+        bool $encryptData = false,
+    ): CacheStatusReply {
+        if ($maxAgeInMins < 1) {
+            return new CacheStatusReply("invaild max age");
+        }
         $this->tableConfig[$tableName] = [
             "single" => $enableForSingles,
             "set" => $enableForSets,
             "encrypt" => $encryptData,
             "maxAge" => $maxAgeInMins,
         ];
+        if (array_key_exists($tableName, $this->tablesLastChanged) == false) {
+            $this->tablesLastChanged[$tableName] = 0;
+        }
+        return new CacheStatusReply("ok", true);
+    }
+
+    public function markChangeToTable(string $table): void
+    {
+        $this->tablesLastChanged[$table] = time();
     }
 
     protected function tableUsesCache(string $table, bool $asSingle = true): bool
     {
+        if ($this->haveDriver() == false) {
+            return false;
+        }
         if (array_key_exists($table, $this->tableConfig) == false) {
             return false;
         }
@@ -103,7 +117,7 @@ abstract class CacheTables extends CacheDatastore
         if ($this->tableConfig[$table]["encrypt"] == true) {
             $dataString = $this->encrypt($dataString, $table . $this->encryptKeycode);
         }
-        return $dataString;
+        return json_encode(["table" => $table,"time" => time(),"data" => $dataString]);
     }
 
     /**
@@ -114,13 +128,43 @@ abstract class CacheTables extends CacheDatastore
      */
     protected function tableUnpackString(string $table, string $raw): ?array
     {
-        if ($this->tableConfig[$table]["encrypt"] == true) {
-            $raw = $this->decrypt($raw, $table . $this->encryptKeycode);
+        $dataset = json_decode($raw);
+        if (array_key_exists($table, $this->tableConfig) == false) {
+            return null;
         }
-        $data = null;
+        if (array_key_exists($table, $this->tablesLastChanged) == false) {
+            return null;
+        }
+        if (array_key_exists("table", $dataset) == false) {
+            return null;
+        }
+        if (array_key_exists("time", $dataset) == false) {
+            return null;
+        }
+        if (array_key_exists("data", $dataset) == false) {
+            return null;
+        }
+        if ($dataset["table"] != $table) {
+            // very rare hash collided ignore the data
+            return null;
+        }
+        if ($dataset["time"] < $this->tablesLastChanged[$table]) {
+            // table has had changes from when this data was put into cache
+            // ignore the data and reload
+            return null;
+        }
+        $age = time() - $dataset["time"];
+        $maxage = (60 * $this->tableConfig[$table]["maxAge"]);
+        if ($age > $maxage) {
+            return null;
+        }
+        $data = $dataset["data"];
+        if ($this->tableConfig[$table]["encrypt"] == true) {
+            $data = $this->decrypt($data, $table . $this->encryptKeycode); // decode teh data
+        }
         try {
-            $data = json_decode($raw, true);
-            return $data;
+            $dataarray = json_decode($data, true); // convert the json into an array
+            return $dataarray;
         } catch (Exception $e) {
             return null;
         }

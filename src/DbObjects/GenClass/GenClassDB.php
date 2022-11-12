@@ -104,7 +104,8 @@ abstract class GenClassDB extends GenClassControl
                 ["single" => true],
                 $basic_config,
                 $this->getTable(),
-                count($this->getFields())
+                count($this->getFields()),
+                true
             );
             $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, true);
         }
@@ -120,7 +121,7 @@ abstract class GenClassDB extends GenClassControl
         $this->sql->setExpectedErrorFlag(false);
         if ($this->cache != null) {
             // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->getTable(), $currentHash, $loadData->dataset, $this->cacheAllowChanged);
+            $this->cache->writeHash($this->getTable(), $currentHash, $loadData->dataset, true);
         }
         return $this->processLoad($loadData);
     }

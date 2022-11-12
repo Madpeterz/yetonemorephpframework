@@ -4,8 +4,8 @@ namespace YAPF\Framework\Cache\Drivers;
 
 use Predis\Client as RedisClient;
 use Throwable;
-use YAPF\Framework\Cache\Framework\CacheDriver;
-use YAPF\Framework\Cache\Framework\CacheInterface;
+use YAPF\Framework\Cache\Drivers\Framework\CacheDriver;
+use YAPF\Framework\Cache\Drivers\Framework\CacheInterface;
 use YAPF\Framework\Responses\Cache\CacheStatusReply;
 use YAPF\Framework\Responses\Cache\DeleteReply;
 use YAPF\Framework\Responses\Cache\ListKeysReply;
@@ -15,9 +15,17 @@ use YAPF\Framework\Responses\Cache\WriteReply;
 
 class Redis extends CacheDriver implements CacheInterface
 {
-    protected int $timeout = 2;
+    protected int $serverTimeout = 2;
     protected ?RedisClient $client;
     protected ?array $connectionSettings = null;
+
+    public function __construct(?array $connectSettings = null)
+    {
+        if ($connectSettings != null) {
+            $this->setConnectionSettings($connectSettings);
+            $this->start();
+        }
+    }
 
 
     /**
@@ -37,7 +45,7 @@ class Redis extends CacheDriver implements CacheInterface
 
     public function getKeyLength(): int
     {
-        return 8;
+        return 20;
     }
 
     /**
@@ -71,7 +79,7 @@ class Redis extends CacheDriver implements CacheInterface
         if (($timeout < 1) || ($timeout > 5)) {
             return false;
         }
-        $this->timeout = $timeout;
+        $this->serverTimeout = $timeout;
         return true;
     }
 
@@ -115,6 +123,9 @@ class Redis extends CacheDriver implements CacheInterface
         if ($this->readyToTakeAction() == false) {
             return new ReadReply($this->getLastErrorBasic(), $key);
         }
+        if (strlen($key) > 1000) {
+            return new ReadReply("Invaild key length [max 1000]");
+        }
         try {
             $value = $this->client->get($key);
             $this->keyReads++;
@@ -130,6 +141,12 @@ class Redis extends CacheDriver implements CacheInterface
     {
         if ($this->readyToTakeAction() == false) {
             return new WriteReply($this->getLastErrorBasic());
+        }
+        if ($expireUnixtime < time()) {
+            return new WriteReply("Invaild expire unixtime");
+        }
+        if (strlen($key) > 1000) {
+            return new WriteReply("Invaild key length [max 1000]");
         }
         try {
             $this->client->setex($key, $expireUnixtime - time(), $value);
@@ -148,12 +165,15 @@ class Redis extends CacheDriver implements CacheInterface
         if ($this->readyToTakeAction() == false) {
             return new DeleteReply($this->getLastErrorBasic());
         }
+        if (strlen($key) > 1000) {
+            return new DeleteReply("Invaild key length [max 1000]");
+        }
         if ($this->hasKey($key) == false) {
             $this->keyDeletes++;
             return new DeleteReply("not found but thats fine", true);
         }
         try {
-            if ($this->client->del($this->keyPrefix . $key) == 1) {
+            if ($this->client->del($key) == 1) {
                 $this->keyDeletes++;
                 return new DeleteReply("ok", true);
             }

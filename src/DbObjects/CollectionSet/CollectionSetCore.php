@@ -101,9 +101,10 @@ abstract class CollectionSetCore extends SqlConnectedClass
                 ["countDB" => "yep"],
                 ["countDB" => "yep"],
                 $this->worker->getTable(),
-                count($this->worker->getFields())
+                count($this->worker->getFields()),
+                false
             );
-            $hitCache = $this->cache->cacheValid($this->worker->getTable(), $currentHash);
+            $hitCache = $this->cache->cacheValid($this->worker->getTable(), $currentHash, false);
             if ($hitCache == true) {
                 $reply = $this->cache->readHash($this->worker->getTable(), $currentHash);
                 if (is_array($reply) == true) {
