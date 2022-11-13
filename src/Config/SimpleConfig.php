@@ -77,7 +77,7 @@ class SimpleConfig extends ErrorLogging
     /*
         Cache functions
     */
-    public function &getCacheDriver(): ?CacheWorker
+    public function &getCacheWorker(): ?CacheWorker
     {
         if (($this->Cache == null) && ($this->enableRestart == true)) {
             $this->setupCache();
@@ -135,7 +135,9 @@ class SimpleConfig extends ErrorLogging
     public function startCache(): void
     {
         $this->setupCacheTables();
-        $this->Cache->getDriver()->start();
+        if ($this->Cache != null) {
+            $this->Cache->getDriver()->start();
+        }
         return;
     }
 

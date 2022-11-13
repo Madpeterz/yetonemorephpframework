@@ -95,8 +95,6 @@ abstract class GenClassDB extends GenClassControl
         }
         $whereConfig = $this->autoFillWhereConfig($whereConfig);
         // Cache support
-        $hitCache = false;
-        $currentHash = "";
         if ($this->cache != null) {
             $currentHash = $this->cache->getHash(
                 $this->getTable(),
@@ -107,15 +105,12 @@ abstract class GenClassDB extends GenClassControl
                 ["single" => true],
                 $basic_config
             );
-            $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, true);
-        }
-
-        if ($hitCache == true) {
-            $loadResult = $this->cache->readHash($this->getTable(), $currentHash);
-            if (is_array($loadResult) == true) {
-                return $this->processLoad(new SelectReply("from cache", true, $loadResult));
+            $hitCache = $this->cache->readHash($this->getTable(), $currentHash, true);
+            if (is_array($hitCache) == true) {
+                return $this->processLoad(new SelectReply("from cache", true, $hitCache));
             }
         }
+
         $this->sql->setExpectedErrorFlag($this->expectedSqlLoadError);
         $loadData = $this->sql->selectV2($basic_config, null, $whereConfig);
         $this->sql->setExpectedErrorFlag(false);

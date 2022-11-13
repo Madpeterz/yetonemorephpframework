@@ -21,7 +21,7 @@ abstract class CacheDatastore extends FunctionHelper
         return $this->driver->connected();
     }
 
-    protected array $tablesLastChanged = [];
+    protected ?array $tablesLastChanged = null;
     /*
         lastUpdate => unixtime
         table
@@ -35,6 +35,12 @@ abstract class CacheDatastore extends FunctionHelper
     protected array $keys = [];
     protected array $pendingWriteKeys = [];
     protected array $pendingDeleteKeys = [];
+
+
+    protected int $itemReads = 0;
+    protected int $itemWrites = 0;
+    protected int $itemDeletes = 0;
+    protected int $itemMiss = 0;
 
     protected function seenKey(string $key): bool
     {

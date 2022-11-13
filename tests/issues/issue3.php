@@ -13,7 +13,7 @@ class Issue3Test extends TestCase
         $load_status = $countto->loadID(44);
         $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->getId(), 44);
-        $this->assertSame($countto->getCvalue(), 9);
+        $this->assertSame($countto->getCvalue(), 8);
         $mapped_array = $countto->objectToMappedArray();
         $this->assertSame(2,count($mapped_array),"Cvalue and id should both be in the array");
         $mapped_array = $countto->objectToMappedArray(["id"]);

@@ -5,12 +5,19 @@ namespace YAPF\Junk;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Cache\CacheWorker;
 use YAPF\Framework\Cache\Drivers\Redis;
+use YAPF\Framework\Config\SimpleConfig;
+use YAPF\Junk\Models\Counttoonehundo;
 
 class AccCacheWorker extends CacheWorker
 {
-    public function gettablesLastChanged(): array
+    public function gettablesLastChanged(): ?array
     {
         return $this->tablesLastChanged;
+    }
+
+    public function forceAdjustTablesLastChanged(string $table, string $index, int $newValue)
+    {
+        $this->tablesLastChanged[$table][$index] = $newValue;
     }
 }
 
@@ -44,11 +51,13 @@ class CacheWorkerTests extends TestCase
         $this->assertSame(true, $reply->status, "vaild setup stopped");
         $reply = $cache->gettablesLastChanged();
         $this->assertSame(true, array_key_exists("table2",$reply), "missing table2 index");
-        $this->assertSame(0, $reply["table2"], "expected zero value for last changed due to startup");
+        $this->assertSame(0, $reply["table2"]["time"], "expected zero value for last changed due to startup");
+        $this->assertSame(1, $reply["table2"]["version"], "expected zero value for last changed due to startup");
         $now = time();
         $cache->markChangeToTable("table2");
         $reply = $cache->gettablesLastChanged();
-        $this->assertGreaterThanOrEqual($now, $reply["table2"], "expected change time to have updated");
+        $this->assertGreaterThanOrEqual($now, $reply["table2"]["time"], "expected change time to have updated");
+        $this->assertSame(2, $reply["table2"]["version"], "expected change to version");
     }
 
     /**
@@ -79,11 +88,85 @@ class CacheWorkerTests extends TestCase
     /**
      * @depends testCacheWrite
      */
-    public function testCacheValid()
+    public function testReadHash()
     {
         $cache = $this->getCache();
         $cache->addTableToCache("demo" , 10, true, true, false);
-        $reply = $cache->cacheValid("demo", "63993f21a85dc22e8585", true);
-        $this->assertSame(true, $reply, "Expected a vaild hit for hash+table but failed :(");
+        $reply = $cache->readHash("demo", "63993f21a85dc22e8585", true);
+        $this->assertSame(true, is_array($reply), "Failed to read hash as expected");
+        $this->assertSame(true, array_key_exists("unittest", $reply), "missing unittest key from recovered data");
+        $this->assertSame("yes", $reply["unittest"], "incorrect value from recovered data");
+    }
+
+    /**
+     * @depends testReadHash
+     */
+    public function testReadHashInvaildatedDueToChange()
+    {
+        $cache = $this->getCache();
+        $cache->addTableToCache("demo" , 10, true, true, false);
+        $cache->markChangeToTable("demo");
+        $reply = $cache->readHash("demo", "63993f21a85dc22e8585", true);
+        $this->assertSame(false, is_array($reply), "expected null reply but got an array :(");
+        $this->assertSame(null, $reply, "reply should be null at this point");
+    }
+
+    /**
+     * @depends testMakeHash
+     */
+    public function testLastChangedTimeButSameVersionNumber()
+    {
+        $cache = $this->getCache();
+        $cache->addTableToCache("demo" , 10, true, true, false);
+        $cache->forceAdjustTablesLastChanged("demo", "time", time()-20);
+        $cache->forceAdjustTablesLastChanged("demo", "version", 1);
+        $reply = $cache->writeHash("demo", "63993f21a85dc22e8585", ["unittest" => "yes"], true);
+        $this->assertSame(true, $reply->status, "write hash failed: ".$reply->message);
+        $cache->save();
+        $cache = $this->getCache();
+        $cache->addTableToCache("demo" , 10, true, true, false);
+        $cache->forceAdjustTablesLastChanged("demo", "time", 4824014434);
+        $cache->forceAdjustTablesLastChanged("demo", "version", 1);
+        $reply = $cache->readHash("demo", "63993f21a85dc22e8585", true);
+        $this->assertSame(false, is_array($reply), "expected null reply but got an array :(");
+        $this->assertSame(null, $reply, "reply should be null at this point");
+        $cache->forceAdjustTablesLastChanged("demo", "version", 7654);
+        $cache->save();
+    }
+
+    /**
+     * @depends testLastChangedTimeButSameVersionNumber
+     */
+    public function testRestoreLastChangedAfterSave()
+    {
+        $cache = $this->getCache();
+        $reply = $cache->gettablesLastChanged();
+        $this->assertSame(true, is_array($reply), "expected last changed to be an array");
+        $this->assertSame(true, array_key_exists("demo", $reply), "expected to load table demo into last changed after starting worker");
+        $this->assertSame(4824014434, $reply["demo"]["time"], "expected last changed time to be 2122/11/13 @ 12:00:34");
+        $this->assertSame(7654, $reply["demo"]["version"], "expected version number is not correct");
+    }
+
+    /**
+     * @depends testRestoreLastChangedAfterSave
+     */
+    public function testObjectUsesCache()
+    {
+        $cache = $this->getCache();
+        $Counttoonehundo = new Counttoonehundo();
+        $cache->addTableToCache($Counttoonehundo->getTable(), 15, true, true, false);
+        $Counttoonehundo->attachCache($cache);
+        $stats = $cache->getStats();
+        $this->assertSame(0, $stats->reads, "reads counter is wrong :/");
+        $this->assertSame(0, $stats->writes, "writes counter is wrong :/");
+        $this->assertSame(0, $stats->miss, "miss counter is wrong :/");
+        $load = $Counttoonehundo->loadId(1);
+        $this->assertSame(true, $load->status, "Failed to load from DB: ".$load->message);
+        $stats = $cache->getStats();
+        $this->assertSame(0, $stats->reads, "reads counter is wrong :/");
+        $this->assertSame(1, $stats->miss, "miss counter is wrong :/");
+        $this->assertSame(1, $stats->writes, "writes counter is wrong :/");
+
+
     }
 }

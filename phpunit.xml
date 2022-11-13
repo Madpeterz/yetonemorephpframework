@@ -26,7 +26,6 @@
       <file>tests/gen/gen_Test.php</file>
     </testsuite>
     <testsuite name="cache">
-      <file>tests/cache/RedisTests.php</file>
       <file>tests/cache/CacheWorkerTests.php</file>
     </testsuite>
     <testsuite name="All">

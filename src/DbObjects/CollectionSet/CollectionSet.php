@@ -6,6 +6,7 @@ use YAPF\Framework\Responses\DbObjects\SetsLoadReply;
 use YAPF\Framework\Responses\MySQLi\SelectReply;
 use Iterator;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
+use YAPF\Framework\Responses\Cache\ReadReply;
 
 abstract class CollectionSet extends CollectionSetBulk implements Iterator
 {
@@ -308,8 +309,6 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
         }
         $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
         // Cache support
-        $hitCache = false;
-        $currentHash = "";
         if ($this->cache != null) {
             $mergedData = $basic_config;
             if (is_array($joinTables) == true) {
@@ -324,13 +323,10 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
                 $options_config,
                 $mergedData
             );
-            $hitCache = $this->cache->cacheValid($this->getTable(), $currentHash, false);
-        }
-        if ($hitCache == true) {
-            // Valid data from cache!
-            $loadResult = $this->cache->readHash($this->getTable(), $currentHash);
-            if (is_array($loadResult) == true) {
-                return $this->processLoad(new SelectReply("from cache", true, $loadResult));
+            $hitCache = $this->cache->readHash($this->getTable(), $currentHash, false);
+            if (is_array($hitCache) == true) {
+                // Valid data from cache!
+                return $this->processLoad(new SelectReply("from cache", true, $hitCache));
             }
         }
         // Cache missed, read from the DB
@@ -351,7 +347,7 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
                 $this->worker->getTable(),
                 $currentHash,
                 $loadData->dataset,
-                $this->cacheAllowChanged
+                false
             );
         }
         return $this->processLoad($loadData);

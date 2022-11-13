@@ -75,7 +75,7 @@ abstract class GenClassControl extends SqlConnectedClass implements Iterator
         parent::__construct();
         global $system;
         if ($this->disabled == false) {
-            $this->cache = $system->getCacheDriver();
+            $this->cache = $system->getCacheWorker();
         }
     }
 

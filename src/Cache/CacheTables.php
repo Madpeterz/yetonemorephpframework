@@ -30,15 +30,28 @@ abstract class CacheTables extends CacheDatastore
             "encrypt" => $encryptData,
             "maxAge" => $maxAgeInMins,
         ];
+        if (is_array($this->tablesLastChanged) == false) {
+            $this->tablesLastChanged = [];
+        }
         if (array_key_exists($tableName, $this->tablesLastChanged) == false) {
-            $this->tablesLastChanged[$tableName] = 0;
+            $this->tablesLastChanged[$tableName] = ["version" => 1, "time" => 0];
         }
         return new CacheStatusReply("ok", true);
     }
 
     public function markChangeToTable(string $table): void
     {
-        $this->tablesLastChanged[$table] = time();
+        if (is_array($this->tablesLastChanged) == false) {
+            return;
+        }
+        if (array_key_exists($table, $this->tableConfig) == false) {
+            return;
+        }
+        $vnumber = $this->tablesLastChanged[$table]["version"] + 1;
+        if ($vnumber > 999) {
+            $vnumber = 1;
+        }
+        $this->tablesLastChanged[$table] = ["version" => $vnumber, "time" => time()];
     }
 
     protected function tableUsesCache(string $table, bool $asSingle = true): bool
@@ -117,7 +130,12 @@ abstract class CacheTables extends CacheDatastore
         if ($this->tableConfig[$table]["encrypt"] == true) {
             $dataString = $this->encrypt($dataString, $table . $this->encryptKeycode);
         }
-        return json_encode(["table" => $table,"time" => time(),"data" => $dataString]);
+        return json_encode([
+            "version" => $this->tablesLastChanged[$table]["version"],
+            "table" => $table,
+            "time" => $this->tablesLastChanged[$table]["time"],
+            "data" => $dataString,
+        ]);
     }
 
     /**
@@ -128,7 +146,8 @@ abstract class CacheTables extends CacheDatastore
      */
     protected function tableUnpackString(string $table, string $raw): ?array
     {
-        $dataset = json_decode($raw);
+        $dataset = json_decode($raw, true);
+
         if (array_key_exists($table, $this->tableConfig) == false) {
             return null;
         }
@@ -148,8 +167,13 @@ abstract class CacheTables extends CacheDatastore
             // very rare hash collided ignore the data
             return null;
         }
-        if ($dataset["time"] < $this->tablesLastChanged[$table]) {
+        if ($dataset["time"] != $this->tablesLastChanged[$table]["time"]) {
             // table has had changes from when this data was put into cache
+            // ignore the data and reload
+            return null;
+        }
+        if ($dataset["version"] != $this->tablesLastChanged[$table]["version"]) {
+            // table version has changed
             // ignore the data and reload
             return null;
         }

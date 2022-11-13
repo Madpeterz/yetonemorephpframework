@@ -15,11 +15,11 @@ class ConfigTests extends TestCase
         $system->configCacheRedisTCP("127.0.0.1");
         $system->setupCache();
         $countto = new CounttoonehundoSet();
-        $system->getCacheDriver()->addTableToCache($countto->getTable(),15,true,true);
+        $system->getCacheWorker()->addTableToCache($countto->getTable(),15,true,true);
         $system->startCache();
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
-        $system->getCacheDriver()->shutdown();
+        $system->getCacheWorker()->shutdown();
 
         $this->assertSame(true,true,"yep");
     }
@@ -31,15 +31,15 @@ class ConfigTests extends TestCase
         $system->configCacheRedisTCP("127.0.0.1");
         $system->setupCache();
         $countto = new CounttoonehundoSet();
-        $system->getCacheDriver()->addTableToCache($countto->getTable(),15,true,true);
+        $system->getCacheWorker()->addTableToCache($countto->getTable(),15,true,true);
         $system->startCache();
 
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
-        $system->getCacheDriver()->shutdown();
-        $this->assertSame("Redis",$system->getCacheDriver()->driverName,"Wrong cache driver");
-        $this->assertStringContainsString('"reads":1,',json_encode($system->getCacheDriver()->getStatusCounters()),"incorrect counters");
-        $this->assertSame(true,$system->getCacheDriver()->getStatusConnected(),"Redis did not connect");
+        $system->getCacheWorker()->shutdown();
+        $this->assertSame("Predis",$system->getCacheWorker()->getDriver()->driverName(),"Wrong cache driver");
+        $stats = $system->getCacheWorker()->getStats();
+        $this->assertStringContainsString(1,$stats->reads,"incorrect counters");
     }
 
     public function test_ConfigCacheFlagNoCache(): void
@@ -51,7 +51,6 @@ class ConfigTests extends TestCase
         $system->setupCache();
         $system->startCache();
         $countto->loadAll();
-        $this->assertSame(null,$system->getCacheDriver(),"Wrong cache driver");
         $this->assertSame(1,$system->getSQL()->getSQLstats()["selects"],"incorrect number of selects");
     }
 }

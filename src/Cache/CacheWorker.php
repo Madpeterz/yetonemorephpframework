@@ -3,8 +3,9 @@
 namespace YAPF\Framework\Cache;
 
 use YAPF\Framework\Cache\Drivers\Framework\CacheDriver;
+use YAPF\Framework\Responses\Cache\StatsReply;
 
-abstract class CacheWorker extends CacheLinkDriver
+class CacheWorker extends CacheLinkDriver
 {
     public function __construct(CacheDriver $driver, ?string $prefix = null)
     {
@@ -13,6 +14,11 @@ abstract class CacheWorker extends CacheLinkDriver
             $this->keyPrefix = $prefix;
         }
         $this->startup();
+    }
+
+    public function getStats(): StatsReply
+    {
+        return new StatsReply($this->itemReads, $this->itemWrites, $this->itemDeletes, $this->itemMiss);
     }
 
     public function setKeySuffix(string $suffix): void
@@ -58,7 +64,11 @@ abstract class CacheWorker extends CacheLinkDriver
             return false;
         }
         foreach ($this->pendingWriteKeys as $key => $table) {
-            $reply = $this->driver->writeKey($key, $this->keys[$key], time() + ($this->tableConfig[$table]["maxAge"] * 60));
+            $reply = $this->driver->writeKey(
+                $key,
+                $this->keys[$key],
+                time() + ($this->tableConfig[$table]["maxAge"] * 60)
+            );
             if ($reply->status == false) {
                 $this->addError($reply->message);
                 $allOk = false;
@@ -103,13 +113,5 @@ abstract class CacheWorker extends CacheLinkDriver
             return "";
         }
         return json_encode($input);
-    }
-
-    public function cacheValid(string $table, string $hash, bool $asSingle): bool
-    {
-        if ($this->tableUsesCache($table, $asSingle) == false) {
-            return false;
-        }
-        return $this->getItem($table . $hash)->status;
     }
 }

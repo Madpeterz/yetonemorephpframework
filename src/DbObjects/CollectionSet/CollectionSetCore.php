@@ -26,7 +26,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
     public function __construct(string $workerClass)
     {
         global $system;
-        $this->cache = $system->getCacheDriver();
+        $this->cache = $system->getCacheWorker();
         $this->workerClass = $workerClass;
         parent::__construct();
     }
@@ -92,8 +92,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->makeWorker();
         $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
         // Cache support
-        $hitCache = false;
-        $currentHash = "";
         if ($this->cache != null) {
             $currentHash = $this->cache->getHash(
                 $this->worker->getTable(),
@@ -104,12 +102,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
                 ["countDB" => "yep"],
                 ["countDB" => "yep"]
             );
-            $hitCache = $this->cache->cacheValid($this->worker->getTable(), $currentHash, false);
-            if ($hitCache == true) {
-                $reply = $this->cache->readHash($this->worker->getTable(), $currentHash);
-                if (is_array($reply) == true) {
-                    return $reply["count"];
-                }
+            $hitCache = $this->cache->readHash($this->worker->getTable(), $currentHash, false);
+            if (is_array($hitCache) == true) {
+                return $hitCache["count"];
             }
         }
 
