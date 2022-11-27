@@ -140,18 +140,11 @@ abstract class GenClassDB extends GenClassControl
         return true;
     }
 
-    /**
-     * autoFillWhereConfig
-     * expands whereConfig to include types [as defined by object]
-     * and matches [defaulting to =] if not given.
-     */
-    public function autoFillWhereConfig(?array $whereConfig): AutoFillReply
+    protected function autoFillNoChangesCheck(?array &$whereConfig, bool &$expandMatches, bool &$expendTypes): bool
     {
         if ($this->checkAutoFillWhereConfig($whereConfig) == false) {
-            return new AutoFillReply("not used", true);
+            return true;
         }
-        $expandMatches = false;
-        $expendTypes = false;
         if (array_key_exists("matches", $whereConfig) == false) {
             $expandMatches = true;
             $whereConfig["matches"] = [];
@@ -161,19 +154,34 @@ abstract class GenClassDB extends GenClassControl
             $whereConfig["types"] = [];
         }
         if (($expandMatches == false) && ($expendTypes == false)) {
-            return new AutoFillReply("no changes made", true, $whereConfig);
+            return true;
+        }
+        return false;
+    }
+    /**
+     * autoFillWhereConfig
+     * expands whereConfig to include types [as defined by object]
+     * and matches [defaulting to =] if not given.
+     */
+    public function autoFillWhereConfig(?array $whereConfig): AutoFillReply
+    {
+        $expandMatches = false;
+        $expendTypes = false;
+        if ($this->autoFillNoChangesCheck($whereConfig, $expandMatches, $expendTypes) == true) {
+            return new AutoFillReply("No changes needed", true, $whereConfig);
         }
         foreach ($whereConfig["fields"] as $field) {
             if ($expandMatches == true) {
                 $whereConfig["matches"][] = "=";
             }
-            if ($expendTypes == true) {
-                $typeCode = $this->getFieldType($field, true);
-                if ($typeCode === null) {
-                    return new AutoFillReply("Failed: getFieldType");
-                }
-                $whereConfig["types"][] = $typeCode;
+            if ($expendTypes == false) {
+                continue;
             }
+            $typeCode = $this->getFieldType($field, true);
+            if ($typeCode === null) {
+                return new AutoFillReply("Failed: getFieldType");
+            }
+            $whereConfig["types"][] = $typeCode;
         }
         return new AutoFillReply("ok", true, $whereConfig);
     }
@@ -327,18 +335,8 @@ abstract class GenClassDB extends GenClassControl
         return new UpdateReply("continue", true);
     }
 
-
-    /**
-     * updateEntry
-     * updates changes to the object in the database
-     */
-    public function updateEntry(): UpdateReply
+    protected function makeUpdateConfig(array &$whereConfig, array &$updateConfig, bool &$had_error, string &$error_msg): void
     {
-        $reply = $this->checkUpdateEntry();
-        if ($reply->status == false) {
-            return $reply;
-        }
-
         $whereConfig = [
             "fields" => ["id"],
             "matches" => ["="],
@@ -350,8 +348,6 @@ abstract class GenClassDB extends GenClassControl
             "values" => [],
             "types" => [],
         ];
-        $had_error = false;
-        $error_msg = "";
         foreach ($this->save_dataset as $key => $value) {
             if ($key == "id") {
                 continue;
@@ -376,15 +372,37 @@ abstract class GenClassDB extends GenClassControl
                 $updateConfig["types"][] = $update_code;
             }
         }
+    }
+    /**
+     * updateEntry
+     * updates changes to the object in the database
+     */
+    public function updateEntry(): UpdateReply
+    {
+        $reply = $this->checkUpdateEntry();
+        if ($reply->status == false) {
+            return $reply;
+        }
+        $whereConfig = [];
+        $updateConfig = [];
+        $had_error = false;
+        $error_msg = "";
+        $this->makeUpdateConfig($whereConfig, $updateConfig, $had_error, $error_msg);
         if ($had_error == true) {
             $this->addError("request rejected: " . $error_msg);
             return new UpdateReply($this->myLastErrorBasic);
         }
+        return $this->processUpdate($whereConfig, $updateConfig);
+    }
+
+    protected function processUpdate(array $whereConfig, array $updateConfig): UpdateReply
+    {
         $expected_changes = count($updateConfig["fields"]);
         if ($expected_changes == 0) {
             $this->addError("No changes made");
             return new UpdateReply($this->myLastErrorBasic);
         }
+
         $reply = $this->sql->updateV2($this->getTable(), $updateConfig, $whereConfig, 1);
         if ($reply->status == false) {
             $this->addError($reply->message);
