@@ -421,7 +421,8 @@ not get hit until after this run has finished.
         $reply = $testing->countInDB();
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
         $this->assertSame($expectedSQL,$system->getSQL()->getLastSql(),"SQL is not what was expected");
-        $this->assertSame(4,$reply,"incorrect count reply");
+        $this->assertSame(true,$reply->status,"incorrect count reply");
+        $this->assertSame(4,$reply->items,"incorrect count reply");
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "DB reads should be one due to the miss");
         $cache->shutdown();
 
@@ -433,7 +434,7 @@ not get hit until after this run has finished.
         $reply = $testing->countInDB();
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
         $this->assertSame($expectedSQL,$system->getSQL()->getLastSql(),"SQL is not what was expected");
-        $this->assertSame(4,$reply,"incorrect count reply");
+        $this->assertSame(4,$reply->items,"incorrect count reply");
         $this->assertSame(1, $system->getSQL()->getSQLstats()["selects"], "DB reads should still be one due to the hit");
         $cache->shutdown();
     }

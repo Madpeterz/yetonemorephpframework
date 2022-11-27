@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
+use YAPF\Framework\Responses\DbObjects\AutoFillReply;
 use YAPF\Framework\Responses\DbObjects\CreateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 use YAPF\Framework\Responses\DbObjects\SingleLoadReply;
@@ -93,7 +94,11 @@ abstract class GenClassDB extends GenClassControl
         if ($this->disableUpdates == true) {
             $basic_config["fields"] = $this->limitedFields;
         }
-        $whereConfig = $this->autoFillWhereConfig($whereConfig);
+        $loadWhereConfig = $this->autoFillWhereConfig($whereConfig);
+        if ($loadWhereConfig->status == false) {
+            return new SingleLoadReply($loadWhereConfig->message);
+        }
+        $whereConfig = $loadWhereConfig->data;
         // Cache support
         $hitCache = false;
         $currentHash = "";
@@ -143,12 +148,11 @@ abstract class GenClassDB extends GenClassControl
      * autoFillWhereConfig
      * expands whereConfig to include types [as defined by object]
      * and matches [defaulting to =] if not given.
-     * @return mixed[] whereConfig
      */
-    public function autoFillWhereConfig(?array $whereConfig): ?array
+    public function autoFillWhereConfig(?array $whereConfig): AutoFillReply
     {
         if ($this->checkAutoFillWhereConfig($whereConfig) == false) {
-            return null;
+            return new AutoFillReply("not used", true);
         }
         $expandMatches = false;
         $expendTypes = false;
@@ -161,17 +165,21 @@ abstract class GenClassDB extends GenClassControl
             $whereConfig["types"] = [];
         }
         if (($expandMatches == false) && ($expendTypes == false)) {
-            return $whereConfig;
+            return new AutoFillReply("no changes made", true, $whereConfig);
         }
         foreach ($whereConfig["fields"] as $field) {
             if ($expandMatches == true) {
                 $whereConfig["matches"][] = "=";
             }
             if ($expendTypes == true) {
-                $whereConfig["types"][] = $this->getFieldType($field, true);
+                $typeCode = $this->getFieldType($field, true);
+                if ($typeCode === null) {
+                    return new AutoFillReply("Failed: getFieldType");
+                }
+                $whereConfig["types"][] = $typeCode;
             }
         }
-        return $whereConfig;
+        return new AutoFillReply("ok", true, $whereConfig);
     }
     /**
      * processLoad

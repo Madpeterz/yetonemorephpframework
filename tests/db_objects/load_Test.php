@@ -212,7 +212,8 @@ class DbObjectsLoadTest extends TestCase
         $reply = $testing->countInDB();
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
         $this->assertSame($expectedSQL,$testing->getLastSql(),"SQL is not what was expected");
-        $this->assertSame(4,$reply,"incorrect count reply");
+        $this->assertSame(true,$reply->status,"count in db failed in some way: ".$reply->message);
+        $this->assertSame(4,$reply->items,"incorrect count reply");
     }
 
     public function testLimitedMode()

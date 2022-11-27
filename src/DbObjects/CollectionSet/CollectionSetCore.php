@@ -4,6 +4,7 @@ namespace YAPF\Framework\DbObjects\CollectionSet;
 
 use YAPF\Framework\Core\SQLi\SqlConnectedClass;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
+use YAPF\Framework\Responses\MySQLi\CountReply;
 
 abstract class CollectionSetCore extends SqlConnectedClass
 {
@@ -87,12 +88,15 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * countInDB
      * $whereConfig: see selectV2.readme
      * Requires a id field
-     * @return ?int  returns the count or null if failed
      */
-    public function countInDB(?array $whereConfig = null): ?int
+    public function countInDB(?array $whereConfig = null): CountReply
     {
         $this->makeWorker();
-        $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        $loadWhereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        if ($loadWhereConfig->status == false) {
+            return new CountReply($loadWhereConfig->message);
+        }
+        $whereConfig = $loadWhereConfig->data;
         // Cache support
         $hitCache = false;
         $currentHash = "";
@@ -109,7 +113,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
             if ($hitCache == true) {
                 $reply = $this->cache->readHash($this->worker->getTable(), $currentHash);
                 if (is_array($reply) == true) {
-                    return $reply["count"];
+                    return new CountReply("from cache", true, $reply["count"]);
                 }
             }
         }
@@ -123,7 +127,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
             // push data to cache so we can avoid reading from DB as much
             $this->cache->writeHash($this->worker->getTable(), $currentHash, ["count" => $reply->items], false);
         }
-        return $reply->items;
+        return new CountReply("ok", true, $reply->items);
     }
 
     public function limitFields(array $fields): void

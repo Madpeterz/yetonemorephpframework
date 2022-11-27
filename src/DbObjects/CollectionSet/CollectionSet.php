@@ -191,7 +191,7 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
      * @param bool invertIgnore If true, the ignoreFields will be inverted.
      * @return mixed[] [id => array of mapped object,...]
      */
-    public function getCollectionToMappedArray(array $ignoreFields=[], bool $invertIgnore = false): array
+    public function getCollectionToMappedArray(array $ignoreFields = [], bool $invertIgnore = false): array
     {
         $results = [];
         foreach ($this->collected as $entry) {
@@ -306,7 +306,12 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
         if ($this->disableUpdates == true) {
             $basic_config["fields"] = $this->limitedFields;
         }
-        $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        $loadWhereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        if ($loadWhereConfig->status == false) {
+            return new SetsLoadReply($loadWhereConfig->message);
+        }
+        $whereConfig = $loadWhereConfig->data;
+        $loadWhereConfig = null;
         // Cache support
         $hitCache = false;
         $currentHash = "";
