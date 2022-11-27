@@ -191,9 +191,9 @@ class SingleModelFactory extends ModelFactoryShared
 
     protected function createModelHeader(): void
     {
-        $add_target_db_to_class = "";
+        $dbNameAddon = "";
         if ($this->addDbToTable == true) {
-            $add_target_db_to_class = $this->database . ".";
+            $dbNameAddon = $this->database . ".";
         }
         $this->fileLines[] = '<?php';
         $this->fileLines[] = '';
@@ -230,6 +230,6 @@ class SingleModelFactory extends ModelFactoryShared
         $this->fileLines[] = 'class ' . $this->className . ' extends genClass';
         $this->fileLines[] = '{';
         $this->fileLines[] = [1];
-        $this->fileLines[] = 'protected $use_table = "' . $add_target_db_to_class . '' . $this->table . '";';
+        $this->fileLines[] = 'protected $use_table = "' . $dbNameAddon . '' . $this->table . '";';
     }
 }

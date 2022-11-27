@@ -238,7 +238,7 @@ abstract class MysqliWhere extends MysqliFunctions
         }
         $whereCode .= $whereString;
         $bindText .= $type;
-        $bindArgs[] = FunctionHelper::convertIfBool($value);
+        $bindArgs[] = $this->FunctionHelper->convertIfBool($value);
     }
     protected function whereJoinBuilder(
         string &$sql,

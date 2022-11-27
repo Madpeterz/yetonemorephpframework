@@ -15,23 +15,23 @@ abstract class GeneratorTypes extends SqlConnectedClass
     }
     protected $console_output = false;
     protected $use_output = true;
-    protected $counter_models_created = 0;
-    protected $counter_models_failed = 0;
-    protected $counter_models_related_actions = 0;
+    protected $countCreated = 0;
+    protected $countFailed = 0;
+    protected $countRelatedActions = 0;
     public function noOutput(): void
     {
         $this->use_output = false;
     }
     public function getModelsCreated(): int
     {
-        return $this->counter_models_created;
+        return $this->countCreated;
     }
     public function getTotalRelatedActions(): int
     {
-        return $this->counter_models_related_actions;
+        return $this->countRelatedActions;
     }
     public function getModelsFailed(): int
     {
-        return $this->counter_models_failed;
+        return $this->countFailed;
     }
 }

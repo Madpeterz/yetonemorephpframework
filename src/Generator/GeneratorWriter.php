@@ -9,15 +9,15 @@ class GeneratorWriter extends GeneratorDefaults
         $file_content = "";
         $tabs = 0;
         foreach ($lines as $line_data) {
-            if (is_array($line_data) == false) {
-                if ($file_content != "") {
-                    $file_content .= "\n";
-                    $file_content .= $this->tabLookup[$tabs];
-                }
-                $file_content .= $line_data;
-            } else {
+            if (is_array($line_data) == true) {
                 $tabs = $line_data[0];
+                continue;
             }
+            if ($file_content != "") {
+                $file_content .= "\n";
+                $file_content .= $this->tabLookup[$tabs];
+            }
+            $file_content .= $line_data;
         }
         $file_content .= "\n";
         return $file_content;
@@ -40,14 +40,14 @@ class GeneratorWriter extends GeneratorDefaults
             unlink($create_file);
             usleep((30 * 0.001) * 10000); // wait for 300ms for the disk to finish
         }
-        $this->counter_models_failed++;
+        $this->countFailed++;
 
         $status = file_put_contents($create_file, $file_content);
         usleep((10 * 0.001) * 10000);  // wait for 100ms for the disk to finish
 
         if ($status !== false) {
-            $this->counter_models_failed--;
-            $this->counter_models_created++;
+            $this->countFailed--;
+            $this->countCreated++;
             if ($this->use_output == true) {
                 if ($this->console_output == true) {
                     echo "\033[32mOk \033[0m";

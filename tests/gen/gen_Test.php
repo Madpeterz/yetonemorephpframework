@@ -14,20 +14,20 @@ class GeneratorTest extends TestCase
     protected function setUp(): void
     {
         global $GEN_DATABASE_HOST, $GEN_DATABASE_USERNAME, $GEN_DATABASE_PASSWORD;
-        global $GEN_ADD_DB_TO_TABLE, $GEN_SAVE_MODELS_TO, $GEN_DATABASES, $GEN_NAMESPACE_SINGLE;
-        global $GEN_NAMESPACE_SET, $GEN_SAVE_SET_MODELS_TO, $GEN_SELECTED_TABLES_ONLY;
+        global $GEN_PREFIX_TABLE, $GEN_SOLO_PATH, $GEN_DATABASES, $GEN_SOLO_PATH;
+        global $GEN_SET_PATH, $GEN_SET_PATH, $GEN_TABLES_ARRAY;
         
         $GEN_DATABASE_HOST = "localhost";
         $GEN_DATABASE_USERNAME = "testuser";
         $GEN_DATABASE_PASSWORD = "testsuserPW";
-        $GEN_ADD_DB_TO_TABLE = true;
-        $GEN_SAVE_MODELS_TO = "src/Junk/Models/";
-        $GEN_SAVE_SET_MODELS_TO = "src/Junk/Sets/";
-        $GEN_SELECTED_TABLES_ONLY = null;
+        $GEN_PREFIX_TABLE = true;
+        $GEN_SOLO_PATH = "src/Junk/Models/";
+        $GEN_SET_PATH = "src/Junk/Sets/";
+        $GEN_TABLES_ARRAY = null;
 
         $GEN_DATABASES = ["test"];
-        $GEN_NAMESPACE_SINGLE = "YAPF\Junk\Models";
-        $GEN_NAMESPACE_SET = "YAPF\Junk\Sets";
+        $GEN_SOLO_PATH = "YAPF\Junk\Models";
+        $GEN_SET_PATH = "YAPF\Junk\Sets";
 
         $this->sql = new MysqliConnector();
     }

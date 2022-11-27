@@ -66,10 +66,8 @@ class DbObjectsFactory extends ModelFactory
      */
     protected function getLinks(string $target_database): array
     {
-        $fk = $this->getDBForeignKeys($target_database);
-
         $packet = [];
-        foreach ($fk->dataset as $entry) {
+        foreach ($this->getDBForeignKeys($target_database)->dataset as $entry) {
             $idme = strtolower($entry["TABLE_NAME"] . $entry["COLUMN_NAME"]);
             if (array_key_exists($idme, $packet) == true) {
                 continue;
@@ -86,7 +84,7 @@ class DbObjectsFactory extends ModelFactory
 
     public function processDatabaseTables(string $target_database): void
     {
-        global $GEN_SELECTED_TABLES_ONLY;
+        global $GEN_TABLES_ARRAY;
         $this->sql->dbName = $target_database;
         if ($this->use_output == true) {
             if ($this->console_output == true) {
@@ -123,9 +121,9 @@ class DbObjectsFactory extends ModelFactory
         $links = $this->getLinks($target_database);
         foreach ($results->dataset as $row) {
             $process = true;
-            if (isset($GEN_SELECTED_TABLES_ONLY) == true) {
-                if (is_array($GEN_SELECTED_TABLES_ONLY) == true) {
-                    $process = in_array($row["TABLE_NAME"], $GEN_SELECTED_TABLES_ONLY);
+            if (isset($GEN_TABLES_ARRAY) == true) {
+                if (is_array($GEN_TABLES_ARRAY) == true) {
+                    $process = in_array($row["TABLE_NAME"], $GEN_TABLES_ARRAY);
                 }
             }
             if ($process == true) {

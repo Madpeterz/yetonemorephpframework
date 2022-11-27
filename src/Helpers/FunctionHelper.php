@@ -23,7 +23,7 @@ class FunctionHelper extends ErrorLogging
      * takes a input and if its a bool converts it to a int
      * otherwise returns input
      */
-    public static function convertIfBool($input): mixed
+    public function convertIfBool($input): mixed
     {
         if ($input === false) {
             return 0;

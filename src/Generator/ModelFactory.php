@@ -35,45 +35,45 @@ class ModelFactory extends GeneratorWriter
 
     protected function createSet(string $database, string $table, array $cols, array $links): void
     {
-        global $GEN_NAMESPACE_SET, $GEN_NAMESPACE_SINGLE, $GEN_SAVE_SET_MODELS_TO, $GEN_ADD_DB_TO_TABLE;
+        global $GEN_SET_PATH, $GEN_SOLO_PATH, $GEN_SET_PATH, $GEN_PREFIX_TABLE;
         $class_name = ucfirst(strtolower($table));
         $set = new SetModelFactory(
             $class_name,
-            $GEN_NAMESPACE_SINGLE,
-            $GEN_NAMESPACE_SET,
+            $GEN_SOLO_PATH,
+            $GEN_SET_PATH,
             $database,
             $table,
             $cols,
             $links,
-            $GEN_ADD_DB_TO_TABLE
+            $GEN_PREFIX_TABLE
         );
 
         $filename = $class_name . "Set.php";
 
-        $this->writeFile($this->lines2text($set->getLines()), $filename, $GEN_SAVE_SET_MODELS_TO);
-        $this->counter_models_related_actions += $set->getRelatedCounter();
+        $this->writeFile($this->lines2text($set->getLines()), $filename, $GEN_SET_PATH);
+        $this->countRelatedActions += $set->getRelatedCounter();
     }
 
     protected function createSingle(string $database, string $table, array $cols, array $links): void
     {
-        global $GEN_NAMESPACE_SET, $GEN_NAMESPACE_SINGLE, $GEN_SAVE_MODELS_TO, $GEN_ADD_DB_TO_TABLE;
+        global $GEN_SET_PATH, $GEN_SOLO_PATH, $GEN_SOLO_PATH, $GEN_PREFIX_TABLE;
         $class_name = ucfirst(strtolower($table));
 
         $single = new SingleModelFactory(
             $class_name,
-            $GEN_NAMESPACE_SINGLE,
-            $GEN_NAMESPACE_SET,
+            $GEN_SOLO_PATH,
+            $GEN_SET_PATH,
             $database,
             $table,
             $cols,
             $links,
-            $GEN_ADD_DB_TO_TABLE
+            $GEN_PREFIX_TABLE
         );
 
         $filename = $class_name . ".php";
 
-        $this->writeFile($this->lines2text($single->getLines()), $filename, $GEN_SAVE_MODELS_TO);
-        $this->counter_models_related_actions += $single->getRelatedCounter();
+        $this->writeFile($this->lines2text($single->getLines()), $filename, $GEN_SOLO_PATH);
+        $this->countRelatedActions += $single->getRelatedCounter();
     }
 
     /**

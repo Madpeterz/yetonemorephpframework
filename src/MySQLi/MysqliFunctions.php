@@ -6,6 +6,7 @@ use App\Db as Db;
 use mysqli;
 use mysqli_stmt;
 use Throwable;
+use YAPF\Framework\Helpers\FunctionHelper;
 use YAPF\Framework\Responses\MySQLi\RawReply;
 
 abstract class MysqliFunctions extends Db
@@ -14,7 +15,12 @@ abstract class MysqliFunctions extends Db
     protected ?mysqli $sqlConnection = null;
     protected $hadErrors = false;
     protected $needToSave = false;
+    protected FunctionHelper $FunctionHelper;
 
+    public function __construct()
+    {
+        $this->FunctionHelper = new FunctionHelper();
+    }
     public function getNeedsCommit(): bool
     {
         return $this->needToSave;
