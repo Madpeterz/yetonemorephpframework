@@ -18,6 +18,21 @@ class FunctionHelper extends ErrorLogging
         return hash("sha256", $input, false);
     }
 
+    /**
+     * convertIfBool
+     * takes a input and if its a bool converts it to a int
+     * otherwise returns input
+     */
+    public static function convertIfBool($input): mixed
+    {
+        if ($input === false) {
+            return 0;
+        } elseif ($input === true) {
+            return 1;
+        }
+        return $input;
+    }
+
     protected function userAgentIdToName(int $agentId): string
     {
         $agents = [

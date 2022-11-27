@@ -335,8 +335,12 @@ abstract class GenClassDB extends GenClassControl
         return new UpdateReply("continue", true);
     }
 
-    protected function makeUpdateConfig(array &$whereConfig, array &$updateConfig, bool &$had_error, string &$error_msg): void
-    {
+    protected function makeUpdateConfig(
+        array &$whereConfig,
+        array &$updateConfig,
+        bool &$had_error,
+        string &$error_msg
+    ): void {
         $whereConfig = [
             "fields" => ["id"],
             "matches" => ["="],

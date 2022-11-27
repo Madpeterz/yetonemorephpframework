@@ -122,20 +122,7 @@ abstract class MysqliFunctions extends Db
             $sql .= " LIMIT " . $options["limit"];
         }
     }
-    /**
-     * convertIfBool
-     * takes a input and if its a bool converts it to a int
-     * otherwise returns input
-     */
-    public function convertIfBool($input): mixed
-    {
-        if ($input === false) {
-            return 0;
-        } elseif ($input === true) {
-            return 1;
-        }
-        return $input;
-    }
+
 
     /**
      * commandsFromSqlLines
@@ -391,6 +378,7 @@ abstract class MysqliFunctions extends Db
     {
         $this->hadErrors = true;
     }
+
     /**
      * sqlStartConnection
      * Attempts to create a mysql connection

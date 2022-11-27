@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\MySQLi;
 
+use YAPF\Framework\Helpers\FunctionHelper;
+
 abstract class MysqliWhere extends MysqliFunctions
 {
     protected function checkProcessWhere(
@@ -25,7 +27,15 @@ abstract class MysqliWhere extends MysqliFunctions
         if (count($missing_keys) > 0) {
             $failedWhy = "missing where keys:" . implode(",", $missing_keys);
             return false;
-        } elseif (count($whereConfig["fields"]) != count($whereConfig["values"])) {
+        }
+        if ($this->checkWhereConfigKeys($whereConfig, $failedWhy) == false) {
+            return false;
+        }
+        return $this->checkWhereConfigTypes($whereConfig, $failedWhy);
+    }
+    protected function checkWhereConfigKeys(array $whereConfig, string &$failedWhy): bool
+    {
+        if (count($whereConfig["fields"]) != count($whereConfig["values"])) {
             $failedWhy = "count error fields <=> values";
             return false;
         } elseif (count($whereConfig["values"]) != count($whereConfig["types"])) {
@@ -38,6 +48,10 @@ abstract class MysqliWhere extends MysqliFunctions
             $failedWhy = "Note: where config keys are empty inside  skipping";
             return true;
         }
+        return true;
+    }
+    protected function checkWhereConfigTypes(array $whereConfig, string &$failedWhy): bool
+    {
         $loop = 0;
         foreach ($whereConfig["types"] as $t) {
             if (in_array($t, ["s","d","i"]) == false) {
@@ -48,6 +62,7 @@ abstract class MysqliWhere extends MysqliFunctions
         }
         return true;
     }
+
     /**
      * processWhere
      * processes the whereConfig to make
@@ -223,7 +238,7 @@ abstract class MysqliWhere extends MysqliFunctions
         }
         $whereCode .= $whereString;
         $bindText .= $type;
-        $bindArgs[] = $this->convertIfBool($value);
+        $bindArgs[] = FunctionHelper::convertIfBool($value);
     }
     protected function whereJoinBuilder(
         string &$sql,

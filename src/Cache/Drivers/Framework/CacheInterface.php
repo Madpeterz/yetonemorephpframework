@@ -24,4 +24,6 @@ interface CacheInterface
     public function driverName(): string;
     public function setTimeout(int $timeout = 2): bool;
     public function getKeyLength(): int;
+    public function connectTCP(string $serverIP = "127.0.0.1", int $serverPort = 6379): CacheStatusReply;
+    public function connectUnix(string $unixSocket): CacheStatusReply;
 }

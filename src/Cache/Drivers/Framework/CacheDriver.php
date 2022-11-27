@@ -31,25 +31,6 @@ abstract class CacheDriver extends ErrorLogging implements CacheInterface
         return true;
     }
 
-        /**
-     * It sets the connection settings to use a unix socket, and then starts the connection
-     * @return CacheStatusReply A CacheStatusReply object.
-     */
-    public function connectUnix(string $unixSocket): CacheStatusReply
-    {
-        return new CacheStatusReply("Unix socket Not supported for this driver");
-    }
-
-
-    /**
-     * It sets the connection settings to use TCP, and then starts the connection
-     * @return CacheStatusReply A CacheStatusReply object.
-     */
-    public function connectTCP(string $serverIP = "127.0.0.1", int $serverPort = 6379): CacheStatusReply
-    {
-        return new CacheStatusReply("TCP Not supported for this driver");
-    }
-
     public function __destruct()
     {
         $this->stop();

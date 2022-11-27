@@ -3,6 +3,7 @@
 namespace YAPF\Framework\MySQLi;
 
 use mysqli_stmt;
+use YAPF\Framework\Helpers\FunctionHelper;
 use YAPF\Framework\Responses\MySQLi\AddReply;
 use YAPF\Framework\Responses\MySQLi\RemoveReply;
 use YAPF\Framework\Responses\MySQLi\UpdateReply;
@@ -152,7 +153,7 @@ abstract class MysqliChange extends MysqliWhere
             $addon = ", ";
             $index = $loop;
             $loop++;
-            $updateConfig["values"][$index] = $this->convertIfBool($updateConfig["values"][$index]);
+            $updateConfig["values"][$index] = FunctionHelper::convertIfBool($updateConfig["values"][$index]);
             if (($updateConfig["values"][$index] == null) && ($updateConfig["values"][$index] !== 0)) {
                 $sql .= "NULL";
                 continue;
@@ -217,14 +218,15 @@ abstract class MysqliChange extends MysqliWhere
         while ($loop < count($config["values"])) {
             $sql .= $addon;
             $value = $config["values"][$loop];
+            $addon = " , ";
             if (($value == null) && ($value !== 0)) {
                 $sql .= " NULL";
-            } else {
-                $sql .= "?";
-                $bindText .= $config["types"][$loop];
-                $bindArgs[] = $value;
+                $loop++;
+                continue;
             }
-            $addon = " , ";
+            $sql .= "?";
+            $bindText .= $config["types"][$loop];
+            $bindArgs[] = $value;
             $loop++;
         }
         $sql .= ")";
