@@ -4,6 +4,7 @@ namespace YAPF\Framework\DbObjects\CollectionSet;
 
 use YAPF\Framework\Core\SQLi\SqlConnectedClass;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
+use YAPF\Framework\Responses\MySQLi\CountReply;
 
 abstract class CollectionSetCore extends SqlConnectedClass
 {
@@ -85,12 +86,15 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * countInDB
      * $whereConfig: see selectV2.readme
      * Requires a id field
-     * @return ?int  returns the count or null if failed
      */
-    public function countInDB(?array $whereConfig = null): ?int
+    public function countInDB(?array $whereConfig = null): CountReply
     {
         $this->makeWorker();
-        $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        $loadWhereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        if ($loadWhereConfig->status == false) {
+            return new CountReply($loadWhereConfig->message);
+        }
+        $whereConfig = $loadWhereConfig->data;
         // Cache support
         if ($this->cache != null) {
             $currentHash = $this->cache->getHash(
@@ -104,20 +108,20 @@ abstract class CollectionSetCore extends SqlConnectedClass
             );
             $hitCache = $this->cache->readHash($this->worker->getTable(), $currentHash, false);
             if (is_array($hitCache) == true) {
-                return $hitCache["count"];
+                return new CountReply("from cache", true, $hitCache["count"]);
             }
         }
 
         $reply = $this->sql->basicCountV2($this->worker->getTable(), $whereConfig);
         if ($reply->status == false) {
-            $this->addError($reply["message"]);
-            return null;
+            $this->addError($reply->message);
+            return new CountReply($reply->message);
         }
         if (($this->cache != null) && ($reply->status == true)) {
             // push data to cache so we can avoid reading from DB as much
             $this->cache->writeHash($this->worker->getTable(), $currentHash, ["count" => $reply->items], false);
         }
-        return $reply->items;
+        return $reply;
     }
 
     public function limitFields(array $fields): void

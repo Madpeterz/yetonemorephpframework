@@ -237,14 +237,12 @@ class MysqliSupportTest extends TestCase
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $this->assertSame($result->message, "Unable to bind to statement");
+        $this->assertStringContainsString("Where config failed: index: 0 is not as we expect", $result->message, "sql bind issue");
         $this->assertSame($result->status, false);
         $this->sql->fullSqlErrors = true;
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
-        $full_bind_error = "Unable to bind to statement: The number of elements ";
-        $full_bind_error .= "in the type definition string must match the number of bind variables";
-        $this->assertSame($full_bind_error, $result->message);
+        $this->assertStringContainsString("Where config failed: index: 0 is not as we expect:", $result->message, "sql bind issue");
         $this->assertSame($result->status, false);
     }
 

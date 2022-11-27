@@ -307,7 +307,12 @@ abstract class CollectionSet extends CollectionSetBulk implements Iterator
         if ($this->disableUpdates == true) {
             $basic_config["fields"] = $this->limitedFields;
         }
-        $whereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        $loadWhereConfig = $this->worker->autoFillWhereConfig($whereConfig);
+        if ($loadWhereConfig->status == false) {
+            return new SetsLoadReply($loadWhereConfig->message);
+        }
+        $whereConfig = $loadWhereConfig->data;
+        $loadWhereConfig = null;
         // Cache support
         if ($this->cache != null) {
             $mergedData = $basic_config;

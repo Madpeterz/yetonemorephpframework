@@ -38,6 +38,14 @@ abstract class MysqliWhere extends MysqliFunctions
             $failedWhy = "Note: where config keys are empty inside  skipping";
             return true;
         }
+        $loop = 0;
+        foreach ($whereConfig["types"] as $t) {
+            if (in_array($t, ["s","d","i"]) == false) {
+                $failedWhy = "index: " . $loop . " is not as we expect: " . json_encode($whereConfig);
+                return false;
+            }
+            $loop++;
+        }
         return true;
     }
     /**
