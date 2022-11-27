@@ -2,14 +2,14 @@
 
 namespace App;
 
-use YAPF\MySQLi\MysqliEnabled as MysqliConnector;
-use YAPF\Generator\DbObjectsFactory as DbObjectsFactory;
+use YAPF\Framework\Generator\DbObjectsFactory;
+use YAPF\Framework\MySQLi\MysqliEnabled;
 
 include "Gen/gen_models_example.config.php";
 include "Gen/gen_models_db.php";
 
 // connect to SQL
-$sql = new MysqliConnector();
+$sql = new MysqliEnabled();
 
 // lets rock
 $db_objects_factory = new DbObjectsFactory();

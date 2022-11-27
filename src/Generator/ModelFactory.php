@@ -35,12 +35,12 @@ class ModelFactory extends GeneratorWriter
 
     protected function createSet(string $database, string $table, array $cols, array $links): void
     {
-        global $GEN_SET_PATH, $GEN_SOLO_PATH, $GEN_SET_PATH, $GEN_PREFIX_TABLE;
+        global $GEN_SET_NS, $GEN_SOLO_NS, $GEN_SET_PATH, $GEN_PREFIX_TABLE;
         $class_name = ucfirst(strtolower($table));
         $set = new SetModelFactory(
             $class_name,
-            $GEN_SOLO_PATH,
-            $GEN_SET_PATH,
+            $GEN_SOLO_NS,
+            $GEN_SET_NS,
             $database,
             $table,
             $cols,
@@ -56,13 +56,13 @@ class ModelFactory extends GeneratorWriter
 
     protected function createSingle(string $database, string $table, array $cols, array $links): void
     {
-        global $GEN_SET_PATH, $GEN_SOLO_PATH, $GEN_SOLO_PATH, $GEN_PREFIX_TABLE;
+        global $GEN_SET_NS, $GEN_SOLO_NS, $GEN_SOLO_PATH, $GEN_PREFIX_TABLE;
         $class_name = ucfirst(strtolower($table));
 
         $single = new SingleModelFactory(
             $class_name,
-            $GEN_SOLO_PATH,
-            $GEN_SET_PATH,
+            $GEN_SOLO_NS,
+            $GEN_SET_NS,
             $database,
             $table,
             $cols,
