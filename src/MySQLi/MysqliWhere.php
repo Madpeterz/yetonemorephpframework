@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\MySQLi;
 
+use Exception;
+
 abstract class MysqliWhere extends MysqliFunctions
 {
     protected function checkProcessWhere(
@@ -43,7 +45,8 @@ abstract class MysqliWhere extends MysqliFunctions
         foreach ($whereConfig["types"] as $t) {
             if (in_array($t, ["s","d","i"]) == false) {
                 $failedWhy = "index: " . $loop . " is not as we expect: " . json_encode($whereConfig);
-                return false;
+                throw new Exception($failedWhy, 911);
+                return false; // this should never run but for that 0.00000001%
             }
             $loop++;
         }
