@@ -139,15 +139,15 @@ abstract class CacheTables extends CacheDatastore
     }
 
     /**
-     * It decrypts the data if needed, then decodes it from JSON
-     * @param string table The name of the table you want to unpack.
-     * @param string raw The raw string from the database
-     * @return ?mixed[] The data is being returned as an array.
+     * It checks if the table exists, if the table has a last changed time, if the dataset has a table,
+     * time, and data key, and if all of those are true, it returns the dataset
+     * @param string table The name of the table to unpack
+     * @param string raw The raw data from the database
+     * @return ?mixed[] The dataset is being returned.
      */
-    protected function tableUnpackString(string $table, string $raw): ?array
+    protected function tableUnpackValidate(string $table, string $raw): ?array
     {
         $dataset = json_decode($raw, true);
-
         if (array_key_exists($table, $this->tableConfig) == false) {
             return null;
         }
@@ -163,21 +163,49 @@ abstract class CacheTables extends CacheDatastore
         if (array_key_exists("data", $dataset) == false) {
             return null;
         }
-        if ($dataset["table"] != $table) {
+        return $dataset;
+    }
+
+    protected function tableUnpackChecks(
+        string $foundTable,
+        string $sourceTable,
+        int $time,
+        string $version
+    ): bool {
+        if ($foundTable != $sourceTable) {
             // very rare hash collided ignore the data
-            return null;
+            return false;
         }
-        if ($dataset["time"] != $this->tablesLastChanged[$table]["time"]) {
+        if ($time != $this->tablesLastChanged[$sourceTable]["time"]) {
             // table has had changes from when this data was put into cache
             // ignore the data and reload
-            return null;
+            return false;
         }
-        if ($dataset["version"] != $this->tablesLastChanged[$table]["version"]) {
+        if ($version != $this->tablesLastChanged[$sourceTable]["version"]) {
             // table version has changed
             // ignore the data and reload
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * It decrypts the data if needed, then decodes it from JSON
+     * @param string table The name of the table you want to unpack.
+     * @param string raw The raw string from the database
+     * @return ?mixed[] The data is being returned as an array.
+     */
+    protected function tableUnpackString(string $table, string $raw): ?array
+    {
+        $data = $this->tableUnpackValidate($table, $raw);
+        if ($data === null) {
             return null;
         }
-        $data = $dataset["data"];
+        if ($this->tableUnpackChecks($data["table"], $table, $data["time"], $data["version"]) == false) {
+            return null;
+        }
+
+        $data = $data["data"];
         if ($this->tableConfig[$table]["encrypt"] == true) {
             $data = $this->decrypt($data, $table . $this->encryptKeycode); // decode teh data
         }
