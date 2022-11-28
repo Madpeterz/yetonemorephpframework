@@ -9,6 +9,48 @@ use YAPF\Framework\DbObjects\GenClass\GenClass;
 abstract class CollectionSetFunctions extends CollectionSetBulk
 {
     /**
+     * > This function returns an array of object ids from the collection that match the given
+     * field to the field value
+     * @return false|int[] An array of object ids.
+     */
+    public function getObjectIdsByField(string $field, $fieldValue): false|array
+    {
+        $getter = "get" . ucFirst($field);
+        if ($this->worker->hasField($field) == false) {
+            $this->addError("Unknown fieldname: " . $field);
+            return false;
+        }
+        $reply = [];
+        foreach ($this->collected as $item) {
+            $check = $item->$getter();
+            if ($check == $fieldValue) {
+                $reply[] = $item->getId();
+            }
+        }
+        return $reply;
+    }
+
+    public function getWithFieldValue(string $field, string $fieldvalue): false|array
+    {
+        $getter = "get" . ucFirst($field);
+        if ($this->worker->hasField($field) == false) {
+            $this->addError("Unknown fieldname: " . $field);
+            return false;
+        }
+        if ($this->worker->getFieldType($field, true) != "s") {
+            $this->addError("this function is for string partial matchs only");
+            return false;
+        }
+        $reply = [];
+        foreach ($this->collected as $item) {
+            $check = $item->$getter();
+            if (str_contains($check, $fieldvalue) == true) {
+                $reply[] = $item->getId();
+            }
+        }
+        return $reply;
+    }
+    /**
      * getCollection
      * please use: getAllIds and getObjectByID
      * as this method duplicates objects increasing memory usage
