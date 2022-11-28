@@ -2,7 +2,6 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
-use YAPF\Framework\Responses\DbObjects\AutoFillReply;
 use YAPF\Framework\Responses\DbObjects\CreateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 use YAPF\Framework\Responses\DbObjects\SingleLoadReply;
@@ -58,21 +57,21 @@ abstract class GenClassDB extends GenClassControl
     }
     /**
      * loadId
-     * loads the object from the database that matches the id
+     * loads the object from the database that matches the id field
      */
-    public function loadId(?int $id): SingleLoadReply
+    public function loadId(?int $indexId): SingleLoadReply
     {
-        if ($id == false) {
-            $this->addError("Attempted to loadId but id is null!");
+        if ($indexId == false) {
+            $this->addError("Attempted to loadId but indexId is null!");
             return new SingleLoadReply($this->myLastErrorBasic);
-        } elseif ($id < 1) {
-            $this->addError("Attempted to loadId but id is less than one!");
+        } elseif ($indexId < 1) {
+            $this->addError("Attempted to loadId but indexId is less than one!");
             return new SingleLoadReply($this->myLastErrorBasic);
         }
         $whereConfig = [
             "fields" => ["id"],
             "matches" => ["="],
-            "values" => [$id],
+            "values" => [$indexId],
             "types" => ["i"],
         ];
         return $this->loadWithConfig($whereConfig);
@@ -126,65 +125,6 @@ abstract class GenClassDB extends GenClassControl
         return $this->processLoad($loadData);
     }
 
-    protected function checkAutoFillWhereConfig(?array $whereConfig): bool
-    {
-        if ($whereConfig === null) {
-            return false;
-        }
-        if (array_key_exists("fields", $whereConfig) == false) {
-            return false;
-        }
-        if (array_key_exists("values", $whereConfig) == false) {
-            return false;
-        }
-        return true;
-    }
-
-    protected function autoFillNoChangesCheck(?array &$whereConfig, bool &$expandMatches, bool &$expendTypes): bool
-    {
-        if ($this->checkAutoFillWhereConfig($whereConfig) == false) {
-            return true;
-        }
-        if (array_key_exists("matches", $whereConfig) == false) {
-            $expandMatches = true;
-            $whereConfig["matches"] = [];
-        }
-        if (array_key_exists("types", $whereConfig) == false) {
-            $expendTypes = true;
-            $whereConfig["types"] = [];
-        }
-        if (($expandMatches == false) && ($expendTypes == false)) {
-            return true;
-        }
-        return false;
-    }
-    /**
-     * autoFillWhereConfig
-     * expands whereConfig to include types [as defined by object]
-     * and matches [defaulting to =] if not given.
-     */
-    public function autoFillWhereConfig(?array $whereConfig): AutoFillReply
-    {
-        $expandMatches = false;
-        $expendTypes = false;
-        if ($this->autoFillNoChangesCheck($whereConfig, $expandMatches, $expendTypes) == true) {
-            return new AutoFillReply("No changes needed", true, $whereConfig);
-        }
-        foreach ($whereConfig["fields"] as $field) {
-            if ($expandMatches == true) {
-                $whereConfig["matches"][] = "=";
-            }
-            if ($expendTypes == false) {
-                continue;
-            }
-            $typeCode = $this->getFieldType($field, true);
-            if ($typeCode === null) {
-                return new AutoFillReply("Failed: getFieldType");
-            }
-            $whereConfig["types"][] = $typeCode;
-        }
-        return new AutoFillReply("ok", true, $whereConfig);
-    }
     /**
      * processLoad
      * takes the result of the mysqli select

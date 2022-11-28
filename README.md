@@ -1,10 +1,10 @@
 # Getting started
-```
+```cli
 composer require madpeterz/yetonemorephpframework
 ```
 
 ## Optional extras
-```
+```cli
 - Input filter
 composer require madpeterz/yapfinputfilter
 
@@ -19,5 +19,5 @@ composer require madpeterz/yapfinputfilter
 | yapfinputfilter | 2.x | 4.x | 7.4 |
 | yapfinputfilter | 1.x | 3.x | 7.4 |
 
-### Guides and stuff:
+### More details
 [Wiki](https://github.com/Madpeterz/yetonemorephpframework/wiki)
