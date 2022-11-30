@@ -45,7 +45,7 @@ abstract class GenClassControl extends GenClassFunctions implements Iterator
 
     // end Iterator
 
-        /**
+    /**
      * It returns an array of fields that are the same as the default values
      * @param checkFields An array of fields to check. If null, all fields will be checked.
      * @param array excludeFields An array of fields to exclude from the list of fields to check.
