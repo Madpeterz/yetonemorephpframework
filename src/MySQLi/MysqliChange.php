@@ -153,7 +153,9 @@ abstract class MysqliChange extends MysqliWhere
             $index = $loop;
             $loop++;
             $updateConfig["values"][$index] = $this->convertIfBool($updateConfig["values"][$index]);
-            if (($updateConfig["values"][$index] == null) && ($updateConfig["values"][$index] !== 0)) {
+            if (($updateConfig["values"][$index] === null) && ($updateConfig["values"][$index] !== 0)) {
+                $this->addError("switching field " . $updateConfig["fields"][$loop] .
+                " value to null " . $updateConfig["values"][$index]);
                 $sql .= "NULL";
                 continue;
             }
