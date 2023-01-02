@@ -219,7 +219,7 @@ abstract class MysqliChange extends MysqliWhere
         while ($loop < count($config["values"])) {
             $sql .= $addon;
             $value = $config["values"][$loop];
-            if (($value == null) && ($value !== 0)) {
+            if (($value == null) && (intval($value) !== 0)) {
                 $sql .= " NULL";
             } else {
                 $sql .= "?";
