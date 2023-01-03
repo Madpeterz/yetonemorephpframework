@@ -154,13 +154,14 @@ abstract class MysqliChange extends MysqliWhere
             $index = $loop;
             $loop++;
             $updateConfig["values"][$index] = $this->FunctionHelper->convertIfBool($updateConfig["values"][$index]);
-            if (($updateConfig["values"][$index] == null) && ($updateConfig["values"][$index] !== 0)) {
+            $testvalue = $updateConfig["values"][$index];
+            if (($testvalue == null) && (intval($testvalue) !== 0) && (is_float($testvalue) == false)) {
                 $sql .= "NULL";
                 continue;
             }
             $sql .= "?";
             $bindText .= $updateConfig["types"][$index];
-            $bindArgs[] = $updateConfig["values"][$index];
+            $bindArgs[] = $testvalue;
         }
         // where fields
         $this->queryStats["updates"]++;
@@ -217,16 +218,16 @@ abstract class MysqliChange extends MysqliWhere
         $addon = "";
         while ($loop < count($config["values"])) {
             $sql .= $addon;
-            $value = $config["values"][$loop];
             $addon = " , ";
-            if (($value == null) && ($value !== 0)) {
+            $testvalue = $this->FunctionHelper->convertIfBool($config["values"][$loop]);
+            if (($testvalue == null) && (intval($testvalue) !== 0) && (is_float($testvalue) == false)) {
                 $sql .= " NULL";
                 $loop++;
                 continue;
             }
             $sql .= "?";
             $bindText .= $config["types"][$loop];
-            $bindArgs[] = $value;
+            $bindArgs[] = $testvalue;
             $loop++;
         }
         $sql .= ")";
