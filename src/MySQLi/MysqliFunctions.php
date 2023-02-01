@@ -19,6 +19,7 @@ abstract class MysqliFunctions extends Db
 
     public function __construct()
     {
+        parent::__construct(); // allow Db to adjust setup for ENV based systems
         $this->FunctionHelper = new FunctionHelper();
         $this->addError("SQL service in construct selected DB: " . $this->dbName . " on host: " . $this->dbHost);
     }
