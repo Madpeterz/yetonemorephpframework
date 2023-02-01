@@ -408,6 +408,7 @@ abstract class MysqliFunctions extends Db
             $sqlHost = $this->dbHost;
         }
         try {
+            $this->addError("staring sql: " . json_encode([$sqlHost, $sqlUser, $databaseName]));
             $status = mysqli_real_connect($this->sqlConnection, $sqlHost, $sqlUser, $sqlUserPassword, $databaseName);
             if ($status == true) {
                 if ($stop == true) {
