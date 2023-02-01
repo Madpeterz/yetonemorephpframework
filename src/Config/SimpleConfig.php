@@ -69,6 +69,7 @@ class SimpleConfig extends ErrorLogging
     public function &getSQL(): ?MysqliEnabled
     {
         if (($this->sql == null) && ($this->enableRestart == true)) {
+            $this->addError("Starting SQL service");
             $this->sql = new MysqliEnabled();
         }
         return $this->sql;

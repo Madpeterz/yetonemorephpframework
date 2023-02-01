@@ -20,6 +20,7 @@ abstract class MysqliFunctions extends Db
     public function __construct()
     {
         $this->FunctionHelper = new FunctionHelper();
+        $this->addError("SQL service in construct selected DB: " . $this->dbName . " on host: " . $this->dbHost);
     }
     public function getNeedsCommit(): bool
     {
