@@ -143,12 +143,18 @@ class SimpleConfig extends ErrorLogging
 
     protected function startRedisCache(): void
     {
-        $this->Cache = new CacheWorker(new Redis());
+        $this->Cache = new CacheWorker($this->connectRedisToSource());
+    }
+
+    protected function connectRedisToSource(): Redis
+    {
+        $driver = new Redis();
+        $driver->setTimeout($this->redisTimeout);
         if ($this->redisUnix == true) {
-            $this->Cache->getDriver()->connectUnix($this->redisSocket);
-            return;
+            $driver->connectUnix($this->redisSocket);
+            return $driver;
         }
-        $this->Cache->getDriver()->setTimeout($this->redisTimeout);
-        $this->Cache->getDriver()->connectTCP($this->redisHost, $this->redisPort);
+        $driver->connectTCP($this->redisHost, $this->redisPort);
+        return $driver;
     }
 }
