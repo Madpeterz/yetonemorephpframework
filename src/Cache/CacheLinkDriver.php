@@ -21,7 +21,7 @@ abstract class CacheLinkDriver extends CacheTables
      * table.
      * @return ?mixed[] The data from the cache.
      */
-    public function readHash(string $table, string $hash, bool $asSingle): ?array
+    public function readHash(string $table, ?string $hash, bool $asSingle): ?array
     {
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return null;
