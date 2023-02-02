@@ -35,12 +35,15 @@ abstract class CacheLinkDriver extends CacheTables
 
     public function writeHash(
         string $table,
-        string $hash,
+        ?string $hash,
         ?array $data,
         bool $asSingle
     ): WriteReply {
         if ($this->tableUsesCache($table, $asSingle) == false) {
             return new WriteReply("not supported");
+        }
+        if ($hash == null) {
+            return new WriteReply("No hash given");
         }
         if ($data == null) {
             return new WriteReply("no data was given");
