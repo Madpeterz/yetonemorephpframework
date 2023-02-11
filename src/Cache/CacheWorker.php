@@ -3,6 +3,7 @@
 namespace YAPF\Framework\Cache;
 
 use YAPF\Framework\Cache\Drivers\Framework\CacheDriver;
+use YAPF\Framework\Responses\Cache\PurgeReply;
 use YAPF\Framework\Responses\Cache\StatsReply;
 
 class CacheWorker extends CacheLinkDriver
@@ -77,6 +78,11 @@ class CacheWorker extends CacheLinkDriver
         }
         $this->pendingWriteKeys = [];
         return $reply->status;
+    }
+
+    public function purge(): PurgeReply
+    {
+        return $this->driver->purgeAllKeys();
     }
 
     public function shutdown(): void
