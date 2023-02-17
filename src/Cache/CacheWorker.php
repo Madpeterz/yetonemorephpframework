@@ -49,21 +49,19 @@ class CacheWorker extends CacheLinkDriver
 
     public function save(): bool
     {
-        $allOk = true;
+
         $key = $this->keyPrefix . "tablesChangedInfo" . $this->keySuffix;
         $reply = $this->driver->writeKey($key, json_encode($this->tablesLastChanged), time() + (15 * 60));
         if ($reply->status == false) {
+            $this->addError("Failed to write tablesChangedInfo on key: " . $key . " because:" . $reply->message);
             return false;
         }
         $reply = $this->driver->deleteKeys(array_keys($this->pendingDeleteKeys));
         if ($reply->status == false) {
-            $allOk = false;
             $this->addError($reply->message);
-        }
-        $this->pendingDeleteKeys = [];
-        if ($allOk == false) {
             return false;
         }
+        $this->pendingDeleteKeys = [];
         foreach ($this->pendingWriteKeys as $key => $table) {
             $reply = $this->driver->writeKey(
                 $key,
@@ -72,12 +70,11 @@ class CacheWorker extends CacheLinkDriver
             );
             if ($reply->status == false) {
                 $this->addError($reply->message);
-                $allOk = false;
-                break;
+                return false;
             }
         }
         $this->pendingWriteKeys = [];
-        return $reply->status;
+        return true;
     }
 
     public function purge(): PurgeReply

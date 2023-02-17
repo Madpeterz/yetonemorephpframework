@@ -360,6 +360,8 @@ abstract class GenClassDB extends GenClassControl
     {
         if ($this->cache != null) {
             $this->cache->markChangeToTable($this->getTable());
+            return;
         }
+        $this->addError("No cache supported");
     }
 }
