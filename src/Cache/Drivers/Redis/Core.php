@@ -91,11 +91,19 @@ abstract class Core extends CacheDriver
         return new CacheStatusReply($ex->getMessage());
     }
 
-    public function stop(): void
+    public function stop(): bool
     {
         if ($this->disconnected == false) {
-            $this->client->disconnect();
+            if ($this->client == null) {
+                $this->addError("No client to disconnect!");
+                return false;
+            }
+            if ($this->client->disconnect() == false) {
+                $this->addError($this->client->getLastErrorBasic());
+                return false;
+            }
         }
         $this->disconnected = true;
+        return true;
     }
 }

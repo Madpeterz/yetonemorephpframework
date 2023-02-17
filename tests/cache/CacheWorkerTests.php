@@ -166,7 +166,29 @@ class CacheWorkerTests extends TestCase
         $this->assertSame(0, $stats->reads, "reads counter is wrong :/");
         $this->assertSame(1, $stats->miss, "miss counter is wrong :/");
         $this->assertSame(1, $stats->writes, "writes counter is wrong :/");
+    }
 
-
+    public function testVersionChanges()
+    {
+        $cache = $this->getCache();
+        $this->assertSame("All keys deleted",$cache->purge()->message,"Failed to purge cache");
+        $cache = $this->getCache();
+        $cache->forceAdjustTablesLastChanged("test.counttoonehundo", "time", time()-20);
+        $cache->forceAdjustTablesLastChanged("test.counttoonehundo", "version", 1);
+        $version = $cache->gettablesLastChanged();
+        $this->assertSame(1, $version["test.counttoonehundo"]["version"], "version setup bad");
+        $Counttoonehundo = new Counttoonehundo();
+        $cache->addTableToCache($Counttoonehundo->getTable(), 15, true, true, false);
+        $Counttoonehundo->attachCache($cache);
+        $Counttoonehundo->loadId(1);
+        $Counttoonehundo->setCvalue(99);
+        $reply = $Counttoonehundo->updateEntry();
+        $this->assertSame(true, $reply->status, "Failed to update entry");
+        $this->assertSame("updated version 1 => 2", $cache->getLastErrorBasic(), "failed to update version");
+        $this->assertSame(true, $cache->shutdown(), "failed to write changes to db: ".$cache->getLastErrorBasic());
+        $this->assertSame("Cache save finished", $cache->getLastErrorBasic(), "incorrect cache shutdown message");
+        $cache = $this->getCache();
+        $version = $cache->gettablesLastChanged();
+        $this->assertSame(2, $version["test.counttoonehundo"]["version"], "version setup bad");
     }
 }

@@ -20,7 +20,7 @@ interface CacheInterface
     public function hasKey(string $key): CacheStatusReply;
     public function purgeAllKeys(): PurgeReply;
     public function start(): CacheStatusReply;
-    public function stop(): void;
+    public function stop(): bool;
     public function driverName(): string;
     public function setTimeout(int $timeout = 2): bool;
     public function getKeyLength(): int;

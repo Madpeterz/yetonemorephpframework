@@ -10,4 +10,7 @@ class Db extends ErrorLogging
     public $dbName = "test";
     public $dbUser = "testsuser";
     public $dbPass = "testsuserPW";
+    public function __construct()
+    {
+    }
 }

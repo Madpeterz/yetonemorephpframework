@@ -42,15 +42,19 @@ abstract class CacheTables extends CacheDatastore
     public function markChangeToTable(string $table): void
     {
         if (is_array($this->tablesLastChanged) == false) {
+            $this->addError("Table: " . $table . " is not tracked");
             return;
         }
         if (array_key_exists($table, $this->tableConfig) == false) {
+            $this->addError("Table: " . $table . " is missing the config");
             return;
         }
-        $vnumber = $this->tablesLastChanged[$table]["version"] + 1;
+        $old = $this->tablesLastChanged[$table]["version"];
+        $vnumber = $old + 1;
         if ($vnumber > 999) {
             $vnumber = 1;
         }
+        $this->addError("updated version " . $old . " => " . $vnumber);
         $this->tablesLastChanged[$table] = ["version" => $vnumber, "time" => time()];
     }
 

@@ -49,7 +49,6 @@ class CacheWorker extends CacheLinkDriver
 
     public function save(): bool
     {
-
         $key = $this->keyPrefix . "tablesChangedInfo" . $this->keySuffix;
         $reply = $this->driver->writeKey($key, json_encode($this->tablesLastChanged), time() + (15 * 60));
         if ($reply->status == false) {
@@ -73,6 +72,7 @@ class CacheWorker extends CacheLinkDriver
                 return false;
             }
         }
+        $this->addError("Cache save finished");
         $this->pendingWriteKeys = [];
         return true;
     }
