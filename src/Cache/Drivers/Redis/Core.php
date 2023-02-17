@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\Cache\Drivers\Redis;
 
+use Exception;
 use Predis\Client as RedisClient;
 use Throwable;
 use YAPF\Framework\Cache\Drivers\Framework\CacheDriver;
@@ -98,8 +99,10 @@ abstract class Core extends CacheDriver
                 $this->addError("No client to disconnect!");
                 return false;
             }
-            if ($this->client->disconnect() == false) {
-                $this->addError($this->client->getLastErrorBasic());
+            try {
+                $this->client->disconnect();
+            } catch (Exception $e) {
+                $this->addError($e->getMessage());
                 return false;
             }
         }
