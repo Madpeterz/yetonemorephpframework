@@ -85,10 +85,12 @@ class CacheWorker extends CacheLinkDriver
         return $this->driver->purgeAllKeys();
     }
 
-    public function shutdown(): void
+    public function shutdown(bool $enableSave = true): void
     {
-        // write pending changes
-        $this->save();
+        if ($enableSave == true) {
+            // write pending changes
+            $this->save();
+        }
         // stop the driver
         $this->driver->stop();
     }
