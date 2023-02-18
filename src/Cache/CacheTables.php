@@ -153,27 +153,27 @@ abstract class CacheTables extends CacheDatastore
     {
         $dataset = json_decode($raw, true);
         if (array_key_exists($table, $this->tableConfig) == false) {
-            error_log("table is not supported by config");
+            $this->addError("table is not supported by config");
             return null;
         }
         if (array_key_exists($table, $this->tablesLastChanged) == false) {
-            error_log("table is not tracked by last changed");
+            $this->addError("table is not tracked by last changed");
             return null;
         }
         if (array_key_exists("table", $dataset) == false) {
-            error_log("table is not indexed");
+            $this->addError("table is not indexed");
             return null;
         }
         if (array_key_exists("time", $dataset) == false) {
-            error_log("table index is broken <time>");
+            $this->addError("table index is broken <time>");
             return null;
         }
         if (array_key_exists("version", $dataset) == false) {
-            error_log("table index is broken <version>");
+            $this->addError("table index is broken <version>");
             return null;
         }
         if (array_key_exists("data", $dataset) == false) {
-            error_log("table index is broken <data>");
+            $this->addError("table index is broken <data>");
             return null;
         }
         return $dataset;
@@ -189,7 +189,7 @@ abstract class CacheTables extends CacheDatastore
             // very rare hash collided ignore the data
             return false;
         }
-        error_log(json_encode([
+        $this->addError(json_encode([
             "time" => $time,
             "tableTime" => $this->tablesLastChanged[$sourceTable]["time"],
             "version" => $version,
