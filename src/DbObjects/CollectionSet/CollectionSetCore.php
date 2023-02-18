@@ -143,10 +143,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->indexes = array_keys($this->collected);
     }
 
-    public function setCacheAllowChanged(bool $status = true): void
-    {
-        $this->cacheAllowChanged = $status;
-    }
     /**
      * makeWorker
      * creates the worker object for the collection set

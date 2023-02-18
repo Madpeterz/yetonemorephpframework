@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
+use YAPF\Framework\Responses\DbObjects\AgeDetails;
 use YAPF\Framework\Responses\DbObjects\CreateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 use YAPF\Framework\Responses\DbObjects\SingleLoadReply;
@@ -10,6 +11,20 @@ use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 abstract class GenClassDB extends GenClassControl
 {
+    protected bool $loadedFromCache = false;
+    protected int $cacheVersion = 0;
+    protected int $age = 0;
+    public function setLoadInfo(int $version, int $age, bool $fromCache = false): void
+    {
+        $this->loadedFromCache = $fromCache;
+        $this->cacheVersion = $version;
+        $this->age = $age;
+    }
+    public function getLoadDetails(): AgeDetails
+    {
+        return new AgeDetails($this->loadedFromCache, $this->age, $this->cacheVersion);
+    }
+
     /**
      * loadMatching
      * a very limited loading system
@@ -111,7 +126,11 @@ abstract class GenClassDB extends GenClassControl
             );
             $hitCache = $this->cache->readHash($this->getTable(), $currentHash, true);
             if (is_array($hitCache) == true) {
-                return $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
+                $load = $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
+                if ($load->status == true) {
+                    $this->setLoadInfo($hitCache["version"], $hitCache["time"], true);
+                }
+                return $load;
             }
         }
 
@@ -122,7 +141,11 @@ abstract class GenClassDB extends GenClassControl
             // push data to cache so we can avoid reading from DB as much
             $this->cache->writeHash($this->getTable(), $currentHash, $loadData->dataset, true);
         }
-        return $this->processLoad($loadData);
+        $load = $this->processLoad($loadData);
+        if ($load->status == true) {
+            $this->setLoadInfo(-1, time());
+        }
+        return $load;
     }
 
     /**

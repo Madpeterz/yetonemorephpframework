@@ -323,7 +323,12 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
             $hitCache = $this->cache->readHash($this->getTable(), $currentHash, false);
             if (is_array($hitCache) == true) {
                 // Valid data from cache!
-                return $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
+                return $this->processLoad(
+                    new SelectReply("from cache", true, $hitCache["data"]),
+                    true,
+                    $hitCache["version"],
+                    $hitCache["time"]
+                );
             }
         }
         // Cache missed, read from the DB
@@ -384,8 +389,15 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      * takes the reply from mysqli and fills out objects and builds the collection
      * @return mixed[] [status =>  bool, count => integer, message =>  string]
      */
-    protected function processLoad(SelectReply $loadData): SetsLoadReply
-    {
+    protected function processLoad(
+        SelectReply $loadData,
+        bool $fromCache = false,
+        int $version = 1,
+        int $age = -1
+    ): SetsLoadReply {
+        if ($age == -1) {
+            $age = time();
+        }
         if ($loadData->status == false) {
             $this->addError("loadData status is false");
             return new SetsLoadReply($this->myLastErrorBasic);
@@ -398,6 +410,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
                 $new_object->noUpdates();
             }
             if ($new_object->isLoaded() == true) {
+                $new_object->setLoadInfo($version, $age, $fromCache);
                 $this->collected[$entry["id"]] = $new_object;
             }
         }
