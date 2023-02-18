@@ -25,6 +25,7 @@ class RedisTests extends TestCase
      */
     public function testWriteEntry(): void
     {
+        $this->getCache()->purgeAllKeys();
         $cache = $this->getCache();
         $cache->start();
         $result = $cache->writeKey("hello", "world", time()+120);

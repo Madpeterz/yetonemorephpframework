@@ -153,18 +153,27 @@ abstract class CacheTables extends CacheDatastore
     {
         $dataset = json_decode($raw, true);
         if (array_key_exists($table, $this->tableConfig) == false) {
+            error_log("table is not supported by config");
             return null;
         }
         if (array_key_exists($table, $this->tablesLastChanged) == false) {
+            error_log("table is not tracked by last changed");
             return null;
         }
         if (array_key_exists("table", $dataset) == false) {
+            error_log("table is not indexed");
             return null;
         }
         if (array_key_exists("time", $dataset) == false) {
+            error_log("table index is broken <time>");
+            return null;
+        }
+        if (array_key_exists("version", $dataset) == false) {
+            error_log("table index is broken <version>");
             return null;
         }
         if (array_key_exists("data", $dataset) == false) {
+            error_log("table index is broken <data>");
             return null;
         }
         return $dataset;
@@ -180,6 +189,12 @@ abstract class CacheTables extends CacheDatastore
             // very rare hash collided ignore the data
             return false;
         }
+        error_log(json_encode([
+            "time" => $time,
+            "tableTime" => $this->tablesLastChanged[$sourceTable]["time"],
+            "version" => $version,
+            "tableVersion" => $this->tablesLastChanged[$sourceTable]["version"],
+        ]));
         if ($time != $this->tablesLastChanged[$sourceTable]["time"]) {
             // table has had changes from when this data was put into cache
             // ignore the data and reload
@@ -208,14 +223,12 @@ abstract class CacheTables extends CacheDatastore
         if ($this->tableUnpackChecks($data["table"], $table, $data["time"], $data["version"]) == false) {
             return null;
         }
-
-        $data = $data["data"];
         if ($this->tableConfig[$table]["encrypt"] == true) {
-            $data = $this->decrypt($data, $table . $this->encryptKeycode); // decode teh data
+            $data["data"] = $this->decrypt($data["data"], $table . $this->encryptKeycode); // decode teh data
         }
         try {
-            $dataarray = json_decode($data, true); // convert the json into an array
-            return $dataarray;
+            $data["data"] = json_decode($data["data"], true); // convert the json into an array
+            return $data;
         } catch (Exception $e) {
             return null;
         }

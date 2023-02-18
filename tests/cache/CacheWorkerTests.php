@@ -94,8 +94,8 @@ class CacheWorkerTests extends TestCase
         $cache->addTableToCache("demo" , 10, true, true, false);
         $reply = $cache->readHash("demo", "63993f21a85dc22e8585", true);
         $this->assertSame(true, is_array($reply), "Failed to read hash as expected");
-        $this->assertSame(true, array_key_exists("unittest", $reply), "missing unittest key from recovered data");
-        $this->assertSame("yes", $reply["unittest"], "incorrect value from recovered data");
+        $this->assertSame(true, array_key_exists("unittest", $reply["data"]), "missing unittest key from recovered data");
+        $this->assertSame("yes", $reply["data"]["unittest"], "incorrect value from recovered data");
     }
 
     /**
@@ -168,6 +168,9 @@ class CacheWorkerTests extends TestCase
         $this->assertSame(1, $stats->writes, "writes counter is wrong :/");
     }
 
+    /**
+     * @depends testObjectUsesCache
+     */
     public function testVersionChanges()
     {
         $cache = $this->getCache();
@@ -190,5 +193,67 @@ class CacheWorkerTests extends TestCase
         $cache = $this->getCache();
         $version = $cache->gettablesLastChanged();
         $this->assertSame(2, $version["test.counttoonehundo"]["version"], "version setup bad");
+        $this->assertSame("All keys deleted",$cache->purge()->message,"Failed to purge cache");
+    }
+
+    /**
+     * @depends testVersionChanges
+     */
+    public function testReadUpdateVersionChanges()
+    {
+        $cache = $this->getCache();
+        $reply = $cache->purge();
+        $this->assertSame(true,$reply->status,"Keys not deleted");
+        $this->assertGreaterThan(0, $reply->keysDeleted, "No keys deleted");
+        $this->assertSame(0, count($cache->getDriver()->listKeys()->keys), "Incorrect number of keys");
+        $Counttoonehundo = new Counttoonehundo();
+        $cache->addTableToCache($Counttoonehundo->getTable(), 15, true, true, false);
+        $Counttoonehundo->attachCache($cache);
+        $Counttoonehundo->loadId(16);
+        $Counttoonehundo->setCvalue(55);
+        $stats = $cache->getStats();
+        $this->assertSame(0, $stats->reads, "expected a cache miss");
+        $this->assertSame(1, $stats->miss, "expected a cache miss");
+        $this->assertSame(1, $stats->writes, "expected a cache miss");
+        $this->assertSame(55, $Counttoonehundo->getCvalue(), "Expected load value is not correct");
+        $version = $cache->gettablesLastChanged();
+        $this->assertSame(2, $version["test.counttoonehundo"]["version"], "version setup bad");
+        $Counttoonehundo->setCvalue(32);
+        $reply = $Counttoonehundo->updateEntry();
+        $this->assertSame(true, $reply->status, "Failed to update entry");
+        $this->assertSame(2, $version["test.counttoonehundo"]["version"], "version setup bad");
+        $stats = $cache->getStats();
+        $this->assertSame(0, $stats->reads, "expected a cache miss");
+        $this->assertSame(1, $stats->miss, "expected a cache miss");
+        $this->assertSame(1, $stats->writes, "expected a cache miss");
+        $cache->shutdown();
+        $cache = $this->getCache();
+        $cache->addTableToCache($Counttoonehundo->getTable(), 15, true, true, false);
+        $version = $cache->gettablesLastChanged();
+        $this->assertSame(3, $version["test.counttoonehundo"]["version"], "version setup bad");
+        $Counttoonehundo->attachCache($cache);
+        $Counttoonehundo->loadId(16);
+        $stats = $cache->getStats();
+        $this->assertSame(1, $stats->reads, "expected a cache read");
+        $this->assertSame(0, $stats->miss, "expected a cache read");
+        $this->assertSame(1, $stats->writes, "expected a cache read");
+        $this->assertSame(32, $Counttoonehundo->getCvalue(), "Expected load value is not correct"); 
+        $cache->shutdown();
+        $cache = $this->getCache();
+        $cache->addTableToCache($Counttoonehundo->getTable(), 15, true, true, false);
+        $stats = $cache->getStats();
+        $this->assertSame(0, $stats->reads, "stats should be empty");
+        $this->assertSame(0, $stats->miss, "stats should be empty");
+        $this->assertSame(0, $stats->writes, "stats should be empty");
+        $Counttoonehundo = new Counttoonehundo();
+        $Counttoonehundo->attachCache($cache);
+        $Counttoonehundo->loadId(16);
+        $stats = $cache->getStats();
+        $this->assertSame(1, $stats->reads, "expected a cache read");
+        $this->assertSame(0, $stats->miss, "expected a cache read");
+        $this->assertSame(0, $stats->writes, "expected a cache read");
+        $this->assertSame(32, $Counttoonehundo->getCvalue(), "Expected load value is not correct"); 
+        
+
     }
 }

@@ -111,7 +111,7 @@ abstract class GenClassDB extends GenClassControl
             );
             $hitCache = $this->cache->readHash($this->getTable(), $currentHash, true);
             if (is_array($hitCache) == true) {
-                return $this->processLoad(new SelectReply("from cache", true, $hitCache));
+                return $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
             }
         }
 
