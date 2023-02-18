@@ -16,6 +16,8 @@ abstract class GenClassDB extends GenClassControl
     protected int $age = 0;
     public function setLoadInfo(int $version, int $age, bool $fromCache = false): void
     {
+        $this->addError("setting load details: " .
+            json_encode(["version" => $version, "age" => $age, "cache" => $fromCache]));
         $this->loadedFromCache = $fromCache;
         $this->cacheVersion = $version;
         $this->age = $age;
@@ -115,6 +117,7 @@ abstract class GenClassDB extends GenClassControl
         $whereConfig = $loadWhereConfig->data;
         // Cache support
         if ($this->cache != null) {
+            $this->addError("Attempting to read from cache");
             $currentHash = $this->cache->getHash(
                 $this->getTable(),
                 count($this->getFields()),
@@ -126,14 +129,17 @@ abstract class GenClassDB extends GenClassControl
             );
             $hitCache = $this->cache->readHash($this->getTable(), $currentHash, true);
             if (is_array($hitCache) == true) {
+                $this->addError("Loading from cache with data: " . json_encode($hitCache));
                 $load = $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
-                if ($load->status == true) {
-                    $this->setLoadInfo($hitCache["version"], $hitCache["time"], true);
+                if ($load->status == false) {
+                    $this->addError("Error processing load: " . $load->message);
+                    return $load;
                 }
+                $this->setLoadInfo($hitCache["version"], $hitCache["time"], true);
                 return $load;
             }
         }
-
+        $this->addError("Loading from DB");
         $this->sql->setExpectedErrorFlag($this->expectedSqlLoadError);
         $loadData = $this->sql->selectV2($basic_config, null, $whereConfig);
         $this->sql->setExpectedErrorFlag(false);

@@ -235,15 +235,13 @@ class CacheWorkerTests extends TestCase
         $this->assertSame(3, $version["test.counttoonehundo"]["version"], "version setup bad");
         $this->assertSame(-1, $Counttoonehundo->getLoadDetails()->version, "loaded object should not have a version mark");
         $this->assertSame(false, $Counttoonehundo->getLoadDetails()->cache, "loaded object should not be marked as from cache");
-        
+        $Counttoonehundo = new Counttoonehundo();
         $Counttoonehundo->attachCache($cache);
         $Counttoonehundo->loadId(16);
         $stats = $cache->getStats();
         $this->assertSame(1, $stats->reads, "expected a cache read");
         $this->assertSame(0, $stats->miss, "expected a cache read");
         $this->assertSame(1, $stats->writes, "expected a cache read");
-        $this->assertSame(false, $Counttoonehundo->getLoadDetails()->cache, "loaded object should have loaded from cache");
-        $this->assertSame(-1, $Counttoonehundo->getLoadDetails()->version, "loaded object should have version id");
         $this->assertSame(32, $Counttoonehundo->getCvalue(), "Expected load value is not correct"); 
         $cache->shutdown();
         $cache = $this->getCache();
@@ -255,10 +253,13 @@ class CacheWorkerTests extends TestCase
         $Counttoonehundo = new Counttoonehundo();
         $Counttoonehundo->attachCache($cache);
         $Counttoonehundo->loadId(16);
+
         $stats = $cache->getStats();
         $this->assertSame(1, $stats->reads, "expected a cache read");
         $this->assertSame(0, $stats->miss, "expected a cache read");
         $this->assertSame(0, $stats->writes, "expected a cache read");
+        $this->assertSame(true, $Counttoonehundo->getLoadDetails()->cache, "loaded object should have loaded from cache");
+        $this->assertGreaterThan(0, $Counttoonehundo->getLoadDetails()->version, "loaded object should have version id");
         $this->assertSame(32, $Counttoonehundo->getCvalue(), "Expected load value is not correct"); 
     }
 }
