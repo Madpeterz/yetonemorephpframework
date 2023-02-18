@@ -323,7 +323,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
             $hitCache = $this->cache->readHash($this->getTable(), $currentHash, false);
             if (is_array($hitCache) == true) {
                 // Valid data from cache!
-                return $this->processLoad(new SelectReply("from cache", true, $hitCache));
+                return $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
             }
         }
         // Cache missed, read from the DB
