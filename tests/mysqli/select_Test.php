@@ -108,9 +108,7 @@ class MysqliSelectTest extends TestCase
             "matches" => ["lol"]
         ];
         $this->sql->fullSqlErrors = false;
-        $this->sql->vailatematchtype = true;
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
-        $this->sql->vailatematchtype = false;
         // [dataset => mixed[mixed[]], status => bool, message => string]
         $this->assertSame($result->message, "Where config failed: Unsupported where match type!");
         $this->assertSame($result->items, 0);
