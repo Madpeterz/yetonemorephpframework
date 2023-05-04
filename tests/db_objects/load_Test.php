@@ -2,8 +2,8 @@
 
 namespace YAPF\Junk;
 
+use App\Config as AppConfig;
 use PHPUnit\Framework\TestCase;
-use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
 use YAPF\Junk\Models\Relationtestinga;
@@ -20,7 +20,7 @@ class DbObjectsLoadTest extends TestCase
     protected function setUp(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new AppConfig();
     }
     protected function tearDown(): void
     {

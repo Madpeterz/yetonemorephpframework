@@ -2,8 +2,8 @@
 
 namespace YAPF\Junk;
 
+use App\Config;
 use PHPUnit\Framework\TestCase;
-use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Relationtestingb;
@@ -14,7 +14,7 @@ class DbObjectsRemoveTest extends TestCase
     protected function setUp(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
     }
     protected function tearDown(): void
     {

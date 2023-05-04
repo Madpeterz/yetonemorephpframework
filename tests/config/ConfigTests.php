@@ -2,6 +2,7 @@
 
 namespace YAPF\Junk;
 
+use App\Config;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Sets\CounttoonehundoSet;
@@ -11,7 +12,7 @@ class ConfigTests extends TestCase
     public function test_forcePushToCache(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
         $system->configCacheRedisTCP("127.0.0.1");
         $system->setupCache();
         $countto = new CounttoonehundoSet();
@@ -27,7 +28,7 @@ class ConfigTests extends TestCase
     public function test_ConfigCacheFlagRedis(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
         $system->configCacheRedisTCP("127.0.0.1");
         $system->setupCache();
         $countto = new CounttoonehundoSet();
@@ -45,7 +46,7 @@ class ConfigTests extends TestCase
     public function test_ConfigCacheFlagNoCache(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
         $countto = new CounttoonehundoSet();
         $system->configCacheDisabled();
         $system->setupCache();

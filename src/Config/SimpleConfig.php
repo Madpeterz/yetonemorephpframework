@@ -8,7 +8,7 @@ use YAPF\Core\ErrorControl\ErrorLogging;
 use YAPF\Framework\Cache\CacheWorker;
 use YAPF\Framework\MySQLi\MysqliEnabled;
 
-class SimpleConfig extends ErrorLogging
+abstract class SimpleConfig extends ErrorLogging
 {
     // Cache
     protected ?CacheWorker $Cache = null;

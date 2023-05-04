@@ -2,6 +2,7 @@
 
 namespace YAPF\Junk;
 
+use App\Config;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
@@ -30,7 +31,7 @@ class DbObjectsSupportTest extends TestCase
     protected function setUp(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
     }
     protected function tearDown(): void
     {
@@ -47,7 +48,7 @@ class DbObjectsSupportTest extends TestCase
     public function testLastSQlWithNullGlobalSql()
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
         $testing = new liketests();
         $this->assertSame($testing->getLastSql(), "");
     }

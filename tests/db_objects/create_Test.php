@@ -2,6 +2,7 @@
 
 namespace YAPF\Junk;
 
+use App\Config;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Junk\Models\Alltypestable;
@@ -12,7 +13,7 @@ class DbObjectsCreateTest extends TestCase
     protected function setUp(): void
     {
         global $system;
-        $system = new SimpleConfig();
+        $system = new Config();
     }
     protected function tearDown(): void
     {

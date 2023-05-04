@@ -1,6 +1,6 @@
 <?php
 
-namespace YAPFtest;
+namespace App;
 
 use Throwable;
 use mysqli;
@@ -14,4 +14,9 @@ error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
 
 include("vendor/autoload.php");
 include("tests/test.db.php");
-$system = new SimpleConfig();
+
+class Config extends SimpleConfig
+{
+
+}
+$system = new Config();
