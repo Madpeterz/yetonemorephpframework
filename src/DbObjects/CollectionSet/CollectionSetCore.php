@@ -108,7 +108,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
             );
             $hitCache = $this->cache->readHash($this->worker->getTable(), $currentHash, false);
             if (is_array($hitCache) == true) {
-                return new CountReply("from cache", true, $hitCache["count"]);
+                return new CountReply("from cache", true, $hitCache["data"]["count"]);
             }
         }
 

@@ -2,8 +2,10 @@
 
 namespace YAPF\Junk;
 
+use App\Config;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Cache\Drivers\Redis;
+use YAPF\Junk\Sets\LiketestsSet;
 
 class RedisTests extends TestCase
 {
@@ -156,6 +158,35 @@ class RedisTests extends TestCase
         $result = $cache->readKey("magic");
         $this->assertSame("missile", $result->value, "failed to read from cache: ".$result->message);
         $cache->deleteKey("magic");
+    }
+
+    /**
+     * @depends testRecoverRead
+     */
+    public function testcountInDBRedis(): void
+    {
+        global $system;
+        $system = new Config();
+        $system->configCacheRedisTCP("localhost");
+        $system->setupCache();
+        $system->getCacheWorker()->addTableToCache("test.liketests", 15, true, true, false);
+        $system->getCacheWorker()->purge();
+        $testing = new LiketestsSet();
+        $reply = $testing->countInDB();
+        $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
+        $this->assertSame($expectedSQL,$testing->getLastSql(),"SQL is not what was expected");
+        $this->assertSame(true,$reply->status,"count in db failed in some way: ".$reply->message);
+        $this->assertSame(4,$reply->items,"incorrect count reply");
+        $this->assertSame(1, $system->getCacheWorker()->getStats()->writes, "expected to write 1 thing");
+
+        $testing = new LiketestsSet();
+        $testing->enableConsoleErrors();
+        $reply = $testing->countInDB();
+        $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
+        $this->assertSame($expectedSQL,$testing->getLastSql(),"SQL is not what was expected");
+        $this->assertSame(true,$reply->status,"count in db failed in some way: ".$reply->message);
+        $this->assertSame(4,$reply->items,"incorrect count reply");
+        $this->assertSame(1, $system->getCacheWorker()->getStats()->reads, "expected to read 1 thing");
     }
 
 
