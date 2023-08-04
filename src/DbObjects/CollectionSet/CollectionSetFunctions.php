@@ -156,8 +156,11 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      * returns a object that matches the selected id
      * returns null if not found
      */
-    public function getObjectByID(int $idNumber): ?object
+    public function getObjectByID(?int $idNumber): ?object
     {
+        if ($idNumber === null) {
+            return null;
+        }
         $this->makeWorker();
         if (array_key_exists($idNumber, $this->collected) == true) {
             return $this->collected[$idNumber];
