@@ -364,6 +364,9 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $this->makeWorker();
         $uids = [];
         foreach ($values as $id) {
+            if ($id === null) {
+                continue;
+            }
             if (in_array($id, $uids) == false) {
                 $uids[] = $id;
             }
