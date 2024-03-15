@@ -18,7 +18,7 @@ abstract class MysqliChange extends MysqliWhere
         "total" => 0,
     ];
 
-        /**
+    /**
      * processSqlRequest
      * Do stuff then talk to Sql.
      */
@@ -65,10 +65,10 @@ abstract class MysqliChange extends MysqliWhere
     public function getSQLstats(): array
     {
         $this->queryStats["total"] = 0 +
-        $this->queryStats["selects"] +
-        $this->queryStats["adds"] +
-        $this->queryStats["updates"] +
-        $this->queryStats["deletes"];
+            $this->queryStats["selects"] +
+            $this->queryStats["adds"] +
+            $this->queryStats["updates"] +
+            $this->queryStats["deletes"];
         return $this->queryStats;
     }
 
@@ -177,7 +177,7 @@ abstract class MysqliChange extends MysqliWhere
 
     protected function checkAddV2(array $config): AddReply
     {
-        $required_keys = ["table", "fields","values","types"];
+        $required_keys = ["table", "fields", "values", "types"];
         foreach ($required_keys as $key) {
             if (array_key_exists($key, $config) == false) {
                 $this->addError("Required key: " . $key . " is missing");

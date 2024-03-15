@@ -4,6 +4,7 @@ namespace YAPF\Framework\DbObjects\GenClass;
 
 use YAPF\Framework\Responses\DbObjects\AgeDetails;
 use YAPF\Framework\Responses\DbObjects\CreateReply;
+use YAPF\Framework\Responses\DbObjects\PendingUpdateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 use YAPF\Framework\Responses\DbObjects\SingleLoadReply;
 use YAPF\Framework\Responses\DbObjects\UpdateReply;
@@ -65,10 +66,10 @@ abstract class GenClassDB extends GenClassControl
             return new SingleLoadReply($this->myLastErrorBasic);
         }
         $whereConfig = [
-                "fields" => [$fieldName],
-                "matches" => ["="],
-                "values" => [$field_value],
-                "types" => [$field_type],
+            "fields" => [$fieldName],
+            "matches" => ["="],
+            "values" => [$field_value],
+            "types" => [$field_type],
         ];
         return $this->loadWithConfig($whereConfig);
     }
@@ -333,18 +334,45 @@ abstract class GenClassDB extends GenClassControl
                 $had_error = true;
                 $error_msg = "Key: " . $key . " is missing its value index!";
                 break;
-            } elseif ($this->dataset[$key]["value"] != $value) {
-                $update_code = "i";
-                if ($this->dataset[$key]["type"] == "str") {
-                    $update_code = "s";
-                } elseif ($this->dataset[$key]["type"] == "float") {
-                    $update_code = "d";
-                }
-                $updateConfig["fields"][] = $key;
-                $updateConfig["values"][] = $this->dataset[$key]["value"];
-                $updateConfig["types"][] = $update_code;
+            } elseif ($this->dataset[$key]["value"] == $value["value"]) {
+                $this->addError("No change for " . $key . " 
+                [old " . $value["value"] . " vs new " . $this->dataset[$key]["value"] . "]");
+                continue;
             }
+            $update_code = "i";
+            if ($this->dataset[$key]["type"] == "str") {
+                $update_code = "s";
+            } elseif ($this->dataset[$key]["type"] == "float") {
+                $update_code = "d";
+            }
+            $updateConfig["fields"][] = $key;
+            $updateConfig["values"][] = $this->dataset[$key]["value"];
+            $updateConfig["types"][] = $update_code;
         }
+    }
+    public function getPendingChanges(): PendingUpdateReply
+    {
+        $whereConfig = [];
+        $updateConfig = [];
+        $had_error = false;
+        $error_msg = "";
+        $this->makeUpdateConfig($whereConfig, $updateConfig, $had_error, $error_msg);
+        unset($whereConfig);
+
+        $oldValues = [];
+        $newValues = [];
+        foreach ($updateConfig["fields"] as $field) {
+            $oldValues[$field] = $this->save_dataset[$field]["value"];
+            $newValues[$field] = $this->dataset[$field]["value"];
+        }
+
+        return new PendingUpdateReply(
+            errorMsg: $error_msg,
+            vaild: !$had_error,
+            fieldsChanged: $updateConfig["fields"],
+            oldValues: $oldValues,
+            newValues: $newValues
+        );
     }
     /**
      * updateEntry
@@ -361,6 +389,9 @@ abstract class GenClassDB extends GenClassControl
         $had_error = false;
         $error_msg = "";
         $this->makeUpdateConfig($whereConfig, $updateConfig, $had_error, $error_msg);
+        if ($this->enableErrorConsole == true) {
+            $this->addError(json_encode($this->dataset) . " vs " . json_encode($this->save_dataset));
+        }
         if ($had_error == true) {
             $this->addError("request rejected: " . $error_msg);
             return new UpdateReply($this->myLastErrorBasic);
@@ -372,8 +403,7 @@ abstract class GenClassDB extends GenClassControl
     {
         $expected_changes = count($updateConfig["fields"]);
         if ($expected_changes == 0) {
-            $this->addError("No changes made");
-            return new UpdateReply($this->myLastErrorBasic);
+            return new UpdateReply("No changes made: " . json_encode($updateConfig));
         }
 
         $reply = $this->sql->updateV2($this->getTable(), $updateConfig, $whereConfig, 1);

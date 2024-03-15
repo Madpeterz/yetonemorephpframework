@@ -15,7 +15,7 @@ use YAPF\Junk\Sets\AlltypestableSet;
 class BrokenDbObject extends genClass
 {
     protected $use_table = "test.counttoonehundo";
-    protected $fields = ["id","cvalue"];
+    protected $fields = ["id", "cvalue"];
     protected $dataset = [
         "cvalue" => ["type" => "int", "value" => null],
     ];
@@ -24,9 +24,9 @@ class BrokenDbObject extends genClass
         return $this->getField("cvalue");
     }
     /**
-    * setCvalue
-    * @return mixed[] [status =>  bool, message =>  string]
-    */
+     * setCvalue
+     * @return mixed[] [status =>  bool, message =>  string]
+     */
     public function setCvalue(?int $newValue): UpdateReply
     {
         return $this->updateField("cvalue", $newValue);
@@ -40,7 +40,7 @@ class BrokenDbObject extends genClass
 class VeryBrokenDbObject extends genClass
 {
     protected $use_table = "test.counttoonehundo";
-    protected $fields = ["id","cvalue"];
+    protected $fields = ["id", "cvalue"];
     protected $dataset = [
         "id" => ["type" => "int", "value" => null],
         "cvalue" => ["type" => "int", "value" => null],
@@ -50,21 +50,21 @@ class VeryBrokenDbObject extends genClass
         return $this->getField("cvalue");
     }
     /**
-    * setCvalue
-    * @return mixed[] [status =>  bool, message =>  string]
-    */
+     * setCvalue
+     * @return mixed[] [status =>  bool, message =>  string]
+     */
     public function setCvalue(?int $newValue): array
     {
         $this->updateField("cvalue", $newValue);
         $this->save_dataset = [];
         $this->save_dataset["id"] = ["type" => "int", "value" => 99];
-        return ["status" => true,"message" => "ok"];
+        return ["status" => true, "message" => "ok"];
     }
 }
 class VeryBrokenDbObjectNoId extends genClass
 {
     protected $use_table = "test.counttoonehundo";
-    protected $fields = ["id","cvalue"];
+    protected $fields = ["id", "cvalue"];
     protected $dataset = [
         "cvalue" => ["type" => "int", "value" => null],
     ];
@@ -72,7 +72,7 @@ class VeryBrokenDbObjectNoId extends genClass
 class WeirdBrokenObjectWithSaveDatasetButNoLive extends GenClass
 {
     protected $use_table = "test.counttoonehundo";
-    protected $fields = ["id","cvalue"];
+    protected $fields = ["id", "cvalue"];
     protected $dataset = [
         "id" => ["type" => "int", "value" => null],
         "cvalue" => ["type" => "int", "value" => null],
@@ -86,7 +86,7 @@ class WeirdBrokenObjectWithSaveDatasetButNoLive extends GenClass
 class WeirdBrokenObjectWithSaveDatasetButMalformedLive extends GenClass
 {
     protected $use_table = "test.counttoonehundo";
-    protected $fields = ["id","cvalue"];
+    protected $fields = ["id", "cvalue"];
     protected $dataset = [
         "id" => ["type" => "int", "value" => null],
         "cvalue" => ["type" => "int", "value" => null],
@@ -175,7 +175,7 @@ class DbObjectsGenClassTest extends TestCase
 
     public function testUpdateInValidIdDetected()
     {
-        $countto = new Counttoonehundo(["id" => -88,"cvalue" => 44]);
+        $countto = new Counttoonehundo(["id" => -88, "cvalue" => 44]);
         $result = $countto->updateEntry();
         $this->assertSame($result->status, false);
         $this->assertSame($result->message, "Object id is not valid for updates");
@@ -183,11 +183,11 @@ class DbObjectsGenClassTest extends TestCase
 
     public function testUpdateVeryBrokenObject()
     {
-        $verybroken = new VeryBrokenDbObject(["id" => 44,"cvalue" => 55]);
+        $verybroken = new VeryBrokenDbObject(["id" => 44, "cvalue" => 55]);
         $verybroken->setCvalue(44);
         $result = $verybroken->updateEntry();
         $this->assertSame($result->status, false);
-        $this->assertSame($result->message, "No changes made");
+        $this->assertStringContainsString("No changes made", $result->message, "No changes made message is not as expected");
     }
 
     public function testUpdateVeryBrokenObjectNoId()
@@ -199,7 +199,7 @@ class DbObjectsGenClassTest extends TestCase
     }
     public function testWeirdBrokenObject()
     {
-        $weird = new WeirdBrokenObjectWithSaveDatasetButNoLive(["cvalue" => 44,"id" => 44]);
+        $weird = new WeirdBrokenObjectWithSaveDatasetButNoLive(["cvalue" => 44, "id" => 44]);
         $weird->getCvalue();
         $result = $weird->updateEntry();
         $this->assertSame($result->status, false);
@@ -207,7 +207,7 @@ class DbObjectsGenClassTest extends TestCase
     }
     public function testWeirdBrokenObjectAgain()
     {
-        $weird = new WeirdBrokenObjectWithSaveDatasetButMalformedLive(["cvalue" => 44,"id" => 44]);
+        $weird = new WeirdBrokenObjectWithSaveDatasetButMalformedLive(["cvalue" => 44, "id" => 44]);
         $weird->getCvalue();
         $result = $weird->updateEntry();
         $this->assertSame($result->status, false);
@@ -234,11 +234,11 @@ class DbObjectsGenClassTest extends TestCase
         $countto = new Counttoonehundo();
         $countto->loadID(44);
         $mapped = $countto->objectToMappedArray(["cvalue"]);
-        $this->assertSame(false, array_key_exists("cvalue",$mapped) ,"only the id should be set");
+        $this->assertSame(false, array_key_exists("cvalue", $mapped), "only the id should be set");
         $this->assertSame($mapped["id"], 44);
 
-        $mapped = $countto->objectToMappedArray(["cvalue"],true);
-        $this->assertSame(false, array_key_exists("id",$mapped) ,"only the cvalue should be set");
+        $mapped = $countto->objectToMappedArray(["cvalue"], true);
+        $this->assertSame(false, array_key_exists("id", $mapped), "only the cvalue should be set");
     }
     public function testObjectToValueArray()
     {
@@ -260,7 +260,7 @@ class DbObjectsGenClassTest extends TestCase
         $countto->loadID(44);
         $fields = $countto->getFields();
         $this->assertSame(count($fields), 2);
-        $this->assertSame(true, in_array("cvalue",$fields));
+        $this->assertSame(true, in_array("cvalue", $fields));
     }
     public function testIsLoadedOnNonLoadedObject()
     {
@@ -313,7 +313,7 @@ class DbObjectsGenClassTest extends TestCase
         $this->assertSame(true, $allType->isDefault("stringfield"), "Expected this to be default");
         $fields = $allType->getFields();
         $reply = $allType->getListDefaultFields();
-        $this->assertSame(count($fields)-1, count($reply), "expected a returned list of all fields but id");
+        $this->assertSame(count($fields) - 1, count($reply), "expected a returned list of all fields but id");
 
         $allTypesTablesSet = new AlltypestableSet();
         $allTypesTablesSet->loadAll();
@@ -322,10 +322,10 @@ class DbObjectsGenClassTest extends TestCase
         $reply = $allType->getListDefaultFields();
         $this->assertSame(0, count($reply), "expected all fields not to be default");
 
-        $reply = $allType->getListDefaultFields(["stringfield","floatfield"]);
+        $reply = $allType->getListDefaultFields(["stringfield", "floatfield"]);
         $this->assertSame(0, count($reply), "expected all fields not to be default");
 
-        $reply = $allType->getListDefaultFields(null, ["id","stringfield"]);
+        $reply = $allType->getListDefaultFields(null, ["id", "stringfield"]);
         $this->assertSame(0, count($reply), "expected all fields not to be default");
     }
 }

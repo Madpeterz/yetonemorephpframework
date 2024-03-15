@@ -110,7 +110,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      * @param array ignoreFields an array of field names to ignore.
      * @param bool invertIgnore if true only fields in ignoreFields will be returned.
      * @return mixed[] string "field" => "field value"
-    */
+     */
     public function objectToMappedArray(array $ignoreFields = [], bool $invertIgnore = false): array
     {
         $reply = [];
@@ -211,7 +211,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
         if ($this->dataset[$fieldName]["type"] == "int") {
             $value = intval($value);
         } elseif ($this->dataset[$fieldName]["type"] == "bool") {
-            $value = in_array($value, [1,"1","true",true,"yes"], true);
+            $value = in_array($value, [1, "1", "true", true, "yes"], true);
         } elseif ($this->dataset[$fieldName]["type"] == "float") {
             $value = floatval($value);
         }
