@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\Generator;
 
+use Fiber;
 use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 class DbObjectsFactory extends ModelFactory
@@ -33,8 +34,13 @@ class DbObjectsFactory extends ModelFactory
         }
         if (isset($GEN_DATABASES) == true) {
             if (count($GEN_DATABASES) > 0) {
+                $fibers = [];
                 foreach ($GEN_DATABASES as $gen_database_name) {
-                    $this->processDatabaseTables($gen_database_name);
+                    $fiber = new Fiber(function (string $startArg): void {
+                        $this->processDatabaseTables($startArg);
+                    });
+                    $fiber->start($gen_database_name);
+                    $fibers[] = $fiber;
                 }
             }
         }
@@ -46,15 +52,15 @@ class DbObjectsFactory extends ModelFactory
     protected function getDBForeignKeys(string $target_database): SelectReply
     {
         $whereConfig = [
-            "fields" => ["REFERENCED_TABLE_NAME","TABLE_SCHEMA","REFERENCED_TABLE_SCHEMA"],
-            "values" => [null,$target_database,$target_database],
-            "matches" => ["IS NOT","=","="],
-            "types" => ["s","s","s"],
+            "fields" => ["REFERENCED_TABLE_NAME", "TABLE_SCHEMA", "REFERENCED_TABLE_SCHEMA"],
+            "values" => [null, $target_database, $target_database],
+            "matches" => ["IS NOT", "=", "="],
+            "types" => ["s", "s", "s"],
         ];
 
         $basic_config = [
             "table" => "INFORMATION_SCHEMA.KEY_COLUMN_USAGE",
-            "fields" => ["TABLE_NAME","COLUMN_NAME","REFERENCED_COLUMN_NAME","REFERENCED_TABLE_NAME"],
+            "fields" => ["TABLE_NAME", "COLUMN_NAME", "REFERENCED_COLUMN_NAME", "REFERENCED_TABLE_NAME"],
         ];
 
         return $this->sql->selectV2($basic_config, null, $whereConfig);
@@ -119,6 +125,7 @@ class DbObjectsFactory extends ModelFactory
             return;
         }
         $links = $this->getLinks($target_database);
+        $fibers = [];
         foreach ($results->dataset as $row) {
             $process = true;
             if (isset($GEN_TABLES_ARRAY) == true) {
@@ -127,7 +134,11 @@ class DbObjectsFactory extends ModelFactory
                 }
             }
             if ($process == true) {
-                $this->createFromTable($target_database, $row["TABLE_NAME"], $links);
+                $fiber = new Fiber(function (string $arg1, string $arg2, array $arg3): void {
+                    $this->createFromTable($arg1, $arg2, $arg3);
+                });
+                $fiber->start($target_database, $row["TABLE_NAME"], $links);
+                $fibers[] = $fiber;
             } else {
                 if ($this->console_output == true) {
                     echo "Skipped table: " . $row["TABLE_NAME"] . "\n";
