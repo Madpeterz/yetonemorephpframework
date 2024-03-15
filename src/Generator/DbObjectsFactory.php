@@ -54,13 +54,8 @@ class DbObjectsFactory extends ModelFactory
         }
         if (isset($GEN_DATABASES) == true) {
             if (count($GEN_DATABASES) > 0) {
-                $fibers = [];
                 foreach ($GEN_DATABASES as $gen_database_name) {
-                    $fiber = new Fiber(function (string $startArg): void {
-                        $this->processDatabaseTables($startArg);
-                    });
-                    $fiber->start($gen_database_name);
-                    $fibers[] = $fiber;
+                    $this->processDatabaseTables($gen_database_name);
                 }
             }
         }
@@ -154,11 +149,7 @@ class DbObjectsFactory extends ModelFactory
                 }
             }
             if ($process == true) {
-                $fiber = new Fiber(function (string $arg1, string $arg2, array $arg3): void {
-                    $this->createFromTable($arg1, $arg2, $arg3);
-                });
-                $fiber->start($target_database, $row["TABLE_NAME"], $links);
-                $fibers[] = $fiber;
+                $this->createFromTable($target_database, $row["TABLE_NAME"], $links);
             } else {
                 if ($this->console_output == true) {
                     echo "Skipped table: " . $row["TABLE_NAME"] . "\n";
