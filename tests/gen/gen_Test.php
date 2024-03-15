@@ -16,7 +16,7 @@ class GeneratorTest extends TestCase
         global $GEN_DATABASE_HOST, $GEN_DATABASE_USERNAME, $GEN_DATABASE_PASSWORD;
         global $GEN_PREFIX_TABLE, $GEN_SOLO_NS, $GEN_DATABASES, $GEN_SOLO_PATH;
         global $GEN_SET_NS, $GEN_SET_PATH, $GEN_TABLES_ARRAY;
-        
+
         $GEN_DATABASE_HOST = "localhost";
         $GEN_DATABASE_USERNAME = "testuser";
         $GEN_DATABASE_PASSWORD = "testsuserPW";
@@ -47,7 +47,7 @@ class GeneratorTest extends TestCase
 
     public function testCreateModels()
     {
-        $this->db_objects_factory = new DbObjectsFactory(false);
+        $this->db_objects_factory = new DbObjectsFactory(false, true);
         $this->db_objects_factory->reconnectSql($this->sql);
         $this->db_objects_factory->useTabs();
         $this->db_objects_factory->noOutput();

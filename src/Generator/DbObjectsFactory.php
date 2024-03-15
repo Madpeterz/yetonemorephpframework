@@ -7,12 +7,32 @@ use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 class DbObjectsFactory extends ModelFactory
 {
-    public function __construct($autoStart = true)
+    public function __construct($autoStart = true, bool $rebuildOutputFolders = false)
     {
         parent::__construct();
+        if ($rebuildOutputFolders == true) {
+            global $GEN_SOLO_PATH, $GEN_SET_PATH;
+            $this->delTree($GEN_SET_PATH);
+            $this->delTree($GEN_SOLO_PATH);
+            mkdir($GEN_SOLO_PATH);
+            mkdir($GEN_SET_PATH);
+        }
         if ($autoStart == true) {
             $this->start();
         }
+    }
+    protected function delTree($dir): bool
+    {
+        if (is_dir($dir) == false) {
+            return true;
+        }
+        $files = array_diff(scandir($dir), ['.', '..']);
+
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : unlink("$dir/$file");
+        }
+
+        return rmdir($dir);
     }
     public function setOutputToHTML(): void
     {
