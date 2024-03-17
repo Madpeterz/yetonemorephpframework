@@ -186,7 +186,7 @@ class CacheWorkerTests extends TestCase
         $Counttoonehundo->loadId(1);
         $Counttoonehundo->setCvalue(99);
         $reply = $Counttoonehundo->updateEntry();
-        $this->assertSame(true, $reply->status, "Failed to update entry");
+        $this->assertSame(true, $reply->status, "Failed to update entry: " . $reply->message);
         $this->assertSame("updated version 1 => 2", $cache->getLastErrorBasic(), "failed to update version");
         $this->assertSame(true, $cache->shutdown(), "failed to write changes to db: " . $cache->getLastErrorBasic());
         $this->assertSame("stopping driver", $cache->getLastErrorBasic(), "incorrect cache shutdown message");

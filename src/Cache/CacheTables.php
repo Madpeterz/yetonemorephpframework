@@ -9,9 +9,13 @@ abstract class CacheTables extends CacheDatastore
 {
     protected ?string $encryptKeycode = null;
 
-    public function setEncryptKeyCode(?string $code): void
+    public function setEncryptKeyCode(?string $code): CacheStatusReply
     {
+        if (defined("SODIUM_CRYPTO_SECRETBOX_KEYBYTES") == false) {
+            return new CacheStatusReply("Unable to set encrypt key as sodium is not enabled");
+        }
         $this->encryptKeycode = $code;
+        return new CacheStatusReply("encryptKeycode has been set", true);
     }
 
     public function addTableToCache(
@@ -23,6 +27,9 @@ abstract class CacheTables extends CacheDatastore
     ): CacheStatusReply {
         if ($maxAgeInMins < 1) {
             return new CacheStatusReply("invaild max age");
+        }
+        if (($encryptData == true) && (defined("SODIUM_CRYPTO_SECRETBOX_KEYBYTES") == false)) {
+            return new CacheStatusReply("Unable to encrypt cache as sodium is not enabled");
         }
         $this->tableConfig[$tableName] = [
             "single" => $enableForSingles,
@@ -60,7 +67,7 @@ abstract class CacheTables extends CacheDatastore
 
     protected function tableUsesCache(string $table, bool $asSingle = true): bool
     {
-        if ($this->haveDriver() == false) {
+        if ($this->getDriverConnected() == false) {
             return false;
         }
         if (array_key_exists($table, $this->tableConfig) == false) {
@@ -111,11 +118,11 @@ abstract class CacheTables extends CacheDatastore
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $cipher = base64_encode(
             $nonce .
-            sodium_crypto_secretbox(
-                $message,
-                $nonce,
-                $key
-            )
+                sodium_crypto_secretbox(
+                    $message,
+                    $nonce,
+                    $key
+                )
         );
         sodium_memzero($message);
         sodium_memzero($key);

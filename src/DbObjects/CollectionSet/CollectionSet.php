@@ -51,10 +51,11 @@ abstract class CollectionSet extends CollectionSetFunctions implements Iterator
      */
     public function getFirst(): ?object
     {
-        foreach ($this->collected as $value) {
-            return $value;
+        $value = reset($this->collected);
+        if ($value === false) {
+            return null;
         }
-        return null;
+        return $value;
     }
 
 
@@ -64,9 +65,9 @@ abstract class CollectionSet extends CollectionSetFunctions implements Iterator
      */
     public function getLast(): ?object
     {
-        $value = null;
-        foreach ($this->collected as $c) {
-            $value = $c;
+        $value = end($this->collected);
+        if ($value === false) {
+            return null;
         }
         return $value;
     }

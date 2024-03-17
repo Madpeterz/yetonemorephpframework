@@ -23,16 +23,14 @@ class mysqli_raw_test extends TestCase
         $this->sql->fullSqlErrors = true;
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
-        if($results->status == false)
-        {
+        if ($results->status == false) {
             $this->assertSame("ok", $this->sql->getLastError(), "sql issue");
         }
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
         $this->assertSame($results->status, true);
-        
+
         $results = $this->sql->rawSQL("tests/fake.sql");
         $this->assertSame($results->message, "Unable to see file to read");
         $this->assertSame($results->status, false);
-        
     }
 }

@@ -311,3 +311,6 @@ ALTER TABLE `weirdtable`
 
 ALTER TABLE `relationtestinga`
   ADD CONSTRAINT `testingb_in_use` FOREIGN KEY (`linkid`) REFERENCES `relationtestingb` (`id`) ON UPDATE NO ACTION;
+
+
+CREATE TABLE `test`.`encryptedcheck` (`id` INT NOT NULL AUTO_INCREMENT , `name` TEXT NOT NULL , `value` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB; 

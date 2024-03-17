@@ -33,7 +33,7 @@ class DbObjectsLoadTest extends TestCase
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
     }
     public function testLoadId()
     {
@@ -65,6 +65,37 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($firstobj->getCvalue(), 32);
     }
 
+    public function testGetFirstOnEmpty()
+    {
+        $countto = new CounttoonehundoSet();
+        $firstOnEmpty = $countto->getFirst();
+        $this->assertSame(null, $firstOnEmpty, "expected a null reply");
+    }
+
+    public function testGetLastOnEmpty()
+    {
+        $countto = new CounttoonehundoSet();
+        $this->assertSame(null, $countto->getLast(), "expected a null reply");
+    }
+
+    public function testGetLast()
+    {
+        $countto = new CounttoonehundoSet();
+        $countto->loadAll();
+        $result = $countto->getLast();
+        $this->assertNotNull($result, "expected a object to be given");
+        $this->assertSame(100, $result->getId(), "Expected ID to be 100");
+    }
+
+    public function testGetFirst()
+    {
+        $countto = new CounttoonehundoSet();
+        $countto->loadAll();
+        $result = $countto->getFirst();
+        $this->assertNotNull($result, "expected a object to be given");
+        $this->assertSame(1, $result->getId(), "Expected ID to be 1");
+    }
+
     public function testLoadNewest()
     {
         $countto = new CounttoonehundoSet();
@@ -81,10 +112,10 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $whereConfig = [
-            "fields" => ["cvalue","id"],
-            "values" => [257,91],
-            "types" => ["i","i"],
-            "matches" => [">=",">="],
+            "fields" => ["cvalue", "id"],
+            "values" => [257, 91],
+            "types" => ["i", "i"],
+            "matches" => [">=", ">="],
         ];
         $load_status = $countto->loadWithConfig($whereConfig);
         $this->assertSame(true, $load_status->status);
@@ -109,7 +140,7 @@ class DbObjectsLoadTest extends TestCase
     {
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("id", 44);
-        $this->assertSame(true,$result->status);
+        $this->assertSame(true, $result->status);
         $countto = new Counttoonehundo();
         $countto->makedisabled();
         $result = $countto->loadByField("id", 44);
@@ -136,7 +167,7 @@ class DbObjectsLoadTest extends TestCase
     public function testLoadSetByIds()
     {
         $countto = new CounttoonehundoSet();
-        $results = $countto->loadFromIds([1,2,3,4,5,6,7,8,9,19]);
+        $results = $countto->loadFromIds([1, 2, 3, 4, 5, 6, 7, 8, 9, 19]);
         $this->assertSame($results->status, true);
         $this->assertSame($results->items, 10);
         $this->assertSame($results->message, "ok");
@@ -201,8 +232,8 @@ class DbObjectsLoadTest extends TestCase
     public function testloadMatching()
     {
         $countto = new Counttoonehundo();
-        $result = $countto->loadMatching(["id"=>4,"cvalue"=>8]);
-        $this->assertSame(true,$result->status);
+        $result = $countto->loadMatching(["id" => 4, "cvalue" => 8]);
+        $this->assertSame(true, $result->status);
         $this->assertSame($countto->getCvalue(), 8);
     }
 
@@ -211,37 +242,37 @@ class DbObjectsLoadTest extends TestCase
         $testing = new LiketestsSet();
         $reply = $testing->countInDB();
         $expectedSQL = "SELECT COUNT(id) AS sqlCount FROM test.liketests";
-        $this->assertSame($expectedSQL,$testing->getLastSql(),"SQL is not what was expected");
-        $this->assertSame(true,$reply->status,"count in db failed in some way: ".$reply->message);
-        $this->assertSame(4,$reply->items,"incorrect count reply");
+        $this->assertSame($expectedSQL, $testing->getLastSql(), "SQL is not what was expected");
+        $this->assertSame(true, $reply->status, "count in db failed in some way: " . $reply->message);
+        $this->assertSame(4, $reply->items, "incorrect count reply");
     }
 
     public function testLimitedMode()
     {
         $testing = new LiketestsSet();
         $testing->limitFields(["name"]);
-        $this->assertSame(true,$testing->getUpdatesStatus(),"Set should be marked as update disabled");
+        $this->assertSame(true, $testing->getUpdatesStatus(), "Set should be marked as update disabled");
         $testing->loadAll();
         $sqlExpected = 'SELECT id, name FROM test.liketests  ORDER BY id ASC';
-        $this->assertSame($sqlExpected,$testing->getLastSql(),"SQL is not what was expected");
-        $this->assertSame(4,$testing->getCount(),"Incorrect number of items loaded");
+        $this->assertSame($sqlExpected, $testing->getLastSql(), "SQL is not what was expected");
+        $this->assertSame(4, $testing->getCount(), "Incorrect number of items loaded");
         $obj = $testing->getObjectByID(1);
-        $this->assertSame("redpondblue 1",$obj->getName(),"Value is not set as expected");
-        $this->assertSame(null,$obj->getValue(),"Value is not what is expected");
+        $this->assertSame("redpondblue 1", $obj->getName(), "Value is not set as expected");
+        $this->assertSame(null, $obj->getValue(), "Value is not what is expected");
         $reply = $obj->setValue("fail");
-        $this->assertSame(false,$reply->status,"Set a value incorrectly");
-        $reply = $testing->updateFieldInCollection("value","failme");
-        $this->assertSame(false,$reply->status,"bulk set value incorrectly");
+        $this->assertSame(false, $reply->status, "Set a value incorrectly");
+        $reply = $testing->updateFieldInCollection("value", "failme");
+        $this->assertSame(false, $reply->status, "bulk set value incorrectly");
         $reply = $obj->createEntry();
-        $this->assertSame(false,$reply->status,"created object incorrectly");
+        $this->assertSame(false, $reply->status, "created object incorrectly");
         $testing = new Liketests();
         $testing->limitFields(["name"]);
-        $this->assertSame(true,$testing->getUpdatesStatus(),"Single should be marked as update disabled");
+        $this->assertSame(true, $testing->getUpdatesStatus(), "Single should be marked as update disabled");
         $testing->loadID(1);
         $sqlExpected = "SELECT id, name FROM test.liketests  WHERE `id` = ?";
-        $this->assertSame($sqlExpected,$testing->getLastSql(),"SQL is not what was expected");
-        $this->assertSame("redpondblue 1",$testing->getName(),"Value is not set as expected");
-        $this->assertSame(null,$testing->getValue(),"Value is not what is expected");
+        $this->assertSame($sqlExpected, $testing->getLastSql(), "SQL is not what was expected");
+        $this->assertSame("redpondblue 1", $testing->getName(), "Value is not set as expected");
+        $this->assertSame(null, $testing->getValue(), "Value is not what is expected");
     }
 
     public function test_fetchRelated()
@@ -273,26 +304,24 @@ class DbObjectsLoadTest extends TestCase
         $testing = new Relationtestinga();
         $testing->loadID(2);
         $countExpectedFields = 0;
-        foreach($testing as $fieldName => $fieldValue)
-        {
-            if($fieldName == "id") {
+        foreach ($testing as $fieldName => $fieldValue) {
+            if ($fieldName == "id") {
                 $this->assertSame(2, $fieldValue, "id is incorrect");
                 $countExpectedFields++;
-            } elseif($fieldName == "name") {
+            } elseif ($fieldName == "name") {
                 $this->assertSame("group2", $fieldValue, "name is incorrect");
                 $countExpectedFields++;
-            } elseif($fieldName == "linkid") {
+            } elseif ($fieldName == "linkid") {
                 $this->assertSame(4, $fieldValue, "linkid is incorrect");
                 $countExpectedFields++;
             }
         }
-        $this->AssertSame(3,$countExpectedFields, "incorrect number of foreach loops");
+        $this->AssertSame(3, $countExpectedFields, "incorrect number of foreach loops");
         $countExpectedFields = 0;
         $loop = 0;
-        foreach($testing as $fieldValue)
-        {
+        foreach ($testing as $fieldValue) {
             $countExpectedFields++;
         }
-        $this->AssertSame(3,$countExpectedFields, "incorrect number of foreach loops");
+        $this->AssertSame(3, $countExpectedFields, "incorrect number of foreach loops");
     }
 }

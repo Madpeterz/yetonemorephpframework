@@ -22,16 +22,16 @@ class mysqli_remove_test extends TestCase
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
     }
 
     public function testRemove()
     {
         $whereConfig = [
-        "fields" => ["id"],
-        "values" => [2],
-        "matches" => ["="],
-        "types" => ["i"]
+            "fields" => ["id"],
+            "values" => [2],
+            "matches" => ["="],
+            "types" => ["i"]
         ];
         $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
@@ -62,10 +62,10 @@ class mysqli_remove_test extends TestCase
     public function testRemoveInValidField()
     {
         $whereConfig = [
-        "fields" => ["badtheif"],
-        "values" => [1],
-        "matches" => ["="],
-        "types" => ["i"]
+            "fields" => ["badtheif"],
+            "values" => [1],
+            "matches" => ["="],
+            "types" => ["i"]
         ];
         $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
@@ -78,10 +78,10 @@ class mysqli_remove_test extends TestCase
     public function testRemoveInValidValue()
     {
         $whereConfig = [
-        "fields" => ["id"],
-        "values" => ["1"],
-        "matches" => ["="],
-        "types" => ["s"]
+            "fields" => ["id"],
+            "values" => ["1"],
+            "matches" => ["="],
+            "types" => ["s"]
         ];
         $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
@@ -90,10 +90,10 @@ class mysqli_remove_test extends TestCase
         $this->assertSame($results->message, "ok");
 
         $whereConfig = [
-        "fields" => ["value"],
-        "values" => [null],
-        "matches" => ["="],
-        "types" => ["i"]
+            "fields" => ["value"],
+            "values" => [null],
+            "matches" => ["="],
+            "types" => ["i"]
         ];
         $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
@@ -105,17 +105,16 @@ class mysqli_remove_test extends TestCase
     public function testRemoveMultiple()
     {
         $whereConfig = [
-        "fields" => ["id"],
-        "values" => [-1],
-        "matches" => ["!="],
-        "types" => ["i"]
+            "fields" => ["id"],
+            "values" => [-1],
+            "matches" => ["!="],
+            "types" => ["i"]
         ];
         $results = $this->sql->removeV2("endoftestempty", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, true);
         $this->assertSame($results->itemsRemoved, 2);
         $this->assertSame($results->message, "ok");
-
     }
 
     public function testRemoveLike()
@@ -125,7 +124,7 @@ class mysqli_remove_test extends TestCase
             "values" => ["pondblue"],
             "matches" => ["% LIKE %"],
             "types" => ["s"]
-            ];
+        ];
         $results = $this->sql->removeV2("liketests", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->message, "ok");
@@ -143,7 +142,7 @@ class mysqli_remove_test extends TestCase
             "values" => ["pondblue"],
             "matches" => ["% LIKE %"],
             "types" => ["s"]
-            ];
+        ];
         $results = $this->sql->removeV2("liketests", $whereConfig);
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->message, "sqlStartConnection returned false!");

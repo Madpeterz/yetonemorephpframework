@@ -42,7 +42,7 @@ class GeneratorTest extends TestCase
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
     }
 
     public function testCreateModels()
@@ -54,7 +54,7 @@ class GeneratorTest extends TestCase
         $this->db_objects_factory->start();
         $this->assertSame($this->db_objects_factory->getLastErrorBasic(), "");
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
-        $this->assertSame($this->db_objects_factory->getModelsCreated(), 26);
+        $this->assertSame($this->db_objects_factory->getModelsCreated(), 28);
         $this->assertSame($this->db_objects_factory->getTotalRelatedActions(), 4);
         $this->assertSame($this->db_objects_factory->getOutput(), "");
     }
@@ -68,7 +68,7 @@ class GeneratorTest extends TestCase
         $this->db_objects_factory->start();
         $this->assertSame($this->db_objects_factory->getLastErrorBasic(), "");
         $this->assertSame($this->db_objects_factory->getModelsFailed(), 0);
-        $this->assertSame($this->db_objects_factory->getModelsCreated(), 26);
+        $this->assertSame($this->db_objects_factory->getModelsCreated(), 28);
         $this->assertSame($this->db_objects_factory->getTotalRelatedActions(), 4);
         $this->assertGreaterThan(0, strlen($this->db_objects_factory->getOutput()));
     }

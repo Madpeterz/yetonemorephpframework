@@ -22,7 +22,7 @@ class MysqliSelectTest extends TestCase
     {
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
     }
 
     public function testSelectBasic()
@@ -151,11 +151,11 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "counttoonehundo"];
         $whereConfig = [
-            "fields" => ["cvalue","cvalue","cvalue"],
-            "values" => [1,2560,100],
-            "types" => ["i","i","i"],
-            "matches" => ["=","!=","<"],
-            "joinWith" => [") OR","AND"]
+            "fields" => ["cvalue", "cvalue", "cvalue"],
+            "values" => [1, 2560, 100],
+            "types" => ["i", "i", "i"],
+            "matches" => ["=", "!=", "<"],
+            "joinWith" => [") OR", "AND"]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -170,11 +170,11 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "counttoonehundo"];
         $whereConfig = [
-            "fields" => ["cvalue","cvalue","cvalue"],
-            "values" => [1,2560,100],
-            "types" => ["i","i","i"],
-            "matches" => ["=","!=","<"],
-            "joinWith" => ["( OR","AND"]
+            "fields" => ["cvalue", "cvalue", "cvalue"],
+            "values" => [1, 2560, 100],
+            "types" => ["i", "i", "i"],
+            "matches" => ["=", "!=", "<"],
+            "joinWith" => ["( OR", "AND"]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -189,11 +189,11 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "counttoonehundo"];
         $whereConfig = [
-            "fields" => ["cvalue","cvalue","cvalue"],
-            "values" => [1,2560,[]],
-            "types" => ["i","i","i"],
-            "matches" => ["=","!=","IN"],
-            "joinWith" => ["( OR","AND"]
+            "fields" => ["cvalue", "cvalue", "cvalue"],
+            "values" => [1, 2560, []],
+            "types" => ["i", "i", "i"],
+            "matches" => ["=", "!=", "IN"],
+            "joinWith" => ["( OR", "AND"]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -206,11 +206,11 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "counttoonehundo"];
         $whereConfig = [
-            "fields" => ["cvalue","cvalue","cvalue"],
-            "values" => [1,2560,44],
-            "types" => ["i","i","i"],
-            "matches" => ["LOL","!=","="],
-            "joinWith" => ["( OR","AND"]
+            "fields" => ["cvalue", "cvalue", "cvalue"],
+            "values" => [1, 2560, 44],
+            "types" => ["i", "i", "i"],
+            "matches" => ["LOL", "!=", "="],
+            "joinWith" => ["( OR", "AND"]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -222,8 +222,8 @@ class MysqliSelectTest extends TestCase
     public function testSelectBasicExtended()
     {
         $basic_config = [
-        "table" => "counttoonehundo",
-        "fields" => ["SUM(cvalue) as total","count(id) as items"],
+            "table" => "counttoonehundo",
+            "fields" => ["SUM(cvalue) as total", "count(id) as items"],
         ];
         $result = $this->sql->selectV2($basic_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -238,9 +238,9 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "counttoonehundo"];
         $order_config = [
-        "enabled" => true,
-        "byField" => "id",
-        "dir" => "DESC"
+            "enabled" => true,
+            "byField" => "id",
+            "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -251,7 +251,7 @@ class MysqliSelectTest extends TestCase
         $this->assertSame($result->dataset[0]["cvalue"], 512);
         $basic_config = ["table" => "counttoonehundo"];
         $order_config = [
-        "enabled" => true,
+            "enabled" => true,
         ];
         $result = $this->sql->selectV2($basic_config, $order_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -262,8 +262,8 @@ class MysqliSelectTest extends TestCase
         $this->assertSame($result->dataset[0]["cvalue"], 512);
         $basic_config = ["table" => "counttoonehundo"];
         $order_config = [
-        "enabled" => true,
-        "as_string" => " id DESC"
+            "enabled" => true,
+            "as_string" => " id DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -280,10 +280,10 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "counttoonehundo"];
         $whereConfig = [
-        "fields" => ["cvalue"],
-        "values" => [256],
-        "types" => ["i"],
-        "matches" => ["<"],
+            "fields" => ["cvalue"],
+            "values" => [256],
+            "types" => ["i"],
+            "matches" => ["<"],
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -297,21 +297,21 @@ class MysqliSelectTest extends TestCase
     public function testSelectLeftJoin()
     {
         $basic_config = [
-        "table" => "relationtestinga",
-        "fields" => ["mtb.id","mtb.name","tw2.extended1","tw2.extended2","tw2.extended3"],
+            "table" => "relationtestinga",
+            "fields" => ["mtb.id", "mtb.name", "tw2.extended1", "tw2.extended2", "tw2.extended3"],
         ];
         $joinTables = [
-        "mainTableId" => "mtb",
-        "types" => ["LEFT JOIN"],
-        "tables" => ["relationtestingb tw2"],
-        "onFieldLeft" => ["tw2.id"],
-        "onFieldMatch" => ["="],
-        "onFieldRight" => ["mtb.linkid"],
+            "mainTableId" => "mtb",
+            "types" => ["LEFT JOIN"],
+            "tables" => ["relationtestingb tw2"],
+            "onFieldLeft" => ["tw2.id"],
+            "onFieldMatch" => ["="],
+            "onFieldRight" => ["mtb.linkid"],
         ];
         $order_config = [
-        "enabled" => true,
-        "byField" => "id",
-        "dir" => "DESC"
+            "enabled" => true,
+            "byField" => "id",
+            "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $this->assertSame($result->message, "ok");
@@ -327,22 +327,22 @@ class MysqliSelectTest extends TestCase
     public function testSelectInnerJoin()
     {
         $basic_config = [
-        "table" => "twintables1",
-        "fields" => ["mtb.id","mtb.message as table1message","tw2.message as table2message"],
+            "table" => "twintables1",
+            "fields" => ["mtb.id", "mtb.message as table1message", "tw2.message as table2message"],
         ];
         $joinTables = [
-        "mainTableId" => "mtb",
-        "cleanIds" => true,
-        "types" => ["JOIN"],
-        "tables" => ["twintables2 tw2"],
-        "onFieldLeft" => [""],
-        "onFieldMatch" => [""],
-        "onFieldRight" => [""],
+            "mainTableId" => "mtb",
+            "cleanIds" => true,
+            "types" => ["JOIN"],
+            "tables" => ["twintables2 tw2"],
+            "onFieldLeft" => [""],
+            "onFieldMatch" => [""],
+            "onFieldRight" => [""],
         ];
         $order_config = [
-        "enabled" => true,
-        "byField" => "id",
-        "dir" => "DESC"
+            "enabled" => true,
+            "byField" => "id",
+            "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $expected_sql = "SELECT mtb.id, mtb.message as table1message, tw2.message as table2message FROM ";
@@ -358,22 +358,22 @@ class MysqliSelectTest extends TestCase
     public function testSelecJoinBadJoinConfig()
     {
         $basic_config = [
-        "table" => "twintables1",
-        "fields" => ["mtb.id","mtb.message as table1message","tw2.message as table2message"],
+            "table" => "twintables1",
+            "fields" => ["mtb.id", "mtb.message as table1message", "tw2.message as table2message"],
         ];
         $joinTables = [
-        "mainTableId" => "mtb",
-        "cleanIds" => true,
-        "types" => ["JOIN"],
-        "tables" => ["twintables2 tw2"],
-        "onFieldLeft" => [""],
-        "onFieldMatch" => [""],
-        "onFieldRight" => [],
+            "mainTableId" => "mtb",
+            "cleanIds" => true,
+            "types" => ["JOIN"],
+            "tables" => ["twintables2 tw2"],
+            "onFieldLeft" => [""],
+            "onFieldMatch" => [""],
+            "onFieldRight" => [],
         ];
         $order_config = [
-        "enabled" => true,
-        "byField" => "id",
-        "dir" => "DESC"
+            "enabled" => true,
+            "byField" => "id",
+            "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $this->assertSame($result->message, "failed with message:counts match error onFieldRight <=> onFieldMatch");
@@ -383,20 +383,20 @@ class MysqliSelectTest extends TestCase
     public function testSelectMissingJoinConfig()
     {
         $basic_config = [
-        "table" => "relationtestinga",
-        "fields" => ["mtb.id","mtb.name","tw2.extended1","tw2.extended2","tw2.extended3"],
+            "table" => "relationtestinga",
+            "fields" => ["mtb.id", "mtb.name", "tw2.extended1", "tw2.extended2", "tw2.extended3"],
         ];
         $joinTables = [
-        "mainTableId" => "mtb",
-        "types" => ["LEFT JOIN"],
-        "tables" => ["relationtestingb tw2"],
-        "onFieldLeft" => ["tw2.id"],
-        "onFieldRight" => ["mtb.linkid"],
+            "mainTableId" => "mtb",
+            "types" => ["LEFT JOIN"],
+            "tables" => ["relationtestingb tw2"],
+            "onFieldLeft" => ["tw2.id"],
+            "onFieldRight" => ["mtb.linkid"],
         ];
         $order_config = [
-        "enabled" => true,
-        "byField" => "id",
-        "dir" => "DESC"
+            "enabled" => true,
+            "byField" => "id",
+            "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
         $this->assertSame($result->message, "Unable to prepare: Unknown column 'tw2.extended1' in 'field list'");
@@ -420,17 +420,16 @@ class MysqliSelectTest extends TestCase
     {
         $basic_config = ["table" => "relationtestinga"];
         $whereConfig = [
-            "fields" => ["CHAR_LENGTH(name)","linkid"],
-            "values" => [3,4],
-            "types" => ["i","i"],
-            "matches" => [">=","!="],
+            "fields" => ["CHAR_LENGTH(name)", "linkid"],
+            "values" => [3, 4],
+            "types" => ["i", "i"],
+            "matches" => [">=", "!="],
             "asFunction" => [1]
         ];
-        $result = $this->sql->selectV2($basic_config,null,$whereConfig);
+        $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         $this->assertSame($result->message, "ok");
         $this->assertSame($result->items, 1);
         $this->assertSame($result->status, true);
-        $this->assertSame("group1", $result->dataset[0]["name"],"incorrect group value returned");
+        $this->assertSame("group1", $result->dataset[0]["name"], "incorrect group value returned");
     }
 }
-

@@ -54,7 +54,7 @@ class CollectionSetTest extends TestCase
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
     }
     public function testPurgeCollectionSetEmpty()
     {
@@ -109,41 +109,35 @@ class CollectionSetTest extends TestCase
         $testing = new CounttoonehundoSet();
         $testing->loadLimited(4);
         $seen_items = 0;
-        $expected_keys = [1,2,3,4];
+        $expected_keys = [1, 2, 3, 4];
         $seen_keys = [];
-        foreach($testing as $key => $value)
-        {
-            if($value->isLoaded() == true)
-            {
+        foreach ($testing as $key => $value) {
+            if ($value->isLoaded() == true) {
                 $seen_items++;
                 $seen_keys[] = $key;
             }
         }
-        $this->assertSame(4,$seen_items,"Foreach with key has failed");
-        $this->assertSame(implode(",",$seen_keys),implode(",",$expected_keys),"Keys do not match as expected");
+        $this->assertSame(4, $seen_items, "Foreach with key has failed");
+        $this->assertSame(implode(",", $seen_keys), implode(",", $expected_keys), "Keys do not match as expected");
         $seen_items = 0;
-        foreach($testing as $value)
-        {
-            if($value->isLoaded() == true)
-            {
+        foreach ($testing as $value) {
+            if ($value->isLoaded() == true) {
                 $seen_items++;
             }
         }
-        $this->assertSame(4,$seen_items,"Foreach without key has failed");
+        $this->assertSame(4, $seen_items, "Foreach without key has failed");
         $Counttoonehundo = new Counttoonehundo();
         $Counttoonehundo->setCvalue(99);
         $reply = $Counttoonehundo->createEntry();
-        $this->assertSame(true,$reply->status,"Failed to crate testing object");
+        $this->assertSame(true, $reply->status, "Failed to crate testing object");
         $testing->addToCollected($Counttoonehundo);
         $seen_items = 0;
-        foreach($testing as $value)
-        {
-            if($value->isLoaded() == true)
-            {
+        foreach ($testing as $value) {
+            if ($value->isLoaded() == true) {
                 $seen_items++;
             }
         }
-        $this->assertSame(5,$seen_items,"Foreach without key and added entry has failed");
+        $this->assertSame(5, $seen_items, "Foreach without key and added entry has failed");
     }
     public function testGetCollection()
     {
@@ -174,7 +168,7 @@ class CollectionSetTest extends TestCase
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 56);
+        $this->assertSame($results->commandsRun, 57);
     }
     public function testGetIdsMatchingField()
     {
@@ -234,7 +228,7 @@ class CollectionSetTest extends TestCase
     {
         $endoftest = new EndoftestemptySet();
         $endoftest->loadAll();
-        $status = $endoftest->updateMultipleFieldsForCollection(["name","value"],["bulk",false]);
+        $status = $endoftest->updateMultipleFieldsForCollection(["name", "value"], ["bulk", false]);
         $this->assertSame("ok", $status->message);
         $this->assertSame(true, $status->status);
         $this->assertSame(4, $status->changes);
@@ -251,13 +245,13 @@ class CollectionSetTest extends TestCase
         $result = $Endoftestempty->loadID(4);
         $this->assertSame($result->status, true);
 
-        $reply = $Endoftestempty->getFieldType("id",true);
+        $reply = $Endoftestempty->getFieldType("id", true);
         $this->assertSame("i", $reply);
     }
     public function testloadMatching()
     {
         $countto = new CounttoonehundoSet();
-        $result = $countto->loadMatching(["cvalue"=>16]);
+        $result = $countto->loadMatching(["cvalue" => 16]);
         $this->assertSame($result->status, true);
         $this->assertSame($countto->getCount(), 10);
     }
@@ -272,17 +266,17 @@ class CollectionSetTest extends TestCase
     {
         $likeTests = new LiketestsSet();
         $likeTests->loadAll();
-        $results = $likeTests->getCollectionToMappedArray(["id","name"],true);
-        $this->assertSame(4,count($results),"There should be 4 results in the data :/");
-        $this->assertSame(2,count($results[1]),"There should be 2 fields in the data :/");
-        $this->assertSame(false,array_key_exists("value",$results[1]),"There should not be the value field in the results");
-        $this->assertSame(true,array_key_exists("name",$results[1]),"There should be the name field in the results");
+        $results = $likeTests->getCollectionToMappedArray(["id", "name"], true);
+        $this->assertSame(4, count($results), "There should be 4 results in the data :/");
+        $this->assertSame(2, count($results[1]), "There should be 2 fields in the data :/");
+        $this->assertSame(false, array_key_exists("value", $results[1]), "There should not be the value field in the results");
+        $this->assertSame(true, array_key_exists("name", $results[1]), "There should be the name field in the results");
 
         $results = $likeTests->getCollectionToMappedArray(["value"]);
-        $this->assertSame(4,count($results),"There should be 4 results in the data :/");
-        $this->assertSame(2,count($results[1]),"There should be 2 fields in the data :/");
-        $this->assertSame(false,array_key_exists("value",$results[1]),"There should not be the value field in the results");
-        $this->assertSame(true,array_key_exists("name",$results[1]),"There should be the name field in the results");
+        $this->assertSame(4, count($results), "There should be 4 results in the data :/");
+        $this->assertSame(2, count($results[1]), "There should be 2 fields in the data :/");
+        $this->assertSame(false, array_key_exists("value", $results[1]), "There should not be the value field in the results");
+        $this->assertSame(true, array_key_exists("name", $results[1]), "There should be the name field in the results");
     }
 
     public function testForeachOverSetThenForeachOverSingle()
@@ -292,22 +286,19 @@ class CollectionSetTest extends TestCase
         $this->assertSame(2, $relationtestinga->getCount());
         $reply = [];
         $loop = 1;
-        foreach($relationtestinga as $entry)
-        {
+        foreach ($relationtestinga as $entry) {
             $obj = [];
-            foreach($entry as $key => $value)
-            {
+            foreach ($entry as $key => $value) {
                 $obj[$key] = $value;
             }
             $reply[$loop] = $obj;
             $loop++;
         }
         $testObj = [
-            1 => ["id" => 1,"name" => "group1","linkid" => 1],
-            2 => ["id" => 2,"name" => "group2","linkid" => 4],
+            1 => ["id" => 1, "name" => "group1", "linkid" => 1],
+            2 => ["id" => 2, "name" => "group2", "linkid" => 4],
         ];
-        foreach($reply as $key => $entry)
-        {
+        foreach ($reply as $key => $entry) {
             $vs = $testObj[$key];
             $this->assertSame($vs["id"], $entry["id"], "id does not match");
             $this->assertSame($vs["name"], $entry["name"], "name does not match");

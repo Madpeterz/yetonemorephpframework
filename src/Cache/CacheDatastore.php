@@ -13,11 +13,8 @@ abstract class CacheDatastore extends FunctionHelper
     {
         return $this->driver;
     }
-    protected function haveDriver(): bool
+    protected function getDriverConnected(): bool
     {
-        if ($this->driver == null) {
-            return false;
-        }
         return $this->driver->connected();
     }
 

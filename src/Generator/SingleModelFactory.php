@@ -35,11 +35,20 @@ class SingleModelFactory extends ModelFactoryShared
             }
 
             $this->seenRelated[] = $targetClassName;
-            $this->fileLines[] = 'public function related' . $targetClass . '(): ' . $targetClassName . '';
+
+
+
+            $this->fileLines[] = 'public function related' . $targetClass . '(?array $limitFields=null): '
+                . $targetClassName . '';
             $this->fileLines[] = '{';
             $this->fileLines[] = [2];
             $this->fileLines[] = '$ids = [$this->get' . $fromField . '()];';
             $this->fileLines[] = '$collection = new ' . $targetClassName . '();';
+            $this->fileLines[] = 'if($limitFields !== null) {';
+            $this->fileLines[] = [3];
+            $this->fileLines[] = '$collection->limitFields($limitFields);';
+            $this->fileLines[] = [2];
+            $this->fileLines[] = '}';
             $this->fileLines[] = '$collection->loadFrom' . $loadField . 's($ids);';
             $this->fileLines[] = 'return $collection;';
             $this->fileLines[] = [1];
@@ -105,7 +114,7 @@ class SingleModelFactory extends ModelFactoryShared
             $functionLoadName = 'loadBy' . ucfirst($rowTwo["COLUMN_NAME"]);
 
             $this->fileLines[] = 'public function ' . $functionLoadName . '('
-            . $useType . ' $' . $rowTwo["COLUMN_NAME"] . '): SingleLoadReply';
+                . $useType . ' $' . $rowTwo["COLUMN_NAME"] . '): SingleLoadReply';
             $this->fileLines[] = '{';
             $this->fileLines[] = [2];
             $this->fileLines[] = 'return $this->loadByField(';
@@ -222,7 +231,7 @@ class SingleModelFactory extends ModelFactoryShared
             }
             $seenUsing[] = $targetClassName;
             $this->fileLines[] = 'use ' . $this->namespaceSet . '\\'
-            . $targetClassName . ' as ' . $targetClassName . ';';
+                . $targetClassName . ' as ' . $targetClassName . ';';
         }
 
         $this->fileLines[] = '';
