@@ -403,7 +403,7 @@ abstract class GenClassDB extends GenClassControl
     {
         $expected_changes = count($updateConfig["fields"]);
         if ($expected_changes == 0) {
-            return new UpdateReply("No changes made: " . json_encode($updateConfig));
+            return new UpdateReply("No changes made: " . json_encode($updateConfig), true);
         }
 
         $reply = $this->sql->updateV2($this->getTable(), $updateConfig, $whereConfig, 1);
