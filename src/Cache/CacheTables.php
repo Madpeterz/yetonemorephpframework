@@ -7,34 +7,18 @@ use YAPF\Framework\Responses\Cache\CacheStatusReply;
 
 abstract class CacheTables extends CacheDatastore
 {
-    protected ?string $encryptKeycode = null;
-
-    public function setEncryptKeyCode(?string $code): CacheStatusReply
-    {
-        if (defined("SODIUM_CRYPTO_SECRETBOX_KEYBYTES") == false) {
-            return new CacheStatusReply("Unable to set encrypt key as sodium is not enabled");
-        }
-        $this->encryptKeycode = $code;
-        return new CacheStatusReply("encryptKeycode has been set", true);
-    }
-
     public function addTableToCache(
         string $tableName,
         int $maxAgeInMins = 15,
         bool $enableForSingles = true,
         bool $enableForSets = false,
-        bool $encryptData = false,
     ): CacheStatusReply {
         if ($maxAgeInMins < 1) {
             return new CacheStatusReply("invaild max age");
         }
-        if (($encryptData == true) && (defined("SODIUM_CRYPTO_SECRETBOX_KEYBYTES") == false)) {
-            return new CacheStatusReply("Unable to encrypt cache as sodium is not enabled");
-        }
         $this->tableConfig[$tableName] = [
             "single" => $enableForSingles,
             "set" => $enableForSets,
-            "encrypt" => $encryptData,
             "maxAge" => $maxAgeInMins,
         ];
         if (is_array($this->tablesLastChanged) == false) {
@@ -73,60 +57,11 @@ abstract class CacheTables extends CacheDatastore
         if (array_key_exists($table, $this->tableConfig) == false) {
             return false;
         }
-        if (($this->tableConfig[$table]["encrypt"] == true) && ($this->encryptKeycode == null)) {
-            return false;
-        }
         $source = "set";
         if ($asSingle == true) {
             $source = "single";
         }
         return $this->tableConfig[$table][$source];
-    }
-
-    protected function makeKey(string $key): string
-    {
-        while (mb_strlen($key, '8bit') < SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            $key .= $key . "abcd" . $key;
-        }
-        if (mb_strlen($key, '8bit') > SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            $key = mb_substr($key, 0, SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
-        }
-        return $key;
-    }
-    protected function decrypt(string $encrypted, string $key): ?string
-    {
-        $key = $this->makeKey($key);
-        $decoded = base64_decode($encrypted);
-        $nonce = mb_substr($decoded, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, '8bit');
-        $ciphertext = mb_substr($decoded, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, null, '8bit');
-
-        $plain = sodium_crypto_secretbox_open(
-            $ciphertext,
-            $nonce,
-            $key
-        );
-        if (!is_string($plain)) {
-            return null;
-        }
-        sodium_memzero($ciphertext);
-        sodium_memzero($key);
-        return $plain;
-    }
-    protected function encrypt(string $message, string $key): string
-    {
-        $key = $this->makeKey($key);
-        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-        $cipher = base64_encode(
-            $nonce .
-                sodium_crypto_secretbox(
-                    $message,
-                    $nonce,
-                    $key
-                )
-        );
-        sodium_memzero($message);
-        sodium_memzero($key);
-        return $cipher;
     }
 
     /**
@@ -138,9 +73,6 @@ abstract class CacheTables extends CacheDatastore
     protected function tablePackString(string $table, array $raw): string
     {
         $dataString = json_encode($raw);
-        if ($this->tableConfig[$table]["encrypt"] == true) {
-            $dataString = $this->encrypt($dataString, $table . $this->encryptKeycode);
-        }
         return json_encode([
             "version" => $this->tablesLastChanged[$table]["version"],
             "table" => $table,
@@ -229,9 +161,6 @@ abstract class CacheTables extends CacheDatastore
         }
         if ($this->tableUnpackChecks($data["table"], $table, $data["time"], $data["version"]) == false) {
             return null;
-        }
-        if ($this->tableConfig[$table]["encrypt"] == true) {
-            $data["data"] = $this->decrypt($data["data"], $table . $this->encryptKeycode); // decode teh data
         }
         try {
             $data["data"] = json_decode($data["data"], true); // convert the json into an array

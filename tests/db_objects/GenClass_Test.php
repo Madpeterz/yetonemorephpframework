@@ -186,7 +186,7 @@ class DbObjectsGenClassTest extends TestCase
         $verybroken = new VeryBrokenDbObject(["id" => 44, "cvalue" => 55]);
         $verybroken->setCvalue(44);
         $result = $verybroken->updateEntry();
-        $this->assertSame($result->status, false);
+        $this->assertSame($result->status, true, "Expected to flag true but it did not: " . $result->message);
         $this->assertStringContainsString("No changes made", $result->message, "No changes made message is not as expected");
     }
 

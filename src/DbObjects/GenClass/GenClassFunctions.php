@@ -492,9 +492,20 @@ abstract class GenClassFunctions extends SqlConnectedClass
         if ($this->autoFillNoChangesCheck($whereConfig, $expandMatches, $expendTypes) == true) {
             return new AutoFillReply("No changes needed", true, $whereConfig);
         }
+        $indexIsArray = [];
+        $loop = 0;
+        while ($loop < count($whereConfig["values"])) {
+            $indexIsArray[$loop] = is_array($whereConfig["values"][$loop]);
+            $loop++;
+        }
+        $loop = 0;
         foreach ($whereConfig["fields"] as $field) {
             if ($expandMatches == true) {
-                $whereConfig["matches"][] = "=";
+                $matchType = "=";
+                if ($indexIsArray[$loop] == true) {
+                    $matchType = "IN";
+                }
+                $whereConfig["matches"][] = $matchType;
             }
             if ($expendTypes == false) {
                 continue;

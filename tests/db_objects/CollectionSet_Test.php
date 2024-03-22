@@ -9,6 +9,7 @@ use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
 use YAPF\Framework\DbObjects\CollectionSet\CollectionSet as CollectionSet;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Endoftestempty;
+use YAPF\Junk\Models\Relationtestinga;
 use YAPF\Junk\Sets\CounttoonehundoSet;
 use YAPF\Junk\Sets\EndoftestemptySet;
 use YAPF\Junk\Sets\LiketestsSet;
@@ -277,6 +278,19 @@ class CollectionSetTest extends TestCase
         $this->assertSame(2, count($results[1]), "There should be 2 fields in the data :/");
         $this->assertSame(false, array_key_exists("value", $results[1]), "There should not be the value field in the results");
         $this->assertSame(true, array_key_exists("name", $results[1]), "There should be the name field in the results");
+    }
+
+    public function testLoadMatchingWithArray()
+    {
+        $relationtestinga = new RelationtestingaSet();
+        $results = $relationtestinga->loadMatching(
+            [
+                "id" => [1, 2]
+            ]
+        );
+        $this->assertSame(true, $results->status, "Failed to load with an array");
+        $this->assertSame(2, $results->items, "expected 2 items in the collection");
+        $this->assertSame('SELECT * FROM test.relationtestinga  WHERE id IN ( ? , ? )', $relationtestinga->getLastSql(), "SQL is fucked");
     }
 
     public function testForeachOverSetThenForeachOverSingle()
