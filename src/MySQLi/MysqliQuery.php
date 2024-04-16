@@ -18,6 +18,33 @@ abstract class MysqliQuery extends MysqliChange
         return $this->sql_selects;
     }
 
+    public function directSelectSQL(string $sqlRaw): SelectReply
+    {
+        if ($this->sqlStart() == false) {
+            return new SelectReply($this->myLastErrorBasic);
+        }
+        $bindArgs = [];
+        $bindText = "";
+        $stmt = $this->prepareBindExecute($sqlRaw, $bindArgs, $bindText);
+        if ($stmt === null) {
+            return new SelectReply($this->myLastErrorBasic);
+        }
+        $result = false;
+        try {
+            $result = $stmt->get_result();
+        } catch (Throwable $e) {
+            $stmt->close();
+            $this->addError("statement failed due to error: " . $e);
+            return new SelectReply($this->myLastErrorBasic);
+        }
+        $dataset = $this->buildDataset(false, $result);
+        $stmt->free_result();
+        $stmt->close();
+        $this->sqlConnection->next_result();
+        $this->sql_selects++;
+        return new SelectReply("ok", true, $dataset);
+    }
+
     /**
      * selectV2
      * for a full breakdown of all the magic
@@ -136,7 +163,7 @@ abstract class MysqliQuery extends MysqliChange
             return new SelectReply($this->myLastErrorBasic);
         }
         if ($matchValue === null) {
-            if (in_array($matchCode, ["IS","IS NOT"]) == false) {
+            if (in_array($matchCode, ["IS", "IS NOT"]) == false) {
                 $this->addError("Match value can not be null");
                 return new SelectReply($this->myLastErrorBasic);
             }

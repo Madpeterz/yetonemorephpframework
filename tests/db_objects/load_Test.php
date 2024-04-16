@@ -46,11 +46,12 @@ class DbObjectsLoadTest extends TestCase
 
     public function testLoadSet()
     {
+        $this->testResetDbFirst();
         $countto = new CounttoonehundoSet();
         $load_status = $countto->loadAll();
         $this->assertSame("ok", $load_status->message);
         $this->assertSame(true, $load_status->status);
-        $this->assertSame(100, $load_status->items);
+        $this->assertSame(100, $load_status->items, $countto->getLastSql());
     }
 
     public function testLoadRange()

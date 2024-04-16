@@ -5,6 +5,7 @@ namespace YAPF\Framework\DbObjects\CollectionSet;
 use YAPF\Framework\Responses\DbObjects\SetsLoadReply;
 use YAPF\Framework\Responses\MySQLi\SelectReply;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
+use YAPF\Framework\Responses\DbObjects\GroupedCountReply;
 
 abstract class CollectionSetFunctions extends CollectionSetBulk
 {
@@ -227,14 +228,14 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         if (is_object($value) == true) {
             $errormsg = "Attempted to pass value as a object!";
             $this->addError($errormsg);
-            return ["status" => false,"message" => "Attempted to pass a value as a object!"];
+            return ["status" => false, "message" => "Attempted to pass a value as a object!"];
         }
         $whereConfig = [
             "fields" => [$field],
             "values" => [$value],
         ];
-        $orderConfig = ["enabled" => true,"byField" => $orderBy,"dir" => $orderDirection];
-        $optionsConfig = ["pageNumber" => 0,"limit" => $limit];
+        $orderConfig = ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection];
+        $optionsConfig = ["pageNumber" => 0, "limit" => $limit];
         return $this->loadWithConfig($whereConfig, $orderConfig, $optionsConfig);
     }
     /**
@@ -266,8 +267,8 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     ): SetsLoadReply {
         return $this->loadWithConfig(
             $whereConfig,
-            ["enabled" => true,"byField" => $orderBy,"dir" => $orderDirection],
-            ["pageNumber" => $page,"limit" => $limit]
+            ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection],
+            ["pageNumber" => $page, "limit" => $limit]
         );
     }
     /**
@@ -280,7 +281,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     {
         return $this->loadWithConfig(
             null,
-            ["enabled" => true,"byField" => $orderBy,"dir" => $orderDirection]
+            ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection]
         );
     }
 
@@ -411,7 +412,8 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $this->makeWorker();
         $oldCount = $this->getCount();
         foreach ($loadData->dataset as $entry) {
-            $new_object = new $this->workerClass($entry);
+            $class = $this->getWorkerClass();
+            $new_object = new $class($entry);
             if ($this->disableUpdates == true) {
                 $new_object->noUpdates();
             }

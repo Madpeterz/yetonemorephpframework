@@ -98,6 +98,15 @@ class CacheWorker extends CacheLinkDriver
         return $this->driver->stop();
     }
 
+    public function directHash(string $table, string $sql, bool $asSingle): ?string
+    {
+        if ($this->tableUsesCache($table, $asSingle) == false) {
+            return null;
+        }
+        $raw = json_encode(["table" => $table, "sql" => $sql]);
+        return substr($this->sha256($raw . "cache"), 0, $this->driver->getKeyLength());
+    }
+
     public function getHash(
         string $table,
         int $numberOfFields,

@@ -4,6 +4,7 @@ namespace YAPF\Framework\DbObjects\CollectionSet;
 
 use YAPF\Framework\Core\SQLi\SqlConnectedClass;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
+use YAPF\Framework\Responses\DbObjects\GroupedCountReply;
 use YAPF\Framework\Responses\MySQLi\CountReply;
 
 abstract class CollectionSetCore extends SqlConnectedClass
@@ -51,7 +52,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
         return count($this->collected);
     }
 
-        /**
+    /**
      * getAllIds
      * alias of uniqueArray
      * defaulted to id or use_id_field
@@ -80,6 +81,62 @@ abstract class CollectionSetCore extends SqlConnectedClass
             }
         }
         return $found_values;
+    }
+    /**
+     * > notes: minCountToShow applys the filter
+     * after counting everything so setting to not null
+     * is worse than leaving it as null!
+     * unless you want SQL to trim the result stack
+     * before passing it to php
+     */
+    public function groupCountInDb(string $groupByField, int $minCountToShow = null): GroupedCountReply
+    {
+
+        $this->makeWorker();
+        if ($this->worker->hasField($groupByField) == false) {
+            return new GroupedCountReply("Unknown groupby field");
+        }
+        $having = "";
+        if ($minCountToShow != null) {
+            if ($minCountToShow < 1) {
+                $minCountToShow = 1;
+                $this->addError("Min count to show was to low set to 1");
+            }
+            $having = " HAVING SortedCount >= " . $minCountToShow . "";
+        }
+        $sqlRaw = '' .
+            'SELECT count(id) as SortedCount, ' . $groupByField . '' .
+            ' FROM ' . $this->worker->getTable() . '' .
+            ' GROUP BY ' . $groupByField . '' .
+            $having .
+            ' ORDER BY SortedCount DESC';
+        // Cache support
+        $currentHash = "";
+        if ($this->cache != null) {
+            $currentHash = $this->cache->directHash(
+                $this->worker->getTable(),
+                $sqlRaw,
+                false
+            );
+            $hitCache = $this->cache->readHash($this->worker->getTable(), $currentHash, false);
+            if (is_array($hitCache) == true) {
+                return new GroupedCountReply("from cache", $hitCache["data"], true);
+            }
+        }
+        $reply = $this->sql->directSelectSQL($sqlRaw);
+        if ($reply->status == false) {
+            $this->addError($reply->message);
+            return new GroupedCountReply($reply->message);
+        }
+        $results = [];
+        foreach ($reply->dataset as $entry) {
+            $results[$entry[$groupByField]] = $entry["SortedCount"];
+        }
+        if (($this->cache != null) && ($reply->status == true)) {
+            // push data to cache so we can avoid reading from DB as much
+            $this->cache->writeHash($this->worker->getTable(), $currentHash, $results, false);
+        }
+        return new GroupedCountReply("ok", $results, true);
     }
 
     /**
@@ -210,7 +267,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * indexSearch
      * returns an array of objects that matched the search settings
      * @return mixed[] [object,...]
-    */
+     */
     protected function indexSearch(string $fieldName, $fieldValue): array
     {
         $this->makeWorker();

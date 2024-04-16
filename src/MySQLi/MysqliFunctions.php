@@ -79,7 +79,7 @@ abstract class MysqliFunctions extends Db
         return $this->lastSql;
     }
 
-        /**
+    /**
      * buildOrderby
      * returns the last SQL statement processed
      * good if you want to check what its doing
@@ -228,7 +228,7 @@ abstract class MysqliFunctions extends Db
             return false;
         }
         $all_found = true;
-        $required_keys = ["tables","types","onFieldLeft","onFieldMatch","onFieldRight"];
+        $required_keys = ["tables", "types", "onFieldLeft", "onFieldMatch", "onFieldRight"];
         $missing_join_key = "";
         foreach ($required_keys as $key) {
             if (array_key_exists($key, $joinTables) == false) {

@@ -293,6 +293,17 @@ class CollectionSetTest extends TestCase
         $this->assertSame('SELECT * FROM test.relationtestinga  WHERE id IN ( ? , ? )', $relationtestinga->getLastSql(), "SQL is fucked");
     }
 
+    public function testGroupCountInDb()
+    {
+        $CounttoonehundoSet = new CounttoonehundoSet();
+        $result = $CounttoonehundoSet->groupCountInDb("cvalue");
+        $this->assertSame(true, $result->status, "Expected a true reply, " . $CounttoonehundoSet->getLastSql());
+        $this->assertSame(10, count($result->results), "Expected 11 entrys in the result set " . $CounttoonehundoSet->getLastSql());
+        foreach ($result->results as $cvalue => $count) {
+            $this->assertSame($count, 10, "Expected cvalue: " . $cvalue . " to have count of 10");
+        }
+    }
+
     public function testForeachOverSetThenForeachOverSingle()
     {
         $relationtestinga = new RelationtestingaSet();
