@@ -38,13 +38,13 @@ class SingleModelFactory extends ModelFactoryShared
 
 
 
-            $this->fileLines[] = 'public function related' . $targetClass . '(?array $limitFields=null): '
+            $this->fileLines[] = 'public function related' . $targetClass . '(?array $limitFields = null): '
                 . $targetClassName . '';
             $this->fileLines[] = '{';
             $this->fileLines[] = [2];
             $this->fileLines[] = '$ids = [$this->get' . $fromField . '()];';
             $this->fileLines[] = '$collection = new ' . $targetClassName . '();';
-            $this->fileLines[] = 'if($limitFields !== null) {';
+            $this->fileLines[] = 'if ($limitFields !== null) {';
             $this->fileLines[] = [3];
             $this->fileLines[] = '$collection->limitFields($limitFields);';
             $this->fileLines[] = [2];
