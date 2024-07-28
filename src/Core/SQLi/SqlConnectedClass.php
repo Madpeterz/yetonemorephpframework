@@ -3,8 +3,6 @@
 namespace YAPF\Framework\Core\SQLi;
 
 use YAPF\Core\ErrorControl\ErrorLogging;
-use YAPF\Framework\Cache\Cache;
-use YAPF\Framework\Cache\CacheWorker;
 use YAPF\Framework\MySQLi\MysqliEnabled;
 
 abstract class SqlConnectedClass extends ErrorLogging
@@ -24,7 +22,6 @@ abstract class SqlConnectedClass extends ErrorLogging
         global $system;
         if ($this->disabled == false) {
             $this->sql = $system->getSQL();
-            $this->cache = $system->getCacheWorker();
         }
     }
 
@@ -36,19 +33,6 @@ abstract class SqlConnectedClass extends ErrorLogging
         $this->sql = $SetSQl;
     }
     protected function &unRef($var): ?MysqliEnabled
-    {
-        return $var;
-    }
-
-    protected ?CacheWorker $cache = null;
-    public function attachCache(CacheWorker &$setCache): void
-    {
-        if ($this->cache != null) {
-            $this->cache = $this->unRefCache($this->cache);
-        }
-        $this->cache = $setCache;
-    }
-    protected function &unRefCache($var): ?CacheWorker
     {
         return $var;
     }

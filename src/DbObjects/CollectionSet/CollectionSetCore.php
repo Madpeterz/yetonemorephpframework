@@ -28,7 +28,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
     public function __construct(string $workerClass)
     {
         global $system;
-        $this->cache = $system->getCacheWorker();
         $this->workerClass = $workerClass;
         parent::__construct();
     }
@@ -110,19 +109,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
             ' GROUP BY ' . $groupByField . '' .
             $having .
             ' ORDER BY SortedCount DESC';
-        // Cache support
-        $currentHash = "";
-        if ($this->cache != null) {
-            $currentHash = $this->cache->directHash(
-                $this->worker->getTable(),
-                $sqlRaw,
-                false
-            );
-            $hitCache = $this->cache->readHash($this->worker->getTable(), $currentHash, false);
-            if (is_array($hitCache) == true) {
-                return new GroupedCountReply("from cache", $hitCache["data"], true);
-            }
-        }
         $reply = $this->sql->directSelectSQL($sqlRaw);
         if ($reply->status == false) {
             $this->addError($reply->message);
@@ -131,10 +117,6 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $results = [];
         foreach ($reply->dataset as $entry) {
             $results[$entry[$groupByField]] = $entry["SortedCount"];
-        }
-        if (($this->cache != null) && ($reply->status == true)) {
-            // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->worker->getTable(), $currentHash, $results, false);
         }
         return new GroupedCountReply("ok", $results, true);
     }
@@ -152,31 +134,10 @@ abstract class CollectionSetCore extends SqlConnectedClass
             return new CountReply($loadWhereConfig->message);
         }
         $whereConfig = $loadWhereConfig->data;
-        // Cache support
-        if ($this->cache != null) {
-            $currentHash = $this->cache->getHash(
-                $this->worker->getTable(),
-                count($this->worker->getFields()),
-                false,
-                $whereConfig,
-                ["countDB" => "yep"],
-                ["countDB" => "yep"],
-                ["countDB" => "yep"]
-            );
-            $hitCache = $this->cache->readHash($this->worker->getTable(), $currentHash, false);
-            if (is_array($hitCache) == true) {
-                return new CountReply("from cache", true, $hitCache["data"]["count"]);
-            }
-        }
-
         $reply = $this->sql->basicCountV2($this->worker->getTable(), $whereConfig);
         if ($reply->status == false) {
             $this->addError($reply->message);
             return new CountReply($reply->message);
-        }
-        if (($this->cache != null) && ($reply->status == true)) {
-            // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->worker->getTable(), $currentHash, ["count" => $reply->items], false);
         }
         return $reply;
     }
