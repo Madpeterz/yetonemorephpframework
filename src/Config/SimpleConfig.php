@@ -3,7 +3,6 @@
 namespace YAPF\Framework\Config;
 
 use ErrorException;
-use YAPF\Framework\Cache\Drivers\Redis;
 use YAPF\Core\ErrorControl\ErrorLogging;
 use YAPF\Framework\Cache\CacheWorker;
 use YAPF\Framework\MySQLi\MysqliEnabled;
@@ -11,7 +10,6 @@ use YAPF\Framework\MySQLi\MysqliEnabled;
 abstract class SimpleConfig extends ErrorLogging
 {
     // Cache
-    protected ?CacheWorker $Cache = null;
     protected bool $cacheEnabled = false;
 
     // Cache / Redis
@@ -55,10 +53,6 @@ abstract class SimpleConfig extends ErrorLogging
             $this->sql->shutdown();
             $this->sql = null;
         }
-        if ($this->Cache != null) {
-            $this->Cache->shutdown();
-            $this->Cache = null;
-        }
         $this->enableRestart = false;
     }
 
@@ -73,89 +67,5 @@ abstract class SimpleConfig extends ErrorLogging
             $this->sql = new MysqliEnabled();
         }
         return $this->sql;
-    }
-
-    /*
-        Cache functions
-    */
-    public function &getCacheWorker(): ?CacheWorker
-    {
-        if (($this->Cache == null) && ($this->enableRestart == true)) {
-            $this->setupCache();
-            if ($this->Cache != null) {
-                $this->startCache();
-            }
-        }
-        return $this->Cache;
-    }
-
-    public function configCacheDisabled(): void
-    {
-        if ($this->usingDocker == true) {
-            return;
-        }
-        $this->redisCache = false;
-    }
-    public function configCacheRedisUnixSocket(string $socket = "/var/run/redis/redis.sock"): void
-    {
-        if ($this->usingDocker == true) {
-            return;
-        }
-        $this->redisCache = true;
-        $this->redisUnix = true;
-        $this->redisSocket = $socket;
-    }
-    public function configCacheRedisTCP(string $host = "redis", int $port = 6379, int $timeout = 3): void
-    {
-        if ($this->usingDocker == true) {
-            return;
-        }
-        $this->redisCache = true;
-        $this->redisUnix = false;
-        $this->redisHost = $host;
-        $this->redisPort = $port;
-        $this->redisTimeout = $timeout;
-    }
-
-    public function setupCache(): void
-    {
-        $this->Cache = null;
-        if ($this->redisCache == true) {
-            $this->startRedisCache();
-        }
-        return;
-    }
-
-    /*
-        Tables to enable with cache
-    */
-    protected function setupCacheTables(): void
-    {
-    }
-
-    public function startCache(): void
-    {
-        $this->setupCacheTables();
-        if ($this->Cache != null) {
-            $this->Cache->getDriver()->start();
-        }
-        return;
-    }
-
-    protected function startRedisCache(): void
-    {
-        $this->Cache = new CacheWorker($this->connectRedisToSource());
-    }
-
-    protected function connectRedisToSource(): Redis
-    {
-        $driver = new Redis();
-        $driver->setTimeout($this->redisTimeout);
-        if ($this->redisUnix == true) {
-            $driver->connectUnix($this->redisSocket);
-            return $driver;
-        }
-        $driver->connectTCP($this->redisHost, $this->redisPort);
-        return $driver;
     }
 }

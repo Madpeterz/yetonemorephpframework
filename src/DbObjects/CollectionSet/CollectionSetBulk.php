@@ -33,9 +33,6 @@ abstract class CollectionSetBulk extends CollectionSetCore
             $this->addError("Incorrect number of items removed");
             return new RemoveReply($this->myLastErrorBasic);
         }
-        if ($this->cache != null) {
-            $this->cache->markChangeToTable($this->getTable());
-        }
         return new RemoveReply("ok", true, $remove_status->itemsRemoved);
     }
 
@@ -182,9 +179,6 @@ abstract class CollectionSetBulk extends CollectionSetCore
         if ($update_status->status == false) {
             $this->addError("Update failed because:" . $update_status->message);
             return new MultiUpdateReply($this->myLastErrorBasic);
-        }
-        if ($this->cache != null) {
-            $this->cache->markChangeToTable($this->getTable());
         }
         $this->updateMultipleApplyChanges($updateFields, $newValues);
         return new MultiUpdateReply("ok", true, $totalChanges);

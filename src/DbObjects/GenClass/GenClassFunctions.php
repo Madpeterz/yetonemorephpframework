@@ -10,7 +10,6 @@ use YAPF\Framework\Responses\DbObjects\UpdateReply;
 
 abstract class GenClassFunctions extends SqlConnectedClass
 {
-    protected bool $cacheAllowChanged = false;
     protected $use_table = "";
     protected $save_dataset = [];
     protected $dataset = [];
@@ -33,10 +32,6 @@ abstract class GenClassFunctions extends SqlConnectedClass
             $this->setup($defaults);
         }
         parent::__construct();
-        global $system;
-        if ($this->disabled == false) {
-            $this->cache = $system->getCacheWorker();
-        }
     }
 
     public function limitFields(array $fields): void
@@ -226,10 +221,6 @@ abstract class GenClassFunctions extends SqlConnectedClass
         return $this->use_table;
     }
 
-    public function setCacheAllowChanged(bool $status = true): void
-    {
-        $this->cacheAllowChanged = $status;
-    }
     protected bool $expectedSqlLoadError = false;
 
     public function expectedSqlLoadError(bool $setFlag = false): void

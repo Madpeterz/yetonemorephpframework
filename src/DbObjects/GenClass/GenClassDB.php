@@ -12,22 +12,6 @@ use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 abstract class GenClassDB extends GenClassControl
 {
-    protected bool $loadedFromCache = false;
-    protected int $cacheVersion = 0;
-    protected int $age = 0;
-    public function setLoadInfo(int $version, int $age, bool $fromCache = false): void
-    {
-        $this->addError("setting load details: " .
-            json_encode(["version" => $version, "age" => $age, "cache" => $fromCache]));
-        $this->loadedFromCache = $fromCache;
-        $this->cacheVersion = $version;
-        $this->age = $age;
-    }
-    public function getLoadDetails(): AgeDetails
-    {
-        return new AgeDetails($this->loadedFromCache, $this->age, $this->cacheVersion);
-    }
-
     /**
      * loadMatching
      * a very limited loading system
@@ -116,42 +100,11 @@ abstract class GenClassDB extends GenClassControl
             return new SingleLoadReply($loadWhereConfig->message);
         }
         $whereConfig = $loadWhereConfig->data;
-        // Cache support
-        if ($this->cache != null) {
-            $this->addError("Attempting to read from cache");
-            $currentHash = $this->cache->getHash(
-                $this->getTable(),
-                count($this->getFields()),
-                true,
-                $whereConfig,
-                ["single" => true],
-                ["single" => true],
-                $basic_config
-            );
-            $hitCache = $this->cache->readHash($this->getTable(), $currentHash, true);
-            if (is_array($hitCache) == true) {
-                $this->addError("Loading from cache with data: " . json_encode($hitCache));
-                $load = $this->processLoad(new SelectReply("from cache", true, $hitCache["data"]));
-                if ($load->status == false) {
-                    $this->addError("Error processing load: " . $load->message);
-                    return $load;
-                }
-                $this->setLoadInfo($hitCache["version"], $hitCache["time"], true);
-                return $load;
-            }
-        }
         $this->addError("Loading from DB");
         $this->sql->setExpectedErrorFlag($this->expectedSqlLoadError);
         $loadData = $this->sql->selectV2($basic_config, null, $whereConfig);
         $this->sql->setExpectedErrorFlag(false);
-        if ($this->cache != null) {
-            // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash($this->getTable(), $currentHash, $loadData->dataset, true);
-        }
         $load = $this->processLoad($loadData);
-        if ($load->status == true) {
-            $this->setLoadInfo(-1, time());
-        }
         return $load;
     }
 
@@ -209,7 +162,6 @@ abstract class GenClassDB extends GenClassControl
             return new RemoveReply($this->myLastErrorBasic);
         }
         $this->dataset["id"]["value"] = -1;
-        $this->touchCacheTable();
         return new RemoveReply("ok", true, $remove_status->itemsRemoved);
     }
 
@@ -281,7 +233,6 @@ abstract class GenClassDB extends GenClassControl
             $this->addError($return_dataset->message);
             return new CreateReply($this->myLastErrorBasic);
         }
-        $this->touchCacheTable();
         $this->dataset["id"]["value"] = $return_dataset->newId;
         $this->save_dataset = $this->dataset;
         return new CreateReply("ok", true, $return_dataset->newId);
@@ -405,22 +356,11 @@ abstract class GenClassDB extends GenClassControl
         if ($expected_changes == 0) {
             return new UpdateReply("No changes made: " . json_encode($updateConfig), true);
         }
-
         $reply = $this->sql->updateV2($this->getTable(), $updateConfig, $whereConfig, 1);
         if ($reply->status == false) {
             $this->addError($reply->message);
             return new UpdateReply($this->myLastErrorBasic);
         }
-        $this->touchCacheTable();
         return new UpdateReply("ok", true, $reply->itemsUpdated);
-    }
-
-    protected function touchCacheTable(): void
-    {
-        if ($this->cache != null) {
-            $this->cache->markChangeToTable($this->getTable());
-            return;
-        }
-        $this->addError("No cache supported");
     }
 }

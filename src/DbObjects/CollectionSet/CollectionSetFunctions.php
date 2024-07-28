@@ -309,32 +309,6 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         }
         $whereConfig = $loadWhereConfig->data;
         $loadWhereConfig = null;
-        // Cache support
-        if ($this->cache != null) {
-            $mergedData = $basic_config;
-            if (is_array($joinTables) == true) {
-                $mergedData = array_merge($basic_config, $joinTables);
-            }
-            $currentHash = $this->cache->getHash(
-                $this->getTable(),
-                count($this->worker->getFields()),
-                false,
-                $whereConfig,
-                $order_config,
-                $options_config,
-                $mergedData
-            );
-            $hitCache = $this->cache->readHash($this->getTable(), $currentHash, false);
-            if (is_array($hitCache) == true) {
-                // Valid data from cache!
-                return $this->processLoad(
-                    new SelectReply("from cache", true, $hitCache["data"]),
-                    true,
-                    $hitCache["version"],
-                    $hitCache["time"]
-                );
-            }
-        }
         // Cache missed, read from the DB
         $loadData = $this->sql->selectV2(
             $basic_config,
@@ -346,15 +320,6 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         if ($loadData->status == false) {
             $this->addError("Unable to load data: " . $loadData->message);
             return new SetsLoadReply($this->myLastErrorBasic);
-        }
-        if ($this->cache != null) {
-            // push data to cache so we can avoid reading from DB as much
-            $this->cache->writeHash(
-                $this->worker->getTable(),
-                $currentHash,
-                $loadData->dataset,
-                false
-            );
         }
         return $this->processLoad($loadData);
     }
@@ -398,7 +363,6 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     protected function processLoad(
         SelectReply $loadData,
-        bool $fromCache = false,
         int $version = 1,
         int $age = -1
     ): SetsLoadReply {
@@ -418,7 +382,6 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
                 $new_object->noUpdates();
             }
             if ($new_object->isLoaded() == true) {
-                $new_object->setLoadInfo($version, $age, $fromCache);
                 $this->collected[$entry["id"]] = $new_object;
             }
         }

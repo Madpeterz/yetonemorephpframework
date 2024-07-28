@@ -25,10 +25,6 @@
     <testsuite name="gen">
       <file>tests/gen/gen_Test.php</file>
     </testsuite>
-    <testsuite name="cache">
-      <file>tests/cache/RedisTests.php</file>
-      <file>tests/cache/CacheWorkerTests.php</file>
-    </testsuite>
     <testsuite name="All">
       <file>tests/mysqli/raw_sql_Test.php</file>
       <file>tests/mysqli/select_Test.php</file>
@@ -47,12 +43,9 @@
       <file>tests/db_objects/support_Test.php</file>
       <file>tests/db_objects/GenClass_Test.php</file>
       <file>tests/db_objects/CollectionSet_Test.php</file>
-      <file>tests/cache/RedisTests.php</file>
-      <file>tests/cache/CacheWorkerTests.php</file>
       <file>tests/issues/issue3.php</file>
       <file>tests/issues/issue4.php</file>
       <file>tests/issues/issue5.php</file>
-      <file>tests/config/ConfigTests.php</file>
     </testsuite>
   </testsuites>
 </phpunit>
