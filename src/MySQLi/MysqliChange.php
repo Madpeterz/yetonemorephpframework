@@ -80,11 +80,14 @@ abstract class MysqliChange extends MysqliWhere
      */
     public function removeV2(string $table, ?array $whereConfig = null): RemoveReply
     {
+        if ($this->sqlStart(false) == false) {
+            return new RemoveReply($this->myLastErrorBasic);
+        }
         if (strlen($table) == 0) {
             $this->addError("No table given");
             return new RemoveReply($this->myLastErrorBasic);
         }
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(false) == false) {
             return new RemoveReply($this->myLastErrorBasic);
         }
         $this->queryStats["deletes"]++;
@@ -119,7 +122,7 @@ abstract class MysqliChange extends MysqliWhere
             $this->addError("count issue values <=> types");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(false) == false) {
             return new UpdateReply($this->myLastErrorBasic);
         }
         return new UpdateReply("continue", true);
@@ -135,6 +138,9 @@ abstract class MysqliChange extends MysqliWhere
      */
     public function updateV2(string $table, array $updateConfig, ?array $whereConfig = null): UpdateReply
     {
+        if ($this->sqlStart(false) == false) {
+            return new UpdateReply($this->myLastErrorBasic);
+        }
         $reply = $this->checkUpdateV2($table, $updateConfig);
         if ($reply->status == false) {
             return $reply;
@@ -192,7 +198,7 @@ abstract class MysqliChange extends MysqliWhere
             $this->addError("values and types counts do not match!");
             return new AddReply($this->myLastErrorBasic);
         }
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(false) == false) {
             return new AddReply($this->myLastErrorBasic);
         }
         return new AddReply("continue", true);
@@ -206,6 +212,9 @@ abstract class MysqliChange extends MysqliWhere
      */
     public function addV2(array $config = []): AddReply
     {
+        if ($this->sqlStart(false) == false) {
+            return new AddReply($this->myLastErrorBasic);
+        }
         $reply = $this->checkAddV2($config);
         if ($reply->status == false) {
             return $reply;

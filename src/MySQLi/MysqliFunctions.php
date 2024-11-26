@@ -185,17 +185,18 @@ abstract class MysqliFunctions extends Db
      * RawSQL
      * runs a stored sql file from disk
      */
-    public function rawSQL(string $pathToFile): RawReply
+    public function rawSQL(?string $pathToFile, array $commands = []): RawReply
     {
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(false) == false) {
             return new RawReply($this->myLastErrorBasic);
         }
-
-        $commands = $this->commandsFromSqlLines($pathToFile);
+        $this->myLastErrorBasic = "No file selected and no commands passed in";
+        if ($pathToFile != null) {
+            $commands = $this->commandsFromSqlLines($pathToFile);
+        }
         if (count($commands) == 0) {
             return new RawReply($this->myLastErrorBasic);
         }
-
         $had_error = false;
         $commands_run = 0;
         foreach ($commands as $command) {
@@ -476,10 +477,17 @@ abstract class MysqliFunctions extends Db
      */
     public function sqlRollBack(): void
     {
-        if ($this->sqlConnection != null) {
+        if ($this->sqlConnection == null) {
+            $this->addError("Stopping");
+            $this->sqlStop();
+            return;
+        }
+        if ($this->autoCommitDisabled == true) {
+            $this->addError("starting rollback");
             $this->sqlConnection->rollback();
         }
         $this->sqlStop();
+        return;
     }
     /**
      * sqlRollBack
@@ -488,9 +496,12 @@ abstract class MysqliFunctions extends Db
      * also closes the SQL connection as we should stop
      * what we are doing if there needs to be a rollback.
      */
-    public function sqlStart(): bool
+    public function sqlStart(bool $readonly): bool
     {
         if ($this->sqlConnection != null) {
+            if ($readonly == false) {
+                $this->disableAutoComit();
+            }
             return true; // connection is already open!
         }
         if ($this->hasDbConfig() == false) {
@@ -512,8 +523,18 @@ abstract class MysqliFunctions extends Db
             $this->addError("sql connection is not open as expected!");
             return false;
         }
-        $this->sqlConnection->autocommit(false); // disable auto commit.
+        if ($readonly == false) {
+            $this->disableAutoComit();
+        }
         return $status;
+    }
+    protected bool $autoCommitDisabled = false;
+    public function disableAutoComit(): void
+    {
+        if ($this->autoCommitDisabled == false) {
+            $this->autoCommitDisabled = true;
+            $this->sqlConnection->autocommit(false); // disable auto commit.
+        }
     }
     /**
      * sqlStop
@@ -527,6 +548,7 @@ abstract class MysqliFunctions extends Db
     {
         $this->hadErrors = false;
         $this->needToSave = false;
+        $this->autoCommitDisabled = false;
         if ($this->sqlConnection != null) {
             $this->sqlConnection->close();
             $this->sqlConnection = null;

@@ -20,7 +20,7 @@ abstract class MysqliQuery extends MysqliChange
 
     public function directSelectSQL(string $sqlRaw): SelectReply
     {
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(true) == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
         $bindArgs = [];
@@ -66,7 +66,7 @@ abstract class MysqliQuery extends MysqliChange
             $this->addError("No table set in basic config!");
             return new SelectReply($this->myLastErrorBasic);
         }
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(true) == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
         $mainTableId = "";
@@ -168,7 +168,7 @@ abstract class MysqliQuery extends MysqliChange
                 return new SelectReply($this->myLastErrorBasic);
             }
         }
-        if ($this->sqlStart() == false) {
+        if ($this->sqlStart(true) == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
         return new SelectReply("continue", true);

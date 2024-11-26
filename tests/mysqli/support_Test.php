@@ -46,7 +46,7 @@ class MysqliSupportTest extends TestCase
         $helper = new sha256Helper();
         $config = [
             "table" => "endoftestwithfourentrys",
-            "fields" => ["value","asdasda"],
+            "fields" => ["value", "asdasda"],
             "values" => [$helper->getSha256("testAdd888")],
             "types" => ["s"]
         ];
@@ -62,7 +62,7 @@ class MysqliSupportTest extends TestCase
             "table" => "endoftestwithfourentrys",
             "fields" => ["value"],
             "values" => [$helper->getSha256("testAdd888")],
-            "types" => ["s","asdasda"]
+            "types" => ["s", "asdasda"]
         ];
         $result = $this->sql->addV2($config);
         $this->assertSame($result->message, "values and types counts do not match!");
@@ -89,13 +89,13 @@ class MysqliSupportTest extends TestCase
 
     public function testMysqliCoreDestruct()
     {
-        $startup = $this->sql->sqlStart();
+        $startup = $this->sql->sqlStart(false);
         $this->assertSame($startup, true);
         $result = $this->sql->shutdown();
-        $this->assertSame(true,$result);
+        $this->assertSame(true, $result);
         $this->assertSame($this->sql->getLastErrorBasic(), "No changes made");
         $result = $this->sql->shutdown();
-        $this->assertSame(true,$result);
+        $this->assertSame(true, $result);
         $this->assertSame($this->sql->getLastErrorBasic(), "Not connected");
     }
 
@@ -162,9 +162,9 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($results->status, true);
         $config = [
             "table" => "rollbacktest",
-            "fields" => ["name","value"],
-            "values" => ["kilme",12],
-            "types" => ["s","i"],
+            "fields" => ["name", "value"],
+            "values" => ["kilme", 12],
+            "types" => ["s", "i"],
         ];
         $results = $this->sql->addV2($config);
         $this->assertSame($results->status, true);
@@ -172,6 +172,11 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($results->newId, 1);
         $this->sql->flagError();
         $this->sql->sqlSave(); // reject save due to error and rollback
+        $this->assertSame(
+            "starting rollback",
+            $this->sql->getLastErrorBasic(),
+            "Sql status not as expected"
+        );
         $results = $this->sql->basicCountV2("rollbacktest");
         $this->assertSame($results->items, 0);
         $this->assertSame($results->status, true);
@@ -209,19 +214,19 @@ class MysqliSupportTest extends TestCase
         // good host / good details / good DB
         $this->sql->fullSqlErrors = false;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "information_schema", true);
-        $this->assertSame(true,$result);
+        $this->assertSame(true, $result);
     }
 
     public function testSqlStartBadConfig()
     {
         $savedbuser = $this->sql->dbUser;
         $this->sql->dbUser = null;
-        $result = $this->sql->sqlStart();
+        $result = $this->sql->sqlStart(true);
         $this->assertSame($this->sql->getLastErrorBasic(), "DB config is not valid to start!");
         $this->assertSame($result, false);
         $this->sql->dbUser = $savedbuser;
         $this->sql->dbPass = null;
-        $result = $this->sql->sqlStart();
+        $result = $this->sql->sqlStart(true);
         $this->assertSame($this->sql->getLastErrorBasic(), 'sqlStartConnection returned false!');
         $this->assertSame($result, false);
     }
@@ -264,7 +269,7 @@ class MysqliSupportTest extends TestCase
         $basic_config = ["table" => "counttoonehundo"];
         $whereConfig = [
             "fields" => ["id"],
-            "values" => [14,44],
+            "values" => [14, 44],
             "types" => ["s"],
             "matches" => ["="]
         ];
@@ -281,7 +286,7 @@ class MysqliSupportTest extends TestCase
         $whereConfig = [
             "fields" => ["id"],
             "values" => [14],
-            "types" => ["s","i"],
+            "types" => ["s", "i"],
             "matches" => ["="]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
@@ -298,7 +303,7 @@ class MysqliSupportTest extends TestCase
             "fields" => ["id"],
             "values" => [14],
             "types" => ["s"],
-            "matches" => ["=","<="]
+            "matches" => ["=", "<="]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
@@ -315,7 +320,7 @@ class MysqliSupportTest extends TestCase
             "values" => [14],
             "types" => ["s"],
             "matches" => ["="],
-            "joinWith" => ["OR","AND"]
+            "joinWith" => ["OR", "AND"]
         ];
         $result = $this->sql->selectV2($basic_config, null, $whereConfig);
         // [dataset => mixed[mixed[]], status => bool, message => string]
