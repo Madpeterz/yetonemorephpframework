@@ -398,7 +398,7 @@ abstract class MysqliFunctions extends Db
     public function sqlStartConnection(
         string $sqlUser,
         string $sqlUserPassword,
-        string $databaseName,
+        ?string $databaseName,
         bool $stop = false,
         ?string $sqlHost = null,
         int $timeout = 3
