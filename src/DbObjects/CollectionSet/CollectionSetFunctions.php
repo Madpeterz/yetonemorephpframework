@@ -5,7 +5,6 @@ namespace YAPF\Framework\DbObjects\CollectionSet;
 use YAPF\Framework\Responses\DbObjects\SetsLoadReply;
 use YAPF\Framework\Responses\MySQLi\SelectReply;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
-use YAPF\Framework\Responses\DbObjects\GroupedCountReply;
 
 abstract class CollectionSetFunctions extends CollectionSetBulk
 {
@@ -17,8 +16,8 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     public function getObjectIdsByField(string $field, $fieldValue): false|array
     {
         $getter = "get" . ucFirst($field);
-        if ($this->worker->hasField($field) == false) {
-            $this->addError("Unknown fieldname: " . $field);
+        if ($this->worker->hasField(fieldName: $field) == false) {
+            $this->addError(errorMessage: "Unknown fieldname: " . $field);
             return false;
         }
         $reply = [];
@@ -34,18 +33,18 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     public function getWithFieldValue(string $field, string $fieldvalue): false|array
     {
         $getter = "get" . ucFirst($field);
-        if ($this->worker->hasField($field) == false) {
-            $this->addError("Unknown fieldname: " . $field);
+        if ($this->worker->hasField(fieldName: $field) == false) {
+            $this->addError(errorMessage: "Unknown fieldname: " . $field);
             return false;
         }
-        if ($this->worker->getFieldType($field, true) != "s") {
-            $this->addError("this function is for string partial matchs only");
+        if ($this->worker->getFieldType(fieldName: $field, as_mysqli_code: true) != "s") {
+            $this->addError(errorMessage: "this function is for string partial matchs only");
             return false;
         }
         $reply = [];
         foreach ($this->collected as $item) {
             $check = $item->$getter();
-            if (str_contains($check, $fieldvalue) == true) {
+            if (str_contains(haystack: $check, needle: $fieldvalue) == true) {
                 $reply[] = $item->getId();
             }
         }
@@ -75,11 +74,11 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $ValueFieldGetter = "get" . ucfirst($RightField);
         $worker = new $this->workerClass();
         if (method_exists($worker, $keyFieldGetter) == false) {
-            $this->addError("Field: " . $leftField . " is missing");
+            $this->addError(errorMessage: "Field: " . $leftField . " is missing");
             return [];
         }
         if (method_exists($worker, $ValueFieldGetter) == false) {
-            $this->addError("Field: " . $RightField . " is missing");
+            $this->addError(errorMessage: "Field: " . $RightField . " is missing");
             return [];
         }
         $return_array = [];
@@ -98,7 +97,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     public function getIdsMatchingField(string $fieldName, $fieldValue): array
     {
-        $objects = $this->indexSearch($fieldName, $fieldValue);
+        $objects = $this->indexSearch(fieldName: $fieldName, fieldValue: $fieldValue);
         $ids = [];
         foreach ($objects as $object) {
             $ids[] = $object->getId();
@@ -124,7 +123,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         foreach ($this->collected as $entry) {
             $hash_builder .= $entry->fieldsHash();
         }
-        return hash("sha256", $hash_builder);
+        return hash(algo: "sha256", data: $hash_builder);
     }
     /**
      * getObjectByField
@@ -136,7 +135,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     public function getObjectByField(string $fieldName, $value): ?object
     {
-        return $this->findObjectByField($fieldName, $value, false);
+        return $this->findObjectByField(fieldName: $fieldName, value: $value);
     }
     /**
      * getObjectByField
@@ -146,7 +145,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     protected function findObjectByField(string $fieldName, $value): ?object
     {
-        $objects = $this->indexSearch($fieldName, $value);
+        $objects = $this->indexSearch(fieldName: $fieldName, fieldValue: $value);
         if (count($objects) >= 1) {
             return array_pop($objects);
         }
@@ -163,7 +162,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
             return null;
         }
         $this->makeWorker();
-        if (array_key_exists($idNumber, $this->collected) == true) {
+        if (array_key_exists(key: $idNumber, array: $this->collected) == true) {
             return $this->collected[$idNumber];
         }
         return null;
@@ -175,7 +174,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     public function getAllByField(string $fieldName): array
     {
-        return $this->uniqueArray($fieldName);
+        return $this->uniqueArray(fieldName: $fieldName);
     }
 
 
@@ -193,7 +192,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $results = [];
         foreach ($this->collected as $entry) {
             /** @var GenClass $entry */
-            $results[$entry->getId()] = $entry->objectToMappedArray($ignoreFields, $invertIgnore);
+            $results[$entry->getId()] = $entry->objectToMappedArray(ignoreFields: $ignoreFields, invertIgnore: $invertIgnore);
         }
         return $results;
     }
@@ -204,13 +203,13 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      * values = values from input
      * Please use loadWithConfig when you can :P
      */
-    public function loadMatching(array $input): SetsLoadReply
+    public function loadMatching(array $input, ?array $limitFields = null): SetsLoadReply
     {
         $whereConfig = [
             "fields" => array_keys($input),
             "values" => array_values($input),
         ];
-        return $this->loadWithConfig($whereConfig);
+        return $this->loadWithConfig(whereConfig: $whereConfig, limitFields: $limitFields);
     }
 
     /**
@@ -223,12 +222,13 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $value,
         int $limit = 0,
         string $orderBy = "id",
-        string $orderDirection = "DESC"
+        string $orderDirection = "DESC",
+        ?array $limitFields = null
     ): SetsLoadReply {
         if (is_object($value) == true) {
             $errormsg = "Attempted to pass value as a object!";
-            $this->addError($errormsg);
-            return ["status" => false, "message" => "Attempted to pass a value as a object!"];
+            $this->addError(errorMessage: $errormsg);
+            return new SetsLoadReply(message: "Attempted to pass a value as a object!", status: false);
         }
         $whereConfig = [
             "fields" => [$field],
@@ -236,7 +236,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         ];
         $orderConfig = ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection];
         $optionsConfig = ["pageNumber" => 0, "limit" => $limit];
-        return $this->loadWithConfig($whereConfig, $orderConfig, $optionsConfig);
+        return $this->loadWithConfig(whereConfig: $whereConfig, orderConfig: $orderConfig, optionsConfig: $optionsConfig, limitFields: $limitFields);
     }
     /**
      * loadLimited
@@ -249,9 +249,10 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         int $page = 0,
         string $orderBy = "id",
         string $orderDirection = "ASC",
-        ?array $whereConfig = null
+        ?array $whereConfig = null,
+        ?array $limitFields = null
     ): SetsLoadReply {
-        return $this->loadNewest($limit, $page, $orderBy, $orderDirection, $whereConfig);
+        return $this->loadNewest(limit: $limit, page: $page, orderBy: $orderBy, orderDirection: $orderDirection, whereConfig: $whereConfig, limitFields: $limitFields);
     }
     /**
      * loadNewest
@@ -263,12 +264,14 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         int $page = 0,
         string $orderBy = "id",
         string $orderDirection = "DESC",
-        ?array $whereConfig = null
+        ?array $whereConfig = null,
+        ?array $limitFields = null
     ): SetsLoadReply {
         return $this->loadWithConfig(
-            $whereConfig,
-            ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection],
-            ["pageNumber" => $page, "limit" => $limit]
+            whereConfig: $whereConfig,
+            orderConfig: ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection],
+            optionsConfig: ["pageNumber" => $page, "limit" => $limit],
+            limitFields: $limitFields
         );
     }
     /**
@@ -277,51 +280,59 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      * ordered by id ASC by default
      * for full control please use the method loadWithConfig
      */
-    public function loadAll(string $orderBy = "id", string $orderDirection = "ASC"): SetsLoadReply
-    {
+    public function loadAll(
+        string $orderBy = "id",
+        string $orderDirection = "ASC",
+        ?array $limitFields = null
+    ): SetsLoadReply {
         return $this->loadWithConfig(
-            null,
-            ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection]
+            whereConfig: null,
+            orderConfig: ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection],
+            limitFields: $limitFields
         );
     }
 
 
     /**
      * loadWithConfig
-     * Uses the select V2 system to load data
-     * its magic!
-     * see the v2 readme
+     * loads a collection of entrys from the database with 1 call
+     * please think about using limit fields if you wont be updating data
+     * to reduce the memory footprint
      */
     public function loadWithConfig(
         ?array $whereConfig = null,
-        ?array $order_config = null,
-        ?array $options_config = null,
-        ?array $joinTables = null
+        ?array $orderConfig = null,
+        ?array $optionsConfig = null,
+        ?array $joinTables = null,
+        ?array $limitFields = null
     ): SetsLoadReply {
         $this->makeWorker();
-        $basic_config = ["table" => $this->worker->getTable()];
+        if ($limitFields != null) {
+            $this->limitFields($limitFields);
+        }
+        $basicConfig = ["table" => $this->worker->getTable()];
         if ($this->disableUpdates == true) {
-            $basic_config["fields"] = $this->limitedFields;
+            $basicConfig["fields"] = $this->limitedFields;
         }
         $loadWhereConfig = $this->worker->autoFillWhereConfig($whereConfig);
         if ($loadWhereConfig->status == false) {
-            return new SetsLoadReply($loadWhereConfig->message);
+            return new SetsLoadReply(message: $loadWhereConfig->message);
         }
         $whereConfig = $loadWhereConfig->data;
         $loadWhereConfig = null;
         // Cache missed, read from the DB
         $loadData = $this->sql->selectV2(
-            $basic_config,
-            $order_config,
-            $whereConfig,
-            $options_config,
-            $joinTables
+            basic_config: $basicConfig,
+            order_config: $orderConfig,
+            whereConfig: $whereConfig,
+            options_config: $optionsConfig,
+            joinTables: $joinTables
         );
         if ($loadData->status == false) {
-            $this->addError("Unable to load data: " . $loadData->message);
-            return new SetsLoadReply($this->myLastErrorBasic);
+            $this->addError(errorMessage: "Unable to load data: " . $loadData->message);
+            return new SetsLoadReply(message: $this->myLastErrorBasic);
         }
-        return $this->processLoad($loadData);
+        return $this->processLoad(loadData: $loadData);
     }
 
     /**
@@ -341,15 +352,15 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
             }
         }
         if (count($uids) == 0) {
-            $this->addError("No ids sent!");
-            return new SetsLoadReply($this->myLastErrorBasic);
+            $this->addError(errorMessage: "No ids sent!");
+            return new SetsLoadReply(message: $this->myLastErrorBasic);
         }
-        $typeCheck = $this->worker->getFieldType($fieldName, true);
+        $typeCheck = $this->worker->getFieldType(fieldName: $fieldName, as_mysqli_code: true);
         if ($typeCheck == null) {
-            $this->addError("Invalid field: " . $fieldName);
-            return new SetsLoadReply($this->myLastErrorBasic);
+            $this->addError(errorMessage: "Invalid field: " . $fieldName);
+            return new SetsLoadReply(message: $this->myLastErrorBasic);
         }
-        return $this->loadWithConfig([
+        return $this->loadWithConfig(whereConfig: [
             "fields" => [$fieldName],
             "matches" => ["IN"],
             "values" => [$uids],
@@ -370,8 +381,8 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
             $age = time();
         }
         if ($loadData->status == false) {
-            $this->addError("loadData status is false");
-            return new SetsLoadReply($this->myLastErrorBasic);
+            $this->addError(errorMessage: "loadData status is false");
+            return new SetsLoadReply(message: $this->myLastErrorBasic);
         }
         $this->makeWorker();
         $oldCount = $this->getCount();
@@ -386,6 +397,6 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
             }
         }
         $this->rebuildIndex();
-        return new SetsLoadReply("ok", true, $this->getCount() - $oldCount);
+        return new SetsLoadReply(message: "ok", status: true, items: $this->getCount() - $oldCount);
     }
 }

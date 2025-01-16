@@ -29,6 +29,10 @@ class SetModelFactory extends SingleModelFactory
         $this->fileLines[] = [1];
     }
 
+    public function createModelGetSet(): void
+    {
+    }
+
     protected function createModelDataset(): void
     {
         // Not used
@@ -132,7 +136,8 @@ class SetModelFactory extends SingleModelFactory
             $this->fileLines[] = $useType . ' $' . $rowTwo["COLUMN_NAME"] . ',';
             $this->fileLines[] = 'int $limit = 0,';
             $this->fileLines[] = 'string $orderBy = "id",';
-            $this->fileLines[] = 'string $orderDir = "DESC"';
+            $this->fileLines[] = 'string $orderDir = "DESC",';
+            $this->fileLines[] = '?array $limitFields = null';
             $this->fileLines[] = [1];
             $this->fileLines[] = '): SetsLoadReply {';
             $this->fileLines[] = [2];
@@ -142,7 +147,8 @@ class SetModelFactory extends SingleModelFactory
             $this->fileLines[] = '$' . $rowTwo["COLUMN_NAME"] . ',';
             $this->fileLines[] = '$limit,';
             $this->fileLines[] = '$orderBy,';
-            $this->fileLines[] = '$orderDir';
+            $this->fileLines[] = '$orderDir,';
+            $this->fileLines[] = 'limitFields: $limitFields';
             $this->fileLines[] = [2];
             $this->fileLines[] =  ');';
             $this->fileLines[] = [1];
