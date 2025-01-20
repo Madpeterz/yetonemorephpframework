@@ -3,6 +3,7 @@
 namespace YAPF\Junk;
 
 use App\Config as AppConfig;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Models\Liketests;
@@ -40,8 +41,8 @@ class DbObjectsLoadTest extends TestCase
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
         $this->assertSame(true, $load_status->status);
-        $this->assertSame(44, $countto->getId());
-        $this->assertSame(8, $countto->getCvalue());
+        $this->assertSame(44, $countto->_Id);
+        $this->assertSame(8, $countto->_Cvalue);
     }
 
     public function testLoadSet()
@@ -62,8 +63,8 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($load_status->status, true);
         $this->assertSame($load_status->items, 44);
         $firstobj = $countto->getFirst();
-        $this->assertSame($firstobj->getId(), 56);
-        $this->assertSame($firstobj->getCvalue(), 32);
+        $this->assertSame($firstobj->_Id, 56);
+        $this->assertSame($firstobj->_Cvalue, 32);
     }
 
     public function testGetFirstOnEmpty()
@@ -85,7 +86,7 @@ class DbObjectsLoadTest extends TestCase
         $countto->loadAll();
         $result = $countto->getLast();
         $this->assertNotNull($result, "expected a object to be given");
-        $this->assertSame(100, $result->getId(), "Expected ID to be 100");
+        $this->assertSame(100, $result->_Id, "Expected ID to be 100");
     }
 
     public function testGetFirst()
@@ -94,7 +95,7 @@ class DbObjectsLoadTest extends TestCase
         $countto->loadAll();
         $result = $countto->getFirst();
         $this->assertNotNull($result, "expected a object to be given");
-        $this->assertSame(1, $result->getId(), "Expected ID to be 1");
+        $this->assertSame(1, $result->_Id, "Expected ID to be 1");
     }
 
     public function testLoadNewest()
@@ -105,8 +106,8 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($load_status->items, 5);
         $this->assertSame($load_status->message, "ok");
         $firstobj = $countto->getFirst();
-        $this->assertSame($firstobj->getId(), 100);
-        $this->assertSame($firstobj->getCvalue(), 512);
+        $this->assertSame($firstobj->_Id, 100);
+        $this->assertSame($firstobj->_Cvalue, 512);
     }
 
     public function testLoadWithConfig()
@@ -120,7 +121,7 @@ class DbObjectsLoadTest extends TestCase
         ];
         $load_status = $countto->loadWithConfig($whereConfig);
         $this->assertSame(true, $load_status->status);
-        $this->assertSame($countto->getId(), 100);
+        $this->assertSame($countto->_Id, 100);
     }
 
     public function testLoadNothing()
@@ -148,7 +149,7 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame(false, $result->status);
         $weird = new Weirdtable();
         $result = $weird->loadByField("weirdb", 3);
-        $this->assertSame($weird->getId(), null);
+        $this->assertSame($weird->_Id, null);
         $this->assertSame(false, $result->status);
         $countto = new Counttoonehundo();
         $result = $countto->loadByField("cvalue", 128);
@@ -218,7 +219,7 @@ class DbObjectsLoadTest extends TestCase
         ];
         $load_status = $countto->loadWithConfig($whereConfig);
         $this->assertSame(true, $load_status->status);
-        $this->assertSame($countto->getId(), 91);
+        $this->assertSame($countto->_Id, 91);
 
         $EndEmptySet = new CounttoonehundoSet();
         $whereConfig = [
@@ -235,7 +236,7 @@ class DbObjectsLoadTest extends TestCase
         $countto = new Counttoonehundo();
         $result = $countto->loadMatching(["id" => 4, "cvalue" => 8]);
         $this->assertSame(true, $result->status);
-        $this->assertSame($countto->getCvalue(), 8);
+        $this->assertSame($countto->_Cvalue, 8);
     }
 
     public function testCountinDb()
@@ -258,10 +259,10 @@ class DbObjectsLoadTest extends TestCase
         $this->assertSame($sqlExpected, $testing->getLastSql(), "SQL is not what was expected");
         $this->assertSame(4, $testing->getCount(), "Incorrect number of items loaded");
         $obj = $testing->getObjectByID(1);
-        $this->assertSame("redpondblue 1", $obj->getName(), "Value is not set as expected");
-        $this->assertSame(null, $obj->getValue(), "Value is not what is expected");
-        $reply = $obj->setValue("fail");
-        $this->assertSame(false, $reply->status, "Set a value incorrectly");
+        $this->assertSame("redpondblue 1", $obj->_Name, "Value is not set as expected");
+        $this->assertSame(null, $obj->_Value, "Value is not what is expected");
+        $obj->_Value = "fail";
+        $this->assertNotSame("fail",$obj->_Value,"write to object value while in limited fields mode");
         $reply = $testing->updateFieldInCollection("value", "failme");
         $this->assertSame(false, $reply->status, "bulk set value incorrectly");
         $reply = $obj->createEntry();
@@ -272,8 +273,8 @@ class DbObjectsLoadTest extends TestCase
         $testing->loadID(1);
         $sqlExpected = "SELECT id, name FROM test.liketests  WHERE `id` = ?";
         $this->assertSame($sqlExpected, $testing->getLastSql(), "SQL is not what was expected");
-        $this->assertSame("redpondblue 1", $testing->getName(), "Value is not set as expected");
-        $this->assertSame(null, $testing->getValue(), "Value is not what is expected");
+        $this->assertSame("redpondblue 1", $testing->_Name, "Value is not set as expected");
+        $this->assertSame(null, $testing->_Value, "Value is not what is expected");
     }
 
     public function test_fetchRelated()

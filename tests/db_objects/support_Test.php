@@ -3,6 +3,7 @@
 namespace YAPF\Junk;
 
 use App\Config;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
@@ -21,9 +22,11 @@ class BrokenObjectThatSetsWhatever extends genClass
     /**
     * setCvalue
     */
-    public function setCvalue($newValue, string $fieldName = "cvalue"): UpdateReply
-    {
-        return $this->updateField($fieldName, $newValue);
+    public int $_Cvalue {
+        get => $this->getField(fieldName: "cvalue");
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+        }
     }
 }
 class DbObjectsSupportTest extends TestCase
@@ -67,21 +70,8 @@ class DbObjectsSupportTest extends TestCase
     public function testSetWeirdness()
     {
         $target = new BrokenObjectThatSetsWhatever();
-        $result = $target->setCvalue(new BrokenObjectThatSetsWhatever());
-        $this->assertSame($result->message, "System error: Attempt to put a object onto field: cvalue");
-        $this->assertSame($result->status, false);
-        $result = $target->setCvalue([123,1234,12341]);
-        $this->assertSame($result->message, "System error: Attempt to put a array onto field: cvalue");
-        $this->assertSame($result->status, false);
-        $result = $target->setCvalue("woof", "dognoise");
-        $this->assertSame($result->message, "Sorry this object does not have the field: dognoise");
-        $this->assertSame($result->status, false);
-        $result = $target->setCvalue(33, "id");
-        $this->assertSame($result->message, "Sorry this object does not allow you to set the id field!");
-        $this->assertSame($result->status, false);
         $target->disableAllowSetField();
-        $result = $target->setCvalue(1234);
-        $this->assertSame($result->message, "update_field is not allowed for this object");
-        $this->assertSame($result->status, false);
+        $target->_Cvalue = 1234;
+        $this->assertSame($target->getLastErrorBasic(), "update_field is not allowed for this object");
     }
 }

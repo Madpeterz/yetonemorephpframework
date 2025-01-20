@@ -301,6 +301,11 @@ abstract class GenClassDB extends GenClassControl
             "values" => [],
             "types" => [],
         ];
+        if($this->enableErrorConsole == true)
+        {
+            $this->addError("save data:".json_encode($this->save_dataset));
+            $this->addError("live data:".json_encode($this->dataset));
+        }
         foreach ($this->save_dataset as $key => $value) {
             if ($key == "id") {
                 continue;
@@ -369,7 +374,7 @@ abstract class GenClassDB extends GenClassControl
         $error_msg = "";
         $this->makeUpdateConfig($whereConfig, $updateConfig, $had_error, $error_msg);
         if ($this->enableErrorConsole == true) {
-            $this->addError(json_encode($this->dataset) . " vs " . json_encode($this->save_dataset));
+            $this->addError(json_encode($this->dataset) . " vs ". json_encode($this->save_dataset));
         }
         if ($had_error == true) {
             $this->addError("request rejected: " . $error_msg);

@@ -15,7 +15,7 @@ class GeneratorTest extends TestCase
     {
         global $GEN_DATABASE_HOST, $GEN_DATABASE_USERNAME, $GEN_DATABASE_PASSWORD;
         global $GEN_PREFIX_TABLE, $GEN_SOLO_NS, $GEN_DATABASES, $GEN_SOLO_PATH;
-        global $GEN_SET_NS, $GEN_SET_PATH, $GEN_TABLES_ARRAY, $GEN_USE_UNDERSCORE_FOR_VALUES;
+        global $GEN_SET_NS, $GEN_SET_PATH, $GEN_TABLES_ARRAY;
 
         $GEN_DATABASE_HOST = "localhost";
         $GEN_DATABASE_USERNAME = "testuser";
@@ -24,7 +24,6 @@ class GeneratorTest extends TestCase
         $GEN_SOLO_PATH = "src/Junk/Models/";
         $GEN_SET_PATH = "src/Junk/Sets/";
         $GEN_TABLES_ARRAY = null;
-        $GEN_USE_UNDERSCORE_FOR_VALUES = true;
 
         $GEN_DATABASES = ["test"];
         $GEN_SOLO_NS = "YAPF\Junk\Models";

@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
+use Exception;
 use YAPF\Framework\Responses\DbObjects\MultiUpdateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 
@@ -69,25 +70,19 @@ abstract class CollectionSetBulk extends CollectionSetCore
         $all_ok = true;
         $loop = 0;
         while ($loop < count($updateFields)) {
-            $lookup = "get" . ucfirst($updateFields[$loop]);
-            if (method_exists($this->worker, $lookup) == false) {
-                $all_ok = false;
-                $message = "Unable to find getter: " . $lookup;
-                break;
-            }
             $field_type = $this->worker->getFieldType($updateFields[$loop], false);
             if ($field_type == null) {
                 $all_ok = false;
                 $message = "Unable to find fieldtype: " . $updateFields[$loop];
                 break;
             }
-
             $updateConfig["fields"][] = $updateFields[$loop];
             $updateConfig["values"][] = $newValues[$loop];
             $updateConfig["types"][] = $this->worker->getFieldType($updateFields[$loop], true);
             $loop++;
         }
         return ["status" => $all_ok, "dataset" => $updateConfig, "message" => $message];
+
     }
 
     /**
@@ -107,8 +102,8 @@ abstract class CollectionSetBulk extends CollectionSetCore
             $localWorker = $this->collected[$entry_id];
             $loop2 = 0;
             while ($loop2 < $total_updateFields) {
-                $lookup = "get" . ucfirst($updateFields[$loop2]);
-                if ($localWorker->$lookup() != $newValues[$loop2]) {
+                $lookup = "_".ucfirst($updateFields[$loop2]);
+                if ($localWorker->$lookup != $newValues[$loop2]) {
                     $changed_ids[] = $entry_id;
                     break;
                 }
@@ -129,8 +124,8 @@ abstract class CollectionSetBulk extends CollectionSetCore
             $localWorker = $this->collected[$entry_id];
             $loop2 = 0;
             while ($loop2 < $total_updateFields) {
-                $applier = "set" . ucfirst($updateFields[$loop2]);
-                $localWorker->$applier($newValues[$loop2]);
+                $applier = "_" . ucfirst($updateFields[$loop2]);
+                $localWorker->$applier = $newValues[$loop2];
                 $loop2++;
             }
         }

@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
+use Exception;
+use PHPUnit\Framework\Constraint\ObjectHasProperty;
 use YAPF\Framework\Core\SQLi\SqlConnectedClass;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
 use YAPF\Framework\Responses\DbObjects\GroupedCountReply;
@@ -72,9 +74,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function uniqueArray(string $fieldName): array
     {
         $found_values = [];
-        $getFunction = "get" . ucfirst($fieldName);
+        $getFunction = "_" . ucfirst($fieldName);
         foreach ($this->collected as $object) {
-            $value = $object->$getFunction();
+            $value = $object->$getFunction;
             if (in_array(needle: $value, haystack: $found_values) == false) {
                 $found_values[] = $value;
             }
@@ -180,8 +182,16 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     public function addToCollected($object): void
     {
-        $this->collected[$object->getId()] = $object;
-        $this->rebuildIndex();
+        try
+        {
+            $this->collected[$object->_Id] = $object;
+            $this->rebuildIndex();
+        }
+        catch (Exception $e)
+        {
+            $this->addError("Attempted to add object to collection but failed");
+        }
+
     }
 
     protected $fastObjectArrayIndex = [];
@@ -204,12 +214,12 @@ abstract class CollectionSetCore extends SqlConnectedClass
     {
         $this->makeWorker();
         if ((in_array(needle: $fieldName, haystack: $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
-            $loadString = "get" . ucfirst($fieldName);
-            if (method_exists($this->worker, $loadString)) {
+            $loadString = "_" . ucfirst($fieldName);
+            if($this->worker->getFieldType($fieldName) != null) {
                 $this->fastObjectArrayIndex[] = $fieldName;
                 $index = [];
                 foreach ($this->collected as $object) {
-                    $indexValue = $object->$loadString();
+                    $indexValue = $object->$loadString;
                     if ($indexValue === true) {
                         $indexValue = 1;
                     } elseif ($indexValue == false) {
@@ -218,7 +228,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
                     if (array_key_exists(key: $indexValue, array: $index) == false) {
                         $index[$indexValue] = [];
                     }
-                    $index[$indexValue][] = $object->getId();
+                    $index[$indexValue][] = $object->_Id;
                 }
                 $this->fastIndexDataset[$fieldName] = $index;
             }
@@ -238,9 +248,9 @@ abstract class CollectionSetCore extends SqlConnectedClass
             $this->addError(errorMessage: "Field was not found as part of search array dataset");
             return [];
         }
-        $loadString = "get" . ucfirst($fieldName);
-        if (method_exists($this->worker, $loadString) == false) {
-            $this->addError(errorMessage: "get function is not supported");
+        if($this->worker->getFieldType($fieldName) == null)
+        {
+            $this->addError(errorMessage: $fieldName." is unknown");
             return [];
         }
         if (array_key_exists(key: $fieldValue, array: $this->fastIndexDataset[$fieldName]) == false) {

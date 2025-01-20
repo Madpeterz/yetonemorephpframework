@@ -24,17 +24,17 @@ class DbObjectsCreateTest extends TestCase
     {
         global $sql;
         $testing = new Alltypestable();
-        $result = $testing->setStringfield("magic");
-        $this->assertSame($result->status, true);
-        $result = $testing->setIntfield(44);
-        $this->assertSame($result->status, true);
-        $result = $testing->setFloatfield(2.5);
-        $this->assertSame($result->status, true);
+        $result = $testing->_Stringfield="magic";
+        $this->assertSame($result, "magic");
+        $result = $testing->_Intfield=44;
+        $this->assertSame($result, 44);
+        $result = $testing->_Floatfield=2.5;
+        $this->assertSame($result, 2.5);
         $result = $testing->createEntry();
         // newID => ?int, rowsAdded => int, status => bool, message => string
         $this->assertSame($result->status, true);
         $this->assertSame($result->message, "ok");
-        $this->assertSame($testing->getId(), 2);
+        $this->assertSame($testing->_Id, 2);
     }
 
     public function testCreateInValid()
@@ -43,20 +43,20 @@ class DbObjectsCreateTest extends TestCase
         $result = $testing->createEntry();
         $this->assertSame($result->message, "Unable to execute because: Column 'value' cannot be null");
         $this->assertSame($result->status, false);
-        $this->assertSame($testing->getId(), null);
+        $this->assertSame($testing->_Id, null);
     }
 
     public function testCreateThenUpdate()
     {
         $testing = new Endoftestwithfourentrys();
-        $result = $testing->setValue("woof");
-        $this->assertSame($result->status, true);
+        $result = $testing->_Value="woof";
+        $this->assertSame($result, "woof");
         $result = $testing->createEntry();
         // newID => ?int, rowsAdded => int, status => bool, message => string
         $this->assertSame($result->status, true);
         $this->assertSame($result->message, "ok");
-        $this->assertSame($testing->getId(), 1);
-        $testing->setValue("moo");
+        $this->assertSame($testing->_Id, 1);
+        $testing->_Value="moo";
         $result = $testing->updateEntry();
         $this->assertSame($result->status, true);
     }

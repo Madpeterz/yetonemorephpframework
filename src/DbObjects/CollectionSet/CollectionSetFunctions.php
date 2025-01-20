@@ -70,20 +70,22 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     public function getLinkedArray(string $leftField, string $RightField): array
     {
-        $keyFieldGetter = "get" . ucfirst($leftField);
-        $ValueFieldGetter = "get" . ucfirst($RightField);
+        $keyFieldGetter = "_" . ucfirst($leftField);
+        $ValueFieldGetter = "_" . ucfirst($RightField);
         $worker = new $this->workerClass();
-        if (method_exists($worker, $keyFieldGetter) == false) {
+        if($worker->getFieldType($leftField) == null)
+        {
             $this->addError(errorMessage: "Field: " . $leftField . " is missing");
-            return [];
+            return array();
         }
-        if (method_exists($worker, $ValueFieldGetter) == false) {
+        else if($worker->getFieldType($RightField) == null)
+        {
             $this->addError(errorMessage: "Field: " . $RightField . " is missing");
             return [];
         }
         $return_array = [];
         foreach ($this->collected as $object) {
-            $return_array[$object->$keyFieldGetter()] = $object->$ValueFieldGetter();
+            $return_array[$object->$keyFieldGetter] = $object->$ValueFieldGetter;
         }
         return $return_array;
     }
@@ -100,7 +102,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $objects = $this->indexSearch(fieldName: $fieldName, fieldValue: $fieldValue);
         $ids = [];
         foreach ($objects as $object) {
-            $ids[] = $object->getId();
+            $ids[] = $object->_Id;
         }
         return $ids;
     }
@@ -192,7 +194,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $results = [];
         foreach ($this->collected as $entry) {
             /** @var GenClass $entry */
-            $results[$entry->getId()] = $entry->objectToMappedArray(ignoreFields: $ignoreFields, invertIgnore: $invertIgnore);
+            $results[$entry->_Id] = $entry->objectToMappedArray(ignoreFields: $ignoreFields, invertIgnore: $invertIgnore);
         }
         return $results;
     }
@@ -370,7 +372,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     /**
      * processLoad
      * takes the reply from mysqli and fills out objects and builds the collection
-     * @return mixed[] [status =>  bool, count => integer, message =>  string]
+     * @return SetsLoadReply
      */
     protected function processLoad(
         SelectReply $loadData,

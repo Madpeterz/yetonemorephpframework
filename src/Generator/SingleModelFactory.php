@@ -79,16 +79,9 @@ class SingleModelFactory extends ModelFactoryShared
 
     public function createModelGetSet(): void
     {
-        global $GEN_USE_UNDERSCORE_FOR_VALUES;
-        $underscoreValue = "";
-        if($GEN_USE_UNDERSCORE_FOR_VALUES == true)
-        {
-            $underscoreValue = "_";
-        }
+        $underscoreValue = "_";
         $this->fileLines[] = "// get and set";
         $this->fileLines[] = [1];
-        $this->fileLines[] = "public protected(set) ?int \$".$underscoreValue."Id;";
-        
         foreach ($this->cols as $rowTwo) {
             if ($rowTwo["COLUMN_NAME"] == "id") {
                 continue;
