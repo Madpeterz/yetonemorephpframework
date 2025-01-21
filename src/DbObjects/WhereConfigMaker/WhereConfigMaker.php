@@ -7,7 +7,7 @@ class WhereConfigMaker
     protected int $openGroupId = -1;
     public array $whereConfig = [];
     protected bool $setup = false;
-    public function field(string $fieldName, ?string $renameField=null, ?string $tableid=null): MakerFieldOptions
+    public function field(string $fieldName, ?string $tableid=null): MakerFieldOptions
     {
         if($this->setup == false)
         {
@@ -21,10 +21,6 @@ class WhereConfigMaker
             ];
         }
         $entry = $fieldName;
-        if($renameField != null)
-        {
-            $entry = $fieldName. " AS '".$renameField."'";
-        }
         if($tableid != null)
         {
             $entry = $tableid.".".$entry;

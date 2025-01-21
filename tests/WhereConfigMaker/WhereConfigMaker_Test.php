@@ -87,12 +87,12 @@ class WhereConfigMaker_Test extends TestCase
             ->or()
             ->field("be9")->lessThanThanEqualTo(55)
             ->and()
-            ->field("red10","yellow11")->notEqualTo(123)
+            ->field("red10")->notEqualTo(123)
             ->result();
         $values = [4,55,23,[42,43,44],[11,12,13],null,null,60,55,123];
         $matches = ["=",">",">=","IN","NOT IN","IS NOT","IS","<","<=","!="];
         $joins = ["AND","OR","AND","OR","AND","OR","AND","OR","AND"];
-        $fields = ["what1","is2","up3","with4","the5","color6","orange7","just8","be9","red10 AS 'yellow11'"];
+        $fields = ["what1","is2","up3","with4","the5","color6","orange7","just8","be9","red10"];
         $loop = 0;
         $this->assertSame(count($values),count($result["values"]),"Incorrect number of entrys in result");
         while($loop < count($values))
