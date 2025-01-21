@@ -12,8 +12,8 @@ class Issue4Test extends TestCase
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
         $this->assertSame(true, $load_status->status);
-        $this->assertSame($countto->getId(), 44);
-        $this->assertSame($countto->getCvalue(), 8);
+        $this->assertSame($countto->_Id, 44);
+        $this->assertSame($countto->_Cvalue, 8);
         $reply = $countto->bulkChange(["cvalue" => 55]);
         $this->assertSame("ok", $reply->message, "Wrong error message");
         $this->assertSame(true, $reply->status, "bulk change failed");
@@ -22,6 +22,6 @@ class Issue4Test extends TestCase
         $this->assertSame(true, $save->status, "failed to make changes");
         $countto = new Counttoonehundo();
         $load_status = $countto->loadID(44);
-        $this->assertSame($countto->getCvalue(), 55, "value not changed via bulkChange");
+        $this->assertSame($countto->_Cvalue, 55, "value not changed via bulkChange");
     }
 }

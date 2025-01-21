@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
+use Exception;
 use Throwable;
 use YAPF\Framework\Core\SQLi\SqlConnectedClass as SqlConnectedClass;
 use YAPF\Framework\Responses\DbObjects\AutoFillReply;
@@ -18,7 +19,6 @@ abstract class GenClassFunctions extends SqlConnectedClass
 
     protected bool $disableUpdates = false;
     protected ?array $limitedFields = null;
-
     /**
      * __construct
      * [Optional] takes a key => value array
@@ -33,7 +33,14 @@ abstract class GenClassFunctions extends SqlConnectedClass
         }
         parent::__construct();
     }
-
+    /**
+     * getId
+     * returns the ID for the object
+     */
+    protected function getId(): ?int
+    {
+        return $this->getField("id");
+    }
     public function limitFields(array $fields): void
     {
         if (in_array("id", $fields) == false) {
@@ -157,14 +164,6 @@ abstract class GenClassFunctions extends SqlConnectedClass
         return $this->dataset[$fieldName]["type"];
     }
     /**
-     * getId
-     * returns the ID for the object
-     */
-    public function getId(): ?int
-    {
-        return $this->getField("id");
-    }
-    /**
      * getFields
      * returns an array of all fields for the object
      * @return string[]
@@ -272,27 +271,33 @@ abstract class GenClassFunctions extends SqlConnectedClass
      * call 'saveChanges' to apply the changes to the DB!
      * Note: Setting the ID can lead to weird side effects!
      */
-    protected function updateField(string $fieldName, $value, bool $ignoreIdWarning = false): UpdateReply
+    protected function updateField(string $fieldName, $value, bool $ignoreIdWarning = false): void
     {
-        if ($this->disableUpdates == true) {
-            $this->addError("Attempt to update with limitFields enabled!");
-            return new UpdateReply($this->myLastErrorBasic);
+        try
+        {
+            if ($this->disableUpdates == true) {
+                throw new Exception("Attempt to update with limitFields enabled!");
+            }
+            if (count($this->dataset) != count($this->save_dataset)) {
+                $this->save_dataset = $this->dataset;
+            }
+            $check = $this->checkUpdateField($fieldName, $value, $ignoreIdWarning);
+            if ($check->status == false) {
+                throw new Exception($this->myLastErrorBasic);
+            }
+            $this->dataset[$fieldName]["value"] = $value;
+            if ($this->getFieldType($fieldName) == "bool") {
+                $this->dataset[$fieldName]["value"] = 0;
+                if (in_array(needle: $value, haystack: [1, "1", "true", true, "yes"], strict: true) == true) {
+                    $this->dataset[$fieldName]["value"] = 1;
+                }
+            }
         }
-        if (count($this->dataset) != count($this->save_dataset)) {
-            $this->save_dataset = $this->dataset;
+        catch (Exception $e)
+        {
+            $this->addError(errorMessage: $e->getMessage());
         }
-        $check = $this->checkUpdateField($fieldName, $value, $ignoreIdWarning);
-        if ($check->status == false) {
-            return new UpdateReply($this->myLastErrorBasic);
-        }
-        $this->dataset[$fieldName]["value"] = $value;
-        if ($this->getFieldType($fieldName) == "bool") {
-            $this->dataset[$fieldName]["value"] = 0;
-        }
-        if (in_array($value, [1, "1", "true", true, "yes"], true) == true) {
-            $this->dataset[$fieldName]["value"] = 1;
-        }
-        return new UpdateReply("value set", true, 1);
+
     }
     /**
      * checkUpdateField
@@ -347,24 +352,13 @@ abstract class GenClassFunctions extends SqlConnectedClass
         $changes = 0;
         try {
             foreach ($namevaluepairs as $key => $value) {
-                $functionname = "set" . ucfirst($key);
-                if (method_exists($this, $functionname) == false) {
+                $functionname = "_" . ucfirst($key);
+                if ($this->getFieldType($key) == null) {
                     $why_failed = "Unknown key " . $key;
                     $all_ok = false;
                     break;
                 }
-
-                $status = $this->$functionname($value);
-                if (is_object($status) == false) {
-                    $why_failed = "reply from function " . $functionname . " should be an object";
-                    $all_ok = false;
-                    break;
-                }
-                if ($status->status == false) {
-                    $why_failed = $status->message;
-                    $all_ok = false;
-                    break;
-                }
+                $this->$functionname = $value;
                 $changes++;
             }
         } catch (Throwable $e) {
@@ -406,30 +400,13 @@ abstract class GenClassFunctions extends SqlConnectedClass
             if (in_array($field, $excludeFields) == true) {
                 continue;
             }
-            $functionnameset = "set" . ucfirst($field);
-            $functionnameget = "get" . ucfirst($field);
-            if (method_exists($this, $functionnameset) == false) {
+            $pramName = "_" . ucfirst($field);
+            if($this->getFieldType($field) == null) {
                 $all_ok = false;
-                $why_failed = "Missing function: " . $functionnameset;
+                $why_failed = "field ".$field." is not supported on this class";
                 break;
             }
-            if (method_exists($this, $functionnameget) == false) {
-                $all_ok = false;
-                $why_failed = "Missing function: " . $functionnameget;
-                break;
-            }
-            $value = $copy->$functionnameget();
-            $status = $this->$functionnameset($value);
-            if (is_object($status) == false) {
-                $why_failed = "reply from function " . $functionnameset . " should be an object";
-                $all_ok = false;
-                break;
-            }
-            if ($status->status == false) {
-                $why_failed = $status->message;
-                $all_ok = false;
-                break;
-            }
+            $this->$pramName=$copy->$pramName;
         }
         if ($all_ok == false) {
             $this->addError($why_failed);

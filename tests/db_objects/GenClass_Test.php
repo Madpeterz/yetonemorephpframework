@@ -3,10 +3,9 @@
 namespace YAPF\Junk;
 
 use App\Config;
+use Exception;
 use PHPUnit\Framework\TestCase;
-use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
-use YAPF\Framework\Responses\DbObjects\UpdateReply;
 use YAPF\Junk\Models\Alltypestable;
 use YAPF\Junk\Models\Counttoonehundo;
 use YAPF\Junk\Sets\AlltypestableSet;
@@ -19,21 +18,15 @@ class BrokenDbObject extends genClass
     protected $dataset = [
         "cvalue" => ["type" => "int", "value" => null],
     ];
-    public function getCvalue(): ?int
-    {
-        return $this->getField("cvalue");
+    public int $_Cvalue {
+        get => $this->getField(fieldName: "cvalue");
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+        }
     }
-    /**
-     * setCvalue
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function setCvalue(?int $newValue): UpdateReply
-    {
-        return $this->updateField("cvalue", $newValue);
-    }
-    public function getMissingIndex(): ?string
-    {
-        return $this->getField("missing");
+    public ?int $_Missing {
+        get => $this->getField(fieldName: "missing");
+        set {}
     }
 }
 
@@ -45,20 +38,14 @@ class VeryBrokenDbObject extends genClass
         "id" => ["type" => "int", "value" => null],
         "cvalue" => ["type" => "int", "value" => null],
     ];
-    public function getCvalue(): ?int
-    {
-        return $this->getField("cvalue");
-    }
-    /**
-     * setCvalue
-     * @return mixed[] [status =>  bool, message =>  string]
-     */
-    public function setCvalue(?int $newValue): array
-    {
-        $this->updateField("cvalue", $newValue);
-        $this->save_dataset = [];
-        $this->save_dataset["id"] = ["type" => "int", "value" => 99];
-        return ["status" => true, "message" => "ok"];
+    public int $_Cvalue {
+        get => $this->getField(fieldName: "cvalue");
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+            $this->save_dataset = [];
+            $this->save_dataset["id"] = ["type" => "int", "value" => 99];
+            
+        }
     }
 }
 class VeryBrokenDbObjectNoId extends genClass
@@ -68,6 +55,12 @@ class VeryBrokenDbObjectNoId extends genClass
     protected $dataset = [
         "cvalue" => ["type" => "int", "value" => null],
     ];
+    public int $_Cvalue {
+        get => $this->getField(fieldName: "cvalue");
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+        }
+    }
 }
 class WeirdBrokenObjectWithSaveDatasetButNoLive extends GenClass
 {
@@ -77,10 +70,15 @@ class WeirdBrokenObjectWithSaveDatasetButNoLive extends GenClass
         "id" => ["type" => "int", "value" => null],
         "cvalue" => ["type" => "int", "value" => null],
     ];
-    public function getCvalue(): ?int
-    {
-        $this->dataset = [];
-        return 1;
+    public int $_Cvalue {
+        get 
+        {
+            $this->dataset = [];
+            return 5;
+        }
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+        }
     }
 }
 class WeirdBrokenObjectWithSaveDatasetButMalformedLive extends GenClass
@@ -91,10 +89,15 @@ class WeirdBrokenObjectWithSaveDatasetButMalformedLive extends GenClass
         "id" => ["type" => "int", "value" => null],
         "cvalue" => ["type" => "int", "value" => null],
     ];
-    public function getCvalue(): ?int
-    {
-        $this->dataset["cvalue"] = ["type" => "int"];
-        return 1;
+    public int $_Cvalue {
+        get {
+            
+            return $this->getField("cvalue");
+        }
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+            $this->dataset["cvalue"] = ["type" => "int"];
+        }
     }
 }
 
@@ -129,11 +132,10 @@ class DbObjectsGenClassTest extends TestCase
     public function testDisabled()
     {
         $countto = new Counttoonehundo();
-        $result = $countto->setCvalue(22);
+        $countto->_Cvalue =22;
         $countto->makedisabled();
-        $result = $countto->setCvalue(823);
-        $this->assertSame($result->status, false);
-        $this->assertSame($result->message, "This class is disabled");
+        $countto->_Cvalue = 823;
+        $this->assertSame($countto->getLastErrorBasic(), "This class is disabled");
         $result = $countto->createEntry();
         $this->assertSame($result->status, false);
         $this->assertSame($result->message, "This class is disabled.");
@@ -159,7 +161,7 @@ class DbObjectsGenClassTest extends TestCase
     public function testCreateBrokenObject()
     {
         $broken = new BrokenDbObject();
-        $broken->setCvalue(44);
+        $broken->_Cvalue = 172;
         $result = $broken->createEntry();
         $this->assertSame($result->status, false);
         $this->assertSame($result->message, "id field is required on the class to support create");
@@ -167,7 +169,7 @@ class DbObjectsGenClassTest extends TestCase
 
     public function testUpdateMissingId()
     {
-        $broken = new Counttoonehundo(["cvalue" => 44]);
+        $broken = new Counttoonehundo(["cvalue" => 180]);
         $result = $broken->updateEntry();
         $this->assertSame($result->status, false);
         $this->assertSame($result->message, "Object id is not valid for updates");
@@ -175,7 +177,7 @@ class DbObjectsGenClassTest extends TestCase
 
     public function testUpdateInValidIdDetected()
     {
-        $countto = new Counttoonehundo(["id" => -88, "cvalue" => 44]);
+        $countto = new Counttoonehundo(["id" => -88, "cvalue" => 188]);
         $result = $countto->updateEntry();
         $this->assertSame($result->status, false);
         $this->assertSame($result->message, "Object id is not valid for updates");
@@ -183,41 +185,44 @@ class DbObjectsGenClassTest extends TestCase
 
     public function testUpdateVeryBrokenObject()
     {
-        $verybroken = new VeryBrokenDbObject(["id" => 44, "cvalue" => 55]);
-        $verybroken->setCvalue(44);
+        $verybroken = new VeryBrokenDbObject(["id" => 44, "cvalue" => 196]);
+        $verybroken->_Cvalue = 197;
         $result = $verybroken->updateEntry();
+        $this->assertStringContainsString(0, $result->changes, "expected no changes but got something else with message: ".$result->message);
         $this->assertSame($result->status, true, "Expected to flag true but it did not: " . $result->message);
         $this->assertStringContainsString("No changes made", $result->message, "No changes made message is not as expected");
     }
 
     public function testUpdateVeryBrokenObjectNoId()
     {
-        $verybroken = new VeryBrokenDbObjectNoId(["cvalue" => 55]);
+        $verybroken = new VeryBrokenDbObjectNoId(["cvalue" => 206]);
         $result = $verybroken->updateEntry();
         $this->assertSame($result->status, false);
         $this->assertSame($result->message, "Object does not have its id field set!");
     }
     public function testWeirdBrokenObject()
     {
-        $weird = new WeirdBrokenObjectWithSaveDatasetButNoLive(["cvalue" => 44, "id" => 44]);
-        $weird->getCvalue();
+        $weird = new WeirdBrokenObjectWithSaveDatasetButNoLive(["cvalue" => 44, "id" => 213]);
+        $fetch = $weird->_Cvalue;
         $result = $weird->updateEntry();
-        $this->assertSame($result->status, false);
         $this->assertSame($result->message, "request rejected: Key: cvalue is missing from dataset!");
+        $this->assertSame($result->status, false);
+        
     }
     public function testWeirdBrokenObjectAgain()
     {
-        $weird = new WeirdBrokenObjectWithSaveDatasetButMalformedLive(["cvalue" => 44, "id" => 44]);
-        $weird->getCvalue();
+        $weird = new WeirdBrokenObjectWithSaveDatasetButMalformedLive(["cvalue" => 222, "id" => 44]);
+        $weird->_Cvalue = 66;
         $result = $weird->updateEntry();
-        $this->assertSame($result->status, false);
         $this->assertSame($result->message, "request rejected: Key: cvalue is missing its value index!");
+        $this->assertSame($result->status, false);
+        
     }
     public function testCreateUID()
     {
         $testing = new Alltypestable();
-        $testing->setFloatfield(44.1);
-        $testing->setIntfield(11);
+        $testing->_Floatfield = 44.1;
+        $testing->_Intfield = 11;
         $result = $testing->createUID("stringfield", 5);
         $this->assertSame($result->message, "ok");
         $this->assertSame($result->status, true);
@@ -270,16 +275,16 @@ class DbObjectsGenClassTest extends TestCase
     public function testGetAllTypes()
     {
         $alltypes = new Alltypestable();
-        $alltypes->setIntfield(11);
-        $alltypes->setFloatfield(124.55);
-        $alltypes->setStringfield("Hello world");
-        $alltypes->setBoolfield(true);
-        $this->assertSame($alltypes->getIntfield(), 11);
-        $this->assertSame($alltypes->getFloatfield(), 124.55);
-        $this->assertSame($alltypes->getStringfield(), "Hello world");
-        $this->assertSame($alltypes->getBoolfield(), true);
+        $alltypes->_Intfield=11;
+        $alltypes->_Floatfield = 124.55;
+        $alltypes->_Stringfield = "Hello world";
+        $alltypes->_Boolfield= true;
+        $this->assertSame($alltypes->_Intfield, 11);
+        $this->assertSame($alltypes->_Floatfield, 124.55);
+        $this->assertSame($alltypes->_Stringfield, "Hello world");
+        $this->assertSame($alltypes->_Boolfield, true);
         $BrokenDbObject = new BrokenDbObject();
-        $result = $BrokenDbObject->getMissingIndex();
+        $result = $BrokenDbObject->_Missing;
         $this->assertSame($result, null);
         $expected_error = "YAPF\Junk\BrokenDbObject Attempting to get field that does not exist";
         $this->assertSame($BrokenDbObject->getLastErrorBasic(), $expected_error);
@@ -302,10 +307,10 @@ class DbObjectsGenClassTest extends TestCase
     public function testDefaults()
     {
         $allType = new Alltypestable();
-        $allType->setBoolfield(true);
-        $allType->setStringfield("testing");
-        $allType->setIntfield(44);
-        $allType->setFloatfield(43.12);
+        $allType->_Boolfield= true;
+        $allType->_Stringfield = "testing";
+        $allType->_Intfield = 44;
+        $allType->_Floatfield = 43.12;
         $allType->createEntry();
 
 

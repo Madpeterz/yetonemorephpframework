@@ -2,7 +2,6 @@
 
 namespace YAPF\Framework\DbObjects\GenClass;
 
-use YAPF\Framework\Responses\DbObjects\AgeDetails;
 use YAPF\Framework\Responses\DbObjects\CreateReply;
 use YAPF\Framework\Responses\DbObjects\PendingUpdateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
@@ -14,11 +13,18 @@ abstract class GenClassDB extends GenClassControl
 {
     /**
      * loadMatching
-     * a very limited loading system
-     * takes the keys as fields, and values as values
-     * then passes that to loadWithConfig.
+     * loads a single entry matching a key value pair filter
+     *
+     * args
+     * =====
+     * input = a key value pair of fieldname => value
+     * using AND matching via loadWithConfig
+     *
+     * limitFields a optional array of fields to fetch
+     * if null is given the object is fully loaded and savable (unless limitfields already called)
+     * if an array is given a limited version of the object is loaded
      */
-    public function loadMatching(?array $input): SingleLoadReply
+    public function loadMatching(?array $input, ?array $limitFields = null): SingleLoadReply
     {
         if ($input === null) {
             $this->addError("Input array is null");
@@ -31,37 +37,56 @@ abstract class GenClassDB extends GenClassControl
             "fields" => array_keys($input),
             "values" => array_values($input),
         ];
-        return $this->loadWithConfig($whereConfig);
+        return $this->loadWithConfig($whereConfig, $limitFields);
     }
 
     /**
      * loadByField
      * loads a object that matches in the DB on the field and value
+     *
+     * args
+     * =====
+     * fieldName the name of the selected field to load by
+     *
+     * fieldValue the value of the selected field (mixed type)
+     * can not be a object
+     *
+     * limitFields a optional array of fields to fetch
+     * if null is given the object is fully loaded and savable (unless limitfields already called)
+     * if an array is given a limited version of the object is loaded
      */
-    public function loadByField(string $fieldName, $field_value): SingleLoadReply
+    public function loadByField(string $fieldName, $fieldValue, ?array $limitFields = null): SingleLoadReply
     {
-        if (is_object($field_value) == true) {
+        if (is_object($fieldValue) == true) {
             $this->addError("Attempted to pass field_value as a object!");
             return new SingleLoadReply($this->myLastErrorBasic);
         }
-        $field_type = $this->getFieldType($fieldName, true);
-        if ($field_type == null) {
+        $fieldType = $this->getFieldType($fieldName, true);
+        if ($fieldType == null) {
             $this->addError("Attempted to get field type: " . $fieldName . " but its not supported!");
             return new SingleLoadReply($this->myLastErrorBasic);
         }
         $whereConfig = [
             "fields" => [$fieldName],
             "matches" => ["="],
-            "values" => [$field_value],
-            "types" => [$field_type],
+            "values" => [$fieldValue],
+            "types" => [$fieldType],
         ];
-        return $this->loadWithConfig($whereConfig);
+        return $this->loadWithConfig($whereConfig, $limitFields);
     }
     /**
      * loadId
      * loads the object from the database that matches the id field
+     *
+     * args
+     * =====
+     * indexId the id number we wish to load
+     *
+     * limitFields a optional array of fields to fetch
+     * if null is given the object is fully loaded and savable (unless limitfields already called)
+     * if an array is given a limited version of the object is loaded
      */
-    public function loadId(?int $indexId): SingleLoadReply
+    public function loadId(?int $indexId, ?array $limitFields = null): SingleLoadReply
     {
         if ($indexId == false) {
             $this->addError("Attempted to loadId but indexId is null!");
@@ -76,7 +101,7 @@ abstract class GenClassDB extends GenClassControl
             "values" => [$indexId],
             "types" => ["i"],
         ];
-        return $this->loadWithConfig($whereConfig);
+        return $this->loadWithConfig($whereConfig, $limitFields);
     }
 
     /**
@@ -85,7 +110,7 @@ abstract class GenClassDB extends GenClassControl
      * where it matches the whereConfig.
      * returns false if the class is disabled or the load fails
      */
-    public function loadWithConfig(array $whereConfig): SingleLoadReply
+    public function loadWithConfig(array $whereConfig, ?array $limitFields = null): SingleLoadReply
     {
         if ($this->disabled == true) {
             $this->addError("unable to loadData This class is disabled");
@@ -101,6 +126,9 @@ abstract class GenClassDB extends GenClassControl
         }
         $whereConfig = $loadWhereConfig->data;
         $this->addError("Loading from DB");
+        if ($limitFields != null) {
+            $this->limitFields($limitFields);
+        }
         $this->sql->setExpectedErrorFlag($this->expectedSqlLoadError);
         $loadData = $this->sql->selectV2($basic_config, null, $whereConfig);
         $this->sql->setExpectedErrorFlag(false);
@@ -273,6 +301,11 @@ abstract class GenClassDB extends GenClassControl
             "values" => [],
             "types" => [],
         ];
+        if($this->enableErrorConsole == true)
+        {
+            $this->addError("save data:".json_encode($this->save_dataset));
+            $this->addError("live data:".json_encode($this->dataset));
+        }
         foreach ($this->save_dataset as $key => $value) {
             if ($key == "id") {
                 continue;
@@ -341,7 +374,7 @@ abstract class GenClassDB extends GenClassControl
         $error_msg = "";
         $this->makeUpdateConfig($whereConfig, $updateConfig, $had_error, $error_msg);
         if ($this->enableErrorConsole == true) {
-            $this->addError(json_encode($this->dataset) . " vs " . json_encode($this->save_dataset));
+            $this->addError(json_encode($this->dataset) . " vs ". json_encode($this->save_dataset));
         }
         if ($had_error == true) {
             $this->addError("request rejected: " . $error_msg);

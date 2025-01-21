@@ -21,11 +21,14 @@ class BrokenDbObjectMassive extends genClass
 {
     protected $use_table = "test.counttoonehundo";
     protected $dataset = [
+        "id" => ["type" => "int", "value" => null],
         "lol" => ["type" => "mouse", "value" => null],
     ];
-    public function getCvalue(): ?int
-    {
-        return $this->getField("cvalue");
+    public int $_Cvalue {
+        get => $this->getField(fieldName: "cvalue");
+        set {
+            $this->updateField(fieldName: "cvalue", value: $value);
+        }
     }
 }
 class BrokenDbObjectMassiveSet extends CollectionSet
@@ -92,7 +95,7 @@ class CollectionSetTest extends TestCase
         $testing = new CounttoonehundoSet();
         $testing->loadAll();
         $result = $testing->updateFieldInCollection("turndown4what", "shots");
-        $this->assertSame($result->message, "Unable to find getter: getTurndown4what");
+        $this->assertSame($result->message, "Unable to find fieldtype: turndown4what");
         $this->assertSame($result->changes, 0);
         $this->assertSame($result->status, false);
     }
@@ -100,6 +103,7 @@ class CollectionSetTest extends TestCase
     {
         $testing = new BrokenDbObjectMassiveSet();
         $testing->addToCollected(new BrokenDbObjectMassive());
+        $this->assertNotSame($testing->getLastErrorBasic(), "Attempted to add object to collection that does not support _Id","Failed to add object to collection");
         $result = $testing->updateFieldInCollection("cvalue", 421);
         $this->assertSame($result->message, "Unable to find fieldtype: cvalue");
         $this->assertSame($result->changes, 0);
@@ -128,7 +132,7 @@ class CollectionSetTest extends TestCase
         }
         $this->assertSame(4, $seen_items, "Foreach without key has failed");
         $Counttoonehundo = new Counttoonehundo();
-        $Counttoonehundo->setCvalue(99);
+        $Counttoonehundo->_Cvalue = 99;
         $reply = $Counttoonehundo->createEntry();
         $this->assertSame(true, $reply->status, "Failed to crate testing object");
         $testing->addToCollected($Counttoonehundo);
@@ -146,7 +150,7 @@ class CollectionSetTest extends TestCase
         $testing->loadLimited(4);
         $result = $testing->getCollection();
         $this->assertSame(count($result), 4);
-        $this->assertSame($result[0]->getCvalue(), 55);
+        $this->assertSame($result[0]->_Cvalue, 55);
     }
     public function testGetLinkedArray()
     {
@@ -198,7 +202,7 @@ class CollectionSetTest extends TestCase
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
         $result = $countto->getObjectByField("id", 12);
-        $this->assertSame($result->getCvalue(), 2);
+        $this->assertSame($result->_Cvalue, 2);
         $result = $countto->getObjectByField("id", 712);
         $this->assertSame($result, null);
     }
@@ -207,7 +211,7 @@ class CollectionSetTest extends TestCase
         $countto = new CounttoonehundoSet();
         $countto->loadAll();
         $result = $countto->getObjectByID(12);
-        $this->assertSame($result->getCvalue(), 2);
+        $this->assertSame($result->_Cvalue, 2);
         $result = $countto->getObjectByID(712);
         $this->assertSame($result, null);
     }

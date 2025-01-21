@@ -7,13 +7,13 @@ use YAPF\Framework\Responses\MySQLi\SelectReply;
 
 class MysqliEnabled extends MysqliQuery
 {
-        /**
+    /**
      * basicCountV2
      * $whereConfig: see selectV2.readme
      * Note: if your table does not have an id field
      * this function will not give the results you expect
      */
-    public function basicCountV2(string $table, array $whereConfig = null): CountReply
+    public function basicCountV2(string $table, ?array $whereConfig = null): CountReply
     {
         if (strlen($table) == 0) {
             $this->addError("No table given");
@@ -36,7 +36,7 @@ class MysqliEnabled extends MysqliQuery
      * Note: if your table does not have an id field
      * this function will not give the results you expect
      */
-    public function groupCountV2(string $table, string $groupOnField, array $whereConfig = null): SelectReply
+    public function groupCountV2(string $table, string $groupOnField, ?array $whereConfig = null): SelectReply
     {
         if (strlen($table) == 0) {
             $this->addError("No table selected");
@@ -48,7 +48,7 @@ class MysqliEnabled extends MysqliQuery
         }
         $basic_config = [
             "table" => $table,
-            "fields" => [$groupOnField,"COUNT(id) AS items"],
+            "fields" => [$groupOnField, "COUNT(id) AS items"],
         ];
         $options_config = [
             "groupBy" => $groupOnField,

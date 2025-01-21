@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
+use Exception;
+use PHPUnit\Framework\Constraint\ObjectHasProperty;
 use YAPF\Framework\Core\SQLi\SqlConnectedClass;
 use YAPF\Framework\DbObjects\GenClass\GenClass;
 use YAPF\Framework\Responses\DbObjects\GroupedCountReply;
@@ -72,10 +74,10 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function uniqueArray(string $fieldName): array
     {
         $found_values = [];
-        $getFunction = "get" . ucfirst($fieldName);
+        $getFunction = "_" . ucfirst($fieldName);
         foreach ($this->collected as $object) {
-            $value = $object->$getFunction();
-            if (in_array($value, $found_values) == false) {
+            $value = $object->$getFunction;
+            if (in_array(needle: $value, haystack: $found_values) == false) {
                 $found_values[] = $value;
             }
         }
@@ -88,7 +90,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * unless you want SQL to trim the result stack
      * before passing it to php
      */
-    public function groupCountInDb(string $groupByField, int $minCountToShow = null): GroupedCountReply
+    public function groupCountInDb(string $groupByField, ?int $minCountToShow = null): GroupedCountReply
     {
 
         $this->makeWorker();
@@ -99,7 +101,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
         if ($minCountToShow != null) {
             if ($minCountToShow < 1) {
                 $minCountToShow = 1;
-                $this->addError("Min count to show was to low set to 1");
+                $this->addError(errorMessage: "Min count to show was to low set to 1");
             }
             $having = " HAVING SortedCount >= " . $minCountToShow . "";
         }
@@ -111,14 +113,14 @@ abstract class CollectionSetCore extends SqlConnectedClass
             ' ORDER BY SortedCount DESC';
         $reply = $this->sql->directSelectSQL($sqlRaw);
         if ($reply->status == false) {
-            $this->addError($reply->message);
-            return new GroupedCountReply($reply->message);
+            $this->addError(errorMessage: $reply->message);
+            return new GroupedCountReply(message: $reply->message);
         }
         $results = [];
         foreach ($reply->dataset as $entry) {
             $results[$entry[$groupByField]] = $entry["SortedCount"];
         }
-        return new GroupedCountReply("ok", $results, true);
+        return new GroupedCountReply(message: "ok", results: $results, status: true);
     }
 
     /**
@@ -131,13 +133,13 @@ abstract class CollectionSetCore extends SqlConnectedClass
         $this->makeWorker();
         $loadWhereConfig = $this->worker->autoFillWhereConfig($whereConfig);
         if ($loadWhereConfig->status == false) {
-            return new CountReply($loadWhereConfig->message);
+            return new CountReply(message: $loadWhereConfig->message);
         }
         $whereConfig = $loadWhereConfig->data;
-        $reply = $this->sql->basicCountV2($this->worker->getTable(), $whereConfig);
+        $reply = $this->sql->basicCountV2(table: $this->worker->getTable(), whereConfig: $whereConfig);
         if ($reply->status == false) {
-            $this->addError($reply->message);
-            return new CountReply($reply->message);
+            $this->addError(errorMessage: $reply->message);
+            return new CountReply(message: $reply->message);
         }
         return $reply;
     }
@@ -145,7 +147,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
     public function limitFields(array $fields): void
     {
         $this->makeWorker();
-        if (in_array("id", $fields) == false) {
+        if (in_array(needle: "id", haystack: $fields) == false) {
             $fields = array_merge(["id"], $fields);
         }
         $this->limitedFields = $fields;
@@ -180,8 +182,16 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     public function addToCollected($object): void
     {
-        $this->collected[$object->getId()] = $object;
-        $this->rebuildIndex();
+        try
+        {
+            $this->collected[$object->_Id] = $object;
+            $this->rebuildIndex();
+        }
+        catch (Exception $e)
+        {
+            $this->addError("Attempted to add object to collection but failed");
+        }
+
     }
 
     protected $fastObjectArrayIndex = [];
@@ -203,22 +213,22 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function buildObjectGetIndex(string $fieldName, bool $force_rebuild = false): void
     {
         $this->makeWorker();
-        if ((in_array($fieldName, $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
-            $loadString = "get" . ucfirst($fieldName);
-            if (method_exists($this->worker, $loadString)) {
+        if ((in_array(needle: $fieldName, haystack: $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
+            $loadString = "_" . ucfirst($fieldName);
+            if($this->worker->getFieldType($fieldName) != null) {
                 $this->fastObjectArrayIndex[] = $fieldName;
                 $index = [];
                 foreach ($this->collected as $object) {
-                    $indexValue = $object->$loadString();
+                    $indexValue = $object->$loadString;
                     if ($indexValue === true) {
                         $indexValue = 1;
                     } elseif ($indexValue == false) {
                         $indexValue = 0;
                     }
-                    if (array_key_exists($indexValue, $index) == false) {
+                    if (array_key_exists(key: $indexValue, array: $index) == false) {
                         $index[$indexValue] = [];
                     }
-                    $index[$indexValue][] = $object->getId();
+                    $index[$indexValue][] = $object->_Id;
                 }
                 $this->fastIndexDataset[$fieldName] = $index;
             }
@@ -232,24 +242,24 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function indexSearch(string $fieldName, $fieldValue): array
     {
         $this->makeWorker();
-        $this->buildObjectGetIndex($fieldName);
+        $this->buildObjectGetIndex(fieldName: $fieldName);
         $return_objects = [];
-        if (array_key_exists($fieldName, $this->fastIndexDataset) == false) {
-            $this->addError("Field was not found as part of search array dataset");
+        if (array_key_exists(key: $fieldName, array: $this->fastIndexDataset) == false) {
+            $this->addError(errorMessage: "Field was not found as part of search array dataset");
             return [];
         }
-        $loadString = "get" . ucfirst($fieldName);
-        if (method_exists($this->worker, $loadString) == false) {
-            $this->addError("get function is not supported");
+        if($this->worker->getFieldType($fieldName) == null)
+        {
+            $this->addError(errorMessage: $fieldName." is unknown");
             return [];
         }
-        if (array_key_exists($fieldValue, $this->fastIndexDataset[$fieldName]) == false) {
-            $this->addError("value does not match dataset search");
+        if (array_key_exists(key: $fieldValue, array: $this->fastIndexDataset[$fieldName]) == false) {
+            $this->addError(errorMessage: "value does not match dataset search");
             return [];
         }
         $return_objects = [];
         foreach ($this->fastIndexDataset[$fieldName][$fieldValue] as $objectid) {
-            if (array_key_exists($objectid, $this->collected) == true) {
+            if (array_key_exists(key: $objectid, array: $this->collected) == true) {
                 $return_objects[] = $this->collected[$objectid];
             }
         }

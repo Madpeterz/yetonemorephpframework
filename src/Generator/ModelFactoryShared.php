@@ -2,6 +2,8 @@
 
 namespace YAPF\Framework\Generator;
 
+use Exception;
+
 abstract class ModelFactoryShared
 {
     protected const STRING_TYPES = ["varchar","text","char","longtext","mediumtext","tinytext","date","datetime"];
@@ -62,15 +64,25 @@ abstract class ModelFactoryShared
 
     public function createNow(): void
     {
-        $this->createModelHeader();
-        $this->createModelDataset();
-        $this->createModelSetters();
-        $this->createModelGetters();
-        $this->createModelLoaders();
-        $this->createRelatedLoaders();
-        $this->createModelFooter();
+        try
+        {
+            $this->createModelHeader();
+            $this->createModelGetSet();
+            $this->createModelDataset();
+            $this->createModelSetters();
+            $this->createModelGetters();
+            $this->createModelLoaders();
+            $this->createRelatedLoaders();
+            $this->createModelFooter();
+        }
+        catch (Exception $e)
+        {
+            $this->writeOutput($e->getMessage());
+        }
     }
-
+    protected function createModelGetSet(): void
+    {
+    }
     protected function createModelFooter(): void
     {
     }

@@ -4,6 +4,11 @@ namespace YAPF\Framework\DbObjects\GenClass;
 
 abstract class GenClass extends GenClassDB
 {
+    public ?int $_Id
+    {
+        get => $this->getField(fieldName: "id");
+        set { }
+    }
     /**
      * HasAny
      * using a fast count query

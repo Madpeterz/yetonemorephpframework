@@ -28,8 +28,7 @@ class DbObjectsUpdateTest extends TestCase
         $target = new Endoftestempty();
         $result = $target->loadByField("name", "yes");
         $this->assertSame($result->status, true, "Load by field failed");
-        $result = $target->setName("Magic");
-        $this->assertSame(true, $result->status, "Set field via helper failed");
+        $target->_Name = "Magic";
         $result = $target->updateEntry();
         $this->assertSame($result->status, true, "Update failed: " . $result->message);
         global $system;
@@ -39,7 +38,7 @@ class DbObjectsUpdateTest extends TestCase
         $target = new Endoftestempty();
         $result = $target->loadID(1);
         $this->assertSame($result->status, true, "Unable to load id 1 from end of test empty");
-        $this->assertSame("Magic", $target->getName(), "Incorrect name value");
+        $this->assertSame("Magic", $target->_Name, "Incorrect name value");
     }
 
     /**
@@ -50,7 +49,7 @@ class DbObjectsUpdateTest extends TestCase
         $target = new Endoftestempty();
         $result = $target->loadByField("name", "Magic");
         $this->assertSame($result->status, true, "Load by field failed");
-        $target->setName("ChangeMagic");
+        $target->_Name = "ChangeMagic";
         $result = $target->getPendingChanges();
         $this->assertSame(true, $result->vaild, "The change is not vaild");
         $this->assertSame(1, $result->changes, "incorrect number of changes made: " . json_encode($result->fieldsChanged));
@@ -97,17 +96,14 @@ class DbObjectsUpdateTest extends TestCase
     public function testUpdateFloat()
     {
         $target = new Alltypestable();
-        $target->setFloatfield(23.4);
-        $target->setIntfield(55);
-        $testing = $target->setStringfield("Hello world");
-        $this->assertSame("value set", $testing->message, "Incorrect message");
-        $this->assertSame(1, $testing->changes, "Incorrect number of changes");
-        $this->assertSame(true, $testing->status, "Incorrect status flag");
+        $target->_Floatfield = 23.4;
+        $target->_Intfield = 55;
+        $target->_Stringfield = "Hello world";
         $createReply = $target->createEntry();
         $this->assertSame("ok", $createReply->message, "Incorrect create entry message");
         $this->assertSame(true, $createReply->status, "Incorrect create entry status");
-        $this->assertSame(1, $target->getId(), "Incorrect target id");
-        $target->setFloatfield(55.81);
+        $this->assertSame(1, $target->_Id, "Incorrect target id");
+        $target->_Floatfield = 55.81;
         $results = $target->updateEntry();
         $this->assertSame("ok", $results->message, "Incorrect change message");
         $this->assertSame(1, $results->changes, "Incorrect number of changes");
