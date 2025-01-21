@@ -46,6 +46,7 @@
       <file>tests/issues/issue3.php</file>
       <file>tests/issues/issue4.php</file>
       <file>tests/issues/issue5.php</file>
+      <file>tests/WhereConfigMaker/WhereConfigMaker_Test.php</file>
     </testsuite>
   </testsuites>
 </phpunit>
