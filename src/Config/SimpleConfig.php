@@ -4,7 +4,6 @@ namespace YAPF\Framework\Config;
 
 use ErrorException;
 use YAPF\Core\ErrorControl\ErrorLogging;
-use YAPF\Framework\Cache\CacheWorker;
 use YAPF\Framework\MySQLi\MysqliEnabled;
 
 abstract class SimpleConfig extends ErrorLogging
@@ -29,6 +28,17 @@ abstract class SimpleConfig extends ErrorLogging
 
     // SQL connection
     protected ?MysqliEnabled $sql = null;
+    protected bool $allowChanges = false;
+
+    public function setAllowChanges(bool $status): void
+    {
+        $this->allowChanges = $status;
+    }
+
+    public function getAllowDbWrites(): bool
+    {
+        return $this->allowChanges;
+    }
 
     public function __construct()
     {
