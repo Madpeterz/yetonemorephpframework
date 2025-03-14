@@ -15,6 +15,6 @@
         "Unixtime"
     ],
     "[php]": {
-        "editor.defaultFormatter": "Jota0222.multi-formatter"
+        "editor.defaultFormatter": "valeryanm.vscode-phpsab"
     }
 }

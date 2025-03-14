@@ -13,6 +13,10 @@ abstract class CollectionSetBulk extends CollectionSetCore
      */
     public function purgeCollection(): RemoveReply
     {
+        if ($this->systemConfig->getAllowDbWrites() == false) {
+            $this->addError("DB writes disabled using fake reply");
+            return new RemoveReply("fake", true, rand(1, 55));
+        }
         $this->makeWorker();
         if ($this->getCount() == 0) {
             return new RemoveReply("Collection empty to start with", true, 0);
@@ -142,6 +146,10 @@ abstract class CollectionSetBulk extends CollectionSetCore
      */
     public function updateMultipleFieldsForCollection(array $updateFields, array $newValues): MultiUpdateReply
     {
+        if ($this->systemConfig->getAllowDbWrites() == false) {
+            $this->addError("DB writes disabled using fake reply");
+            return new MultiUpdateReply("fake", true, rand(1, 55));
+        }
         if ($this->disableUpdates == true) {
             $this->addError("Attempt to update with limitFields enabled!");
             return new MultiUpdateReply($this->myLastErrorBasic);
