@@ -88,7 +88,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * unless you want SQL to trim the result stack
      * before passing it to php
      */
-    public function groupCountInDb(string $groupByField, int $minCountToShow = null): GroupedCountReply
+    public function groupCountInDb(string $groupByField, ?int $minCountToShow = null): GroupedCountReply
     {
 
         $this->makeWorker();
