@@ -2,6 +2,7 @@
 
 namespace YAPF\Framework\Core\SQLi;
 
+use App\Config;
 use YAPF\Core\ErrorControl\ErrorLogging;
 use YAPF\Framework\MySQLi\MysqliEnabled;
 
@@ -9,6 +10,7 @@ abstract class SqlConnectedClass extends ErrorLogging
 {
     protected ?MysqliEnabled $sql;
     protected $disabled = false;
+    protected ?Config $systemConfig;
     /**
      * __construct
      * if not marked as disabled connects the sql global value
@@ -20,6 +22,11 @@ abstract class SqlConnectedClass extends ErrorLogging
     public function __construct()
     {
         global $system;
+        if ($system == null) {
+            $this->disabled = true;
+            return;
+        }
+        $this->systemConfig = $system;
         if ($this->disabled == false) {
             $this->sql = $system->getSQL();
         }
