@@ -14,9 +14,12 @@ class DbObjects extends SqlConnectedClass
         protected string $namespace = "App/Models/<!DBName!>(Set)",
         protected string $saveToFolder = "src/Models/<!DBName!>/(Set)",
         protected array $ignoreTables = [],
-        protected bool $prefixDbName = false
+        protected bool $prefixDbName = true
     ) {
         parent::__construct();
+        if (($this->prefixDbName == false) && (count($this->databases) > 1)) {
+            echo "Warning: Multiple databases but prefix DB name is false, I hope you know what your doing\n";
+        }
         $this->info = ["files" => 0, "lines" => 0, "error" => true];
         $this->readyFolders();
         $this->loadTables();

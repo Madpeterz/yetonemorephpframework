@@ -4,16 +4,16 @@ namespace YAPF\Junk;
 
 use App\Config as AppConfig;
 use PHPUnit\Framework\TestCase;
-use YAPF\Junk\Models\Counttoonehundo;
-use YAPF\Junk\Models\Liketests;
-use YAPF\Junk\Models\Relationtestinga;
-use YAPF\Junk\Models\Relationtestingb;
-use YAPF\Junk\Models\Weirdtable;
-use YAPF\Junk\Sets\CounttoonehundoSet;
-use YAPF\Junk\Sets\LiketestsSet;
-use YAPF\Junk\Sets\RelationtestingaSet;
-use YAPF\Junk\Sets\Twintables1Set;
-use YAPF\Junk\Sets\WeirdtableSet;
+use YAPF\Junk\test\Counttoonehundo;
+use YAPF\Junk\test\Liketests;
+use YAPF\Junk\test\Relationtestinga;
+use YAPF\Junk\test\Relationtestingb;
+use YAPF\Junk\test\Weirdtable;
+use YAPF\Junk\test\Set\CounttoonehundoSet;
+use YAPF\Junk\test\Set\LiketestsSet;
+use YAPF\Junk\test\Set\RelationtestingaSet;
+use YAPF\Junk\test\Set\Twintables1Set;
+use YAPF\Junk\test\Set\WeirdtableSet;
 
 class DbObjectsLoadTest extends TestCase
 {
@@ -265,6 +265,7 @@ class DbObjectsLoadTest extends TestCase
         $reply = $testing->updateFieldInCollection("value", "failme");
         $this->assertSame(false, $reply->status, "bulk set value incorrectly");
         $reply = $obj->createEntry();
+        $this->assertSame("Attempt to update with limitFields enabled!", $reply->message, "Created object what I should not be able to");
         $this->assertSame(false, $reply->status, "created object incorrectly");
         $testing = new Liketests();
         $testing->limitFields(["name"]);

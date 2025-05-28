@@ -17,7 +17,8 @@ abstract class FileWriter extends SqlConnectedClass
      */
     public function statsWrite(): array
     {
-        return ["error" => $this->hadWriteError, "files" => $this->files, "log" => $this->writeLog, "lines" => $this->writeLineCount];
+        return ["error" => $this->hadWriteError, "files" => $this->files,
+        "log" => $this->writeLog, "lines" => $this->writeLineCount];
     }
 
     protected array $lines = [];

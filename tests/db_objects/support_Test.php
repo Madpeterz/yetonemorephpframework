@@ -7,8 +7,8 @@ use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
 use YAPF\Framework\DbObjects\GenClass\GenClass as GenClass;
 use YAPF\Framework\Responses\DbObjects\UpdateReply;
-use YAPF\Junk\Models\Counttoonehundo;
-use YAPF\Junk\Models\Liketests;
+use YAPF\Junk\test\Counttoonehundo;
+use YAPF\Junk\test\Liketests;
 
 class BrokenObjectThatSetsWhatever extends genClass
 {

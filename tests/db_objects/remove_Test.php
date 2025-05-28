@@ -4,10 +4,10 @@ namespace YAPF\Junk;
 
 use App\Config;
 use PHPUnit\Framework\TestCase;
-use YAPF\Junk\Models\Alltypestable;
-use YAPF\Junk\Models\Counttoonehundo;
-use YAPF\Junk\Models\Relationtestingb;
-use YAPF\Junk\Sets\CounttoonehundoSet;
+use YAPF\Junk\test\Alltypestable;
+use YAPF\Junk\test\Counttoonehundo;
+use YAPF\Junk\test\Relationtestingb;
+use YAPF\Junk\test\Set\CounttoonehundoSet;
 
 class DbObjectsRemoveTest extends TestCase
 {

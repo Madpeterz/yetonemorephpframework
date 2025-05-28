@@ -3,7 +3,7 @@
 namespace YAPF\Junk;
 
 use PHPUnit\Framework\TestCase;
-use YAPF\Junk\Models\Counttoonehundo;
+use YAPF\Junk\test\Counttoonehundo;
 
 class Issue4Test extends TestCase
 {

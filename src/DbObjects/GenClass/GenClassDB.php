@@ -144,7 +144,7 @@ abstract class GenClassDB extends GenClassControl
     {
         if ($this->systemConfig->getAllowDbWrites() == false) {
             $this->addError("DB writes disabled using fake reply");
-            return new RemoveReply("fake", true, 1);
+            return new RemoveReply("fake", false, 1);
         } elseif ($this->disabled == true) {
             $this->addError("This class is disabled.");
             return new RemoveReply($this->myLastErrorBasic);
@@ -199,7 +199,7 @@ abstract class GenClassDB extends GenClassControl
     {
         if ($this->systemConfig->getAllowDbWrites() == false) {
             $this->addError("DB writes disabled using fake reply");
-            return new CreateReply("fake", true, null);
+            return new CreateReply("fake", false, null);
         }
         $checks = $this->checkCreateEntry();
         if ($checks->status == false) {
@@ -339,7 +339,7 @@ abstract class GenClassDB extends GenClassControl
     {
         if ($this->systemConfig->getAllowDbWrites() == false) {
             $this->addError("DB writes disabled using fake reply");
-            return new UpdateReply("fake", true, rand(1, 55));
+            return new UpdateReply("fake", false, rand(1, 55));
         }
         $reply = $this->checkUpdateEntry();
         if ($reply->status == false) {

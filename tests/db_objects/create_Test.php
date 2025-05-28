@@ -5,8 +5,8 @@ namespace YAPF\Junk;
 use App\Config;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
-use YAPF\Junk\Models\Alltypestable;
-use YAPF\Junk\Models\Endoftestwithfourentrys;
+use YAPF\Junk\test\Alltypestable;
+use YAPF\Junk\test\Endoftestwithfourentrys;
 
 class DbObjectsCreateTest extends TestCase
 {

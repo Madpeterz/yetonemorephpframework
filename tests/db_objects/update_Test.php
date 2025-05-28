@@ -5,9 +5,9 @@ namespace YAPF\Junk;
 use App\Config;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\Config\SimpleConfig;
-use YAPF\Junk\Models\Alltypestable;
-use YAPF\Junk\Models\Endoftestempty;
-use YAPF\Junk\Sets\LiketestsSet;
+use YAPF\Junk\test\Alltypestable;
+use YAPF\Junk\test\Endoftestempty;
+use YAPF\Junk\test\Set\LiketestsSet;
 
 class DbObjectsUpdateTest extends TestCase
 {
@@ -30,7 +30,9 @@ class DbObjectsUpdateTest extends TestCase
         $this->assertSame($result->status, true, "Load by field failed");
         $result = $target->setName("Magic");
         $this->assertSame(true, $result->status, "Set field via helper failed");
+        $this->assertSame(1, $target->getId(), "Incorrect test id loaded");
         $result = $target->updateEntry();
+        $this->assertSame("ok", $result->message, "Write update result not as expected");
         $this->assertSame($result->status, true, "Update failed: " . $result->message);
         global $system;
         $system->shutdown();

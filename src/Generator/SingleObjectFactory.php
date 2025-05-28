@@ -17,7 +17,9 @@ class SingleObjectFactory extends Shared
         $this->namespace = str_replace("<!DBName!>", $this->dbName, $this->namespace);
         $this->namespace = str_replace("(Set)", "", $this->namespace);
         $this->namespace = str_replace("/", "\\", $this->namespace);
-        $this->namespaceSet = str_replace("(Set)", "\\Set", $this->namespace);
+        $this->namespaceSet = str_replace("(Set)", "\\Set", $namespace);
+        $this->namespaceSet = str_replace("<!DBName!>", $this->dbName, $this->namespaceSet);
+        $this->namespaceSet = str_replace("/", "\\", $this->namespaceSet);
         $this->saveToFolder = str_replace("(Set)", "", $this->saveToFolder);
         $this->saveToFolder = str_replace("<!DBName!>", $this->dbName . "/", $this->saveToFolder);
         foreach ($this->tables[$this->dbName] as $table) {

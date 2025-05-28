@@ -33,7 +33,7 @@ class GeneratorTest extends TestCase
     public function testCreateModels()
     {
         $this->ResetDbFirst();
-        $db_objects_factory = new DbObjects(["test"], "App/Junk/<!DBName!>(Set)", "src/Junk/<!DBName!>/(Set)");
+        $db_objects_factory = new DbObjects(["test"], "YAPF/Junk/<!DBName!>(Set)", "src/Junk/<!DBName!>/(Set)");
         $stats = $db_objects_factory->getStats();
         $this->assertSame(false, $stats["error"], "had a issue writing files");
         $this->assertSame(28, $stats["files"], "had a issue writing files total count");

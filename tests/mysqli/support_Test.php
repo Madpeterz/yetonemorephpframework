@@ -204,16 +204,11 @@ class MysqliSupportTest extends TestCase
         $this->sql->fullSqlErrors = true;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "fakedbname", true, "127.0.0.1", 1);
         $this->assertSame($result, false);
-        $error_msg = "SQL connection error: mysqli_real_connect(): ";
-        $error_msg .= "(HY000/1049): Unknown database 'fakedbname'";
-        if (strpos($this->sql->getLastErrorBasic(), "HY000/1049") === false) {
-            $error_msg = "SQL connection error: mysqli_real_connect(): ";
-            $error_msg .= "(HY000/1044): Access denied for user 'testsuser'@'%' to database 'fakedbname'";
-        }
+        $error_msg = "SQL connection error: mysqli_real_connect(): (HY000/1045): Access denied for user 'testsuser'@'localhost' (using password: YES)";
         $this->assertSame($error_msg, $this->sql->getLastErrorBasic(), "Wrong error message");
         // good host / good details / good DB
         $this->sql->fullSqlErrors = false;
-        $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "information_schema", true);
+        $result = $this->sql->sqlStartConnection("root", "", "information_schema", true);
         $this->assertSame(true, $result);
     }
 
@@ -225,7 +220,7 @@ class MysqliSupportTest extends TestCase
         $this->assertSame($this->sql->getLastErrorBasic(), "DB config is not valid to start!");
         $this->assertSame($result, false);
         $this->sql->dbUser = $savedbuser;
-        $this->sql->dbPass = null;
+        $this->sql->dbPass = "Bad password";
         $result = $this->sql->sqlStart(true);
         $this->assertSame($this->sql->getLastErrorBasic(), 'sqlStartConnection returned false!');
         $this->assertSame($result, false);

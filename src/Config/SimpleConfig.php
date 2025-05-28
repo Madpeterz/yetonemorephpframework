@@ -28,7 +28,7 @@ abstract class SimpleConfig extends ErrorLogging
 
     // SQL connection
     protected ?MysqliEnabled $sql = null;
-    protected bool $allowChanges = false;
+    protected bool $allowChanges = true;
 
     public function setAllowChanges(bool $status): void
     {
