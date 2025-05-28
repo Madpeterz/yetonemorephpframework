@@ -2,13 +2,39 @@
 
 namespace YAPF\Framework\Generator;
 
-class GeneratorWriter extends GeneratorDefaults
+use YAPF\Framework\Core\SQLi\SqlConnectedClass;
+
+abstract class FileWriter extends SqlConnectedClass
 {
-    protected function lines2text(array $lines): string
+    protected string $writeLog = "";
+    protected int $writeLineCount = 0;
+    protected int $files = 0;
+    protected bool $hadWriteError = false;
+    /**
+     * statsWrite
+     * gets the writes stats and log file
+     * @return mixed[]
+     */
+    public function statsWrite(): array
+    {
+        return ["error" => $this->hadWriteError, "files" => $this->files, "log" => $this->writeLog, "lines" => $this->writeLineCount];
+    }
+
+    protected array $lines = [];
+    protected array $tabLookup = [
+        0 => "",
+        1 => "  ",
+        2 => "      ",
+        3 => "          ",
+        4 => "              ",
+        5 => "                ",
+        6 => "                  ",
+    ];
+    protected function lines2text(): string
     {
         $file_content = "";
         $tabs = 0;
-        foreach ($lines as $line_data) {
+        foreach ($this->lines as $line_data) {
             if (is_array($line_data) == true) {
                 $tabs = $line_data[0];
                 continue;
@@ -20,18 +46,12 @@ class GeneratorWriter extends GeneratorDefaults
             $file_content .= $line_data;
         }
         $file_content .= "\n";
+        $this->writeLineCount += count($this->lines);
         return $file_content;
     }
     protected function writeFile(string $contents, string $name, string $folder): void
     {
         $create_file = $folder . $name;
-        if ($this->use_output == true) {
-            if ($this->console_output == true) {
-                echo " - ";
-            } else {
-                $this->output .=  "<td>";
-            }
-        }
         $this->writeModelFile($create_file, $contents);
     }
     protected function writeModelFile(string $create_file, string $file_content = ""): void
@@ -40,30 +60,12 @@ class GeneratorWriter extends GeneratorDefaults
             unlink($create_file);
             usleep((30 * 0.001) * 10000); // wait for 300ms for the disk to finish
         }
-        $this->countFailed++;
-
         $status = file_put_contents($create_file, $file_content);
+        $this->files++;
         usleep((10 * 0.001) * 10000);  // wait for 100ms for the disk to finish
-
-        if ($status !== false) {
-            $this->countFailed--;
-            $this->countCreated++;
-            if ($this->use_output == true) {
-                if ($this->console_output == true) {
-                    echo "\033[32mOk \033[0m";
-                } else {
-                    $this->output .=  " <font color=\"#00FF00\">Ok</font>";
-                }
-            }
-            return;
-        }
-
-        if ($this->use_output == true) {
-            if ($this->console_output == true) {
-                echo "\033[31mFailed to write \033[0m";
-            } else {
-                $this->output .=  " <font color=\"#FF0000\">Failed to write</font>";
-            }
+        if ($status == false) {
+            $this->hadWriteError = true;
+            $this->writeLog .= "failed to write: " . $create_file . "\n";
         }
     }
 }
