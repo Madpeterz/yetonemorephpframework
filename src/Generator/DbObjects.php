@@ -20,7 +20,7 @@ class DbObjects extends SqlConnectedClass
         if (($this->prefixDbName == false) && (count($this->databases) > 1)) {
             echo "Warning: Multiple databases but prefix DB name is false, I hope you know what your doing\n";
         }
-        $this->info = ["files" => 0, "lines" => 0, "error" => true];
+        $this->info = ["files" => 0, "lines" => 0, "error" => false];
         $this->readyFolders();
         $this->loadTables();
         $this->createObjects();
@@ -66,10 +66,12 @@ class DbObjects extends SqlConnectedClass
             if ($merge["error"] != $stats["error"]) {
                 $stats["error"] = true;
             }
-            $this->info["files"] = $stats["files"];
-            $this->info["lines"] = $stats["lines"];
-            $this->info["error"] = $stats["error"];
-            $this->log .= "Write log: " . $stats["log"];
+            $this->info["files"] += $stats["files"];
+            $this->info["lines"] += $stats["lines"];
+            if ($stats["error"] == true) {
+                $this->info["error"] = true;
+            }
+            $this->log .= $stats["log"];
             unset($merge);
         }
     }
@@ -129,15 +131,16 @@ class DbObjects extends SqlConnectedClass
     protected function getDBForeignKeys(string $target_database): SelectReply
     {
         $whereConfig = [
-            "fields" => ["REFERENCED_TABLE_NAME", "TABLE_SCHEMA", "REFERENCED_TABLE_SCHEMA"],
-            "values" => [null, $target_database, $target_database],
-            "matches" => ["IS NOT", "=", "="],
-            "types" => ["s", "s", "s"],
+            "fields" => ["REFERENCED_TABLE_NAME", "TABLE_SCHEMA"],
+            "values" => [null, $target_database],
+            "matches" => ["IS NOT", "="],
+            "types" => ["s", "s"],
         ];
 
         $basic_config = [
             "table" => "INFORMATION_SCHEMA.KEY_COLUMN_USAGE",
-            "fields" => ["TABLE_NAME", "COLUMN_NAME", "REFERENCED_COLUMN_NAME", "REFERENCED_TABLE_NAME"],
+            "fields" => ["TABLE_SCHEMA","REFERENCED_TABLE_SCHEMA", "TABLE_NAME", "COLUMN_NAME",
+            "REFERENCED_COLUMN_NAME", "REFERENCED_TABLE_NAME"],
         ];
 
         return $this->sql->selectV2($basic_config, null, $whereConfig);
@@ -157,8 +160,10 @@ class DbObjects extends SqlConnectedClass
             $packet[] = [
                 "sourceTable" => $entry["TABLE_NAME"],
                 "sourceField" => $entry["COLUMN_NAME"],
+                "sourceDatabase" => $entry["TABLE_SCHEMA"],
                 "targetTable" => $entry["REFERENCED_TABLE_NAME"],
                 "targetField" => $entry["REFERENCED_COLUMN_NAME"],
+                "targetDatabase" => $entry["REFERENCED_TABLE_SCHEMA"],
             ];
         }
         return $packet;

@@ -1,6 +1,9 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET FOREIGN_KEY_CHECKS = 0;
 DROP DATABASE IF EXISTS `test`;
+DROP DATABASE IF EXISTS `key2name`;
+DROP DATABASE IF EXISTS `website`;
+
 CREATE DATABASE `test` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `test`;
 
@@ -314,3 +317,55 @@ ALTER TABLE `relationtestinga`
 
 
 CREATE TABLE `test`.`encryptedcheck` (`id` INT NOT NULL AUTO_INCREMENT , `name` TEXT NOT NULL , `value` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB; 
+COMMIT;
+--
+-- Database: `key2name`
+--
+CREATE DATABASE IF NOT EXISTS `key2name` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `key2name`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `avatars`
+--
+
+CREATE TABLE IF NOT EXISTS `avatars` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(36) NOT NULL,
+  `name` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Database: `website`
+--
+CREATE DATABASE IF NOT EXISTS `website` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `website`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `avatarLink` int(11) NOT NULL,
+  `banned` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `avatarLink` (`avatarLink`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `avatarLink` FOREIGN KEY (`avatarLink`) REFERENCES `key2name`.`avatars` (`id`) ON UPDATE NO ACTION;
+COMMIT;
+

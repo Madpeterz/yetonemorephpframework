@@ -14,6 +14,7 @@ class SingleObjectFactory extends Shared
         protected array $ignoreTables
     ) {
         parent::__construct();
+        $this->corenamespace = $this->namespace;
         $this->namespace = str_replace("<!DBName!>", $this->dbName, $this->namespace);
         $this->namespace = str_replace("(Set)", "", $this->namespace);
         $this->namespace = str_replace("/", "\\", $this->namespace);
@@ -59,20 +60,23 @@ class SingleObjectFactory extends Shared
             $targetClass = "";
             $fromField = "";
             $loadField = "";
+            $targetDb = "";
             if ($entry["sourceTable"] == $this->workingTable) {
                 $targetClass = ucfirst(strtolower($entry["targetTable"]));
                 $fromField = ucfirst($entry["sourceField"]);
                 $loadField = ucfirst($entry["targetField"]);
+                $targetDb = $entry["targetDatabase"];
             } elseif ($entry["targetTable"] == $this->workingTable) {
                 $targetClass = ucfirst(strtolower($entry["sourceTable"]));
+                $targetDb = $entry["sourceDatabase"];
                 $fromField = ucfirst($entry["targetField"]);
                 $loadField = ucfirst($entry["sourceField"]);
             }
             if ($targetClass == "") {
                 continue;
             }
-
-            $targetClassName =  $targetClass . "Set";
+            $dbnameprefix = ucfirst(strtolower($targetDb));
+            $targetClassName =  $dbnameprefix . '' . $targetClass;
             if (in_array($targetClassName, $this->seenRelated) == true) {
                 continue;
             }
@@ -255,25 +259,32 @@ class SingleObjectFactory extends Shared
         $this->lines[] = 'use YAPF\Framework\Responses\DbObjects\UpdateReply as UpdateReply;';
         $this->lines[] = 'use YAPF\Framework\Responses\DbObjects\SingleLoadReply as SingleLoadReply;';
 
-        $seenUsing = [];
+        $seenused = [];
         foreach ($this->links as $entry) {
             $targetClass = "";
+            $targetDb = "";
             if ($entry["sourceTable"] == $this->workingTable) {
                 $targetClass = ucfirst(strtolower($entry["targetTable"]));
+                $targetDb = $entry["targetDatabase"];
             } elseif ($entry["targetTable"] == $this->workingTable) {
                 $targetClass = ucfirst(strtolower($entry["sourceTable"]));
+                $targetDb = $entry["sourceDatabase"];
             }
             if ($targetClass == "") {
                 continue;
             }
-
-            $targetClassName =  $targetClass . "Set";
-            if (in_array($targetClassName, $seenUsing) == true) {
+            $targetClassName =  $targetClass;
+            if (in_array($targetClassName, $seenused) == true) {
                 continue;
             }
-            $seenUsing[] = $targetClassName;
-            $this->lines[] = 'use ' . $this->namespaceSet . '\\'
-                . $targetClassName . ' as ' . $targetClassName . ';';
+            $dbnameprefix = ucfirst(strtolower($targetDb));
+            $seenused[] = $targetClassName;
+            $namespace = $this->corenamespace;
+            $namespace = str_replace("(Set)", "\Set", $namespace);
+            $namespace = str_replace("<!DBName!>", $targetDb, $namespace);
+            $namespace = str_replace("/", "\\", $namespace);
+            $this->lines[] = 'use ' . $namespace . '\\'
+            . $targetClass . 'Set as ' . $dbnameprefix . '' . $targetClass . ';';
         }
 
         $this->lines[] = '';

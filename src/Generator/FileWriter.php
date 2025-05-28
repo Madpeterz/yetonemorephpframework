@@ -24,12 +24,12 @@ abstract class FileWriter extends SqlConnectedClass
     protected array $lines = [];
     protected array $tabLookup = [
         0 => "",
-        1 => "  ",
-        2 => "      ",
-        3 => "          ",
-        4 => "              ",
-        5 => "                ",
-        6 => "                  ",
+        1 => "    ",
+        2 => "        ",
+        3 => "            ",
+        4 => "                ",
+        5 => "                    ",
+        6 => "                        ",
     ];
     protected function lines2text(): string
     {

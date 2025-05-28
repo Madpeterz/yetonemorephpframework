@@ -11,6 +11,7 @@ abstract class Shared extends FileWriter
         global $system;
         $this->sql = $system->getSQL();
     }
+    protected string $corenamespace = "";
     protected string $filename = "";
     protected string $namespaceSingle = "";
     protected string $namespaceSet = "";

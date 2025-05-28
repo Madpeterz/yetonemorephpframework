@@ -27,17 +27,22 @@ class GeneratorTest extends TestCase
         // [status =>  bool, message =>  string]
         $this->assertSame("ok", $results->message, "incorrect message");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68, "incorrect num of commands");
     }
 
     public function testCreateModels()
     {
         $this->ResetDbFirst();
-        $db_objects_factory = new DbObjects(["test"], "YAPF/Junk/<!DBName!>(Set)", "src/Junk/<!DBName!>/(Set)");
+        $db_objects_factory = new DbObjects(
+            ["test","key2name","website"], 
+            "YAPF/Junk/<!DBName!>(Set)", 
+            "src/Junk/<!DBName!>/(Set)"
+        );
         $stats = $db_objects_factory->getStats();
+        $this->assertSame(" |  |  | ", $db_objects_factory->getLog(), "log is not correct");
         $this->assertSame(false, $stats["error"], "had a issue writing files");
-        $this->assertSame(28, $stats["files"], "had a issue writing files total count");
-        $this->assertSame(4134, $stats["lines"], "had a issue writing files total lines");
-        $this->assertSame("Write log:  | ", $db_objects_factory->getLog(), "log is not correct");
+        $this->assertSame(32, $stats["files"], "had a issue writing files total count");
+        $this->assertSame(4712, $stats["lines"], "had a issue writing files total lines");
+        
     }
 }
