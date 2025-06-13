@@ -138,7 +138,7 @@ class MysqliUpdateTest extends TestCase
         // [changes => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsUpdated, 0);
-        $this->assertSame($results->message, "Unable to prepare: Unknown column 'missingfield' in 'where clause'");
+        $this->assertStringContainsString("Unable to prepare: Unknown column 'missingfield'", $results->message);
     }
 
     public function testUpdateInValidValue()

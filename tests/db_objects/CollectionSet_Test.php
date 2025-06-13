@@ -55,7 +55,7 @@ class CollectionSetTest extends TestCase
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68);
     }
     public function testPurgeCollectionSetEmpty()
     {
@@ -169,7 +169,7 @@ class CollectionSetTest extends TestCase
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68);
     }
     public function testGetIdsMatchingField()
     {

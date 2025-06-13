@@ -6,10 +6,10 @@ use YAPF\Core\ErrorControl\ErrorLogging as ErrorLogging;
 
 class Db extends ErrorLogging
 {
-    public $dbHost = "127.0.0.1";
+    public $dbHost = "172.30.225.230";
     public $dbName = "test";
     public $dbUser = "root";
-    public $dbPass = "";
+    public $dbPass = "root";
     public function __construct()
     {
     }

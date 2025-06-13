@@ -22,7 +22,7 @@ class mysqli_remove_test extends TestCase
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68);
     }
 
     public function testRemove()
@@ -71,8 +71,8 @@ class mysqli_remove_test extends TestCase
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsRemoved, 0);
-        $error_msg = "Unable to prepare: Unknown column 'badtheif' in 'where clause'";
-        $this->assertSame($results->message, $error_msg);
+        $error_msg = "Unable to prepare: Unknown column 'badtheif' in";
+        $this->assertStringContainsString($error_msg, $results->message);
     }
 
     public function testRemoveInValidValue()

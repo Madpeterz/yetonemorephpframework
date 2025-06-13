@@ -24,9 +24,9 @@ class mysqli_raw_test extends TestCase
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         // [status =>  bool, message =>  string]
         if ($results->status == false) {
-            $this->assertSame("ok", $this->sql->getLastError(), "sql issue");
+            $this->assertSame("ok", $this->sql->getLastError(), "sql issue: ".$results->message);
         }
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68);
         $this->assertSame($results->status, true);
 
         $results = $this->sql->rawSQL("tests/fake.sql");

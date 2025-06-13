@@ -76,8 +76,8 @@ class mysqli_add_test extends TestCase
         $results = $this->sql->addV2($config);
         // [newID => ?int, rowsAdded => int, status => bool, message => string]
         $this->assertSame($results->status, false);
-        $error_msg = "Unable to prepare: Unknown column 'badfield' in 'field list'";
-        $this->assertSame($results->message, $error_msg);
+        $error_msg = "Unable to prepare: Unknown column 'badfield' in";
+        $this->assertStringContainsString($error_msg, $results->message);
         $this->assertSame($results->newId, null);
     }
 

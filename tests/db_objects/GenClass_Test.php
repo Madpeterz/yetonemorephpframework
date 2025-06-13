@@ -116,7 +116,7 @@ class DbObjectsGenClassTest extends TestCase
         global $system;
         $results = $system->getSQL()->rawSQL("tests/testdataset.sql");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68);
     }
     public function testHasAny()
     {

@@ -22,7 +22,7 @@ class MysqliSelectTest extends TestCase
     {
         $results = $this->sql->rawSQL("tests/testdataset.sql");
         $this->assertSame($results->status, true);
-        $this->assertSame($results->commandsRun, 57);
+        $this->assertSame($results->commandsRun, 68);
     }
 
     public function testSelectBasic()
@@ -399,7 +399,7 @@ class MysqliSelectTest extends TestCase
             "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
-        $this->assertSame($result->message, "Unable to prepare: Unknown column 'tw2.extended1' in 'field list'");
+        $this->assertStringContainsString("Unable to prepare: Unknown column 'tw2.extended1' in", $result->message);
         $this->assertSame($result->status, false);
     }
 

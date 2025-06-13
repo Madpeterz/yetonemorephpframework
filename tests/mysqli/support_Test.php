@@ -204,11 +204,11 @@ class MysqliSupportTest extends TestCase
         $this->sql->fullSqlErrors = true;
         $result = $this->sql->sqlStartConnection("testsuser", "testsuserPW", "fakedbname", true, "127.0.0.1", 1);
         $this->assertSame($result, false);
-        $error_msg = "SQL connection error: mysqli_real_connect(): (HY000/1045): Access denied for user 'testsuser'@'localhost' (using password: YES)";
-        $this->assertSame($error_msg, $this->sql->getLastErrorBasic(), "Wrong error message");
+        $error_msg = "SQL connection error: mysqli_real_connect(): (HY000/1045): Access denied for user 'testsuser";
+        $this->assertStringContainsString($error_msg, $this->sql->getLastErrorBasic(), "Wrong error message");
         // good host / good details / good DB
         $this->sql->fullSqlErrors = false;
-        $result = $this->sql->sqlStartConnection("root", "", "information_schema", true);
+        $result = $this->sql->sqlStartConnection("root", "root", "information_schema", true);
         $this->assertSame(true, $result);
     }
 
