@@ -55,7 +55,8 @@ abstract class MysqliWhere extends MysqliFunctions
         $loop = 0;
         foreach ($whereConfig["types"] as $t) {
             if (in_array($t, ["s","d","i"]) == false) {
-                $failedWhy = "index: " . $loop . " is not as we expect: " . json_encode($whereConfig);
+                $failedWhy = "index: " . $loop . " is not as we expect: " . 
+                json_encode($whereConfig)." should be s,d or i";
                 return false;
             }
             $loop++;
