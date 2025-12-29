@@ -164,7 +164,7 @@ class SingleModelFactory extends ModelFactoryShared
             }
             $functionLoadName = 'loadBy' . ucfirst($rowTwo["COLUMN_NAME"]);
 
-            $this->fileLines[] = 'protected function ' . $functionLoadName . '('
+            $this->fileLines[] = 'public function ' . $functionLoadName . '('
                 . $useType . ' $' . $rowTwo["COLUMN_NAME"] . ', ?array $limitFields = null): SingleLoadReply';
             $this->fileLines[] = '{';
             $this->fileLines[] = [2];
