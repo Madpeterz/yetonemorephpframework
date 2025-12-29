@@ -1,48 +1,53 @@
 {
-	"name": "madpeterz/yetonemorephpframework",
-	"description": "YAPF - A playgound framework for my pet projects",
-	"type": "library",
-	"license": "GPL-3.0-only",
-	"autoload": {
-		"psr-4": {
-			"YAPF\\Framework\\": "src/",
-			"YAPF\\Junk\\": "src/Junk"
-		}
-	},
-	"support": {
-		"source": "https://github.com/Madpeterz/yetonemorephpframework",
-		"issues": "https://github.com/Madpeterz/yetonemorephpframework/issues"
-	},
-	"require": {
-		"php": ">=8.2",
-		"guzzlehttp/guzzle": "^7.2",
-		"predis/predis": "^1.1",
-		"madpeterz/yapfcore": "^2.0"
-	},
-	"require-dev": {
-		"phpunit/phpunit": "^9.5"
-	},
-	"authors": [
-		{
-			"name": "Madpeter",
-			"email": "madpeter@gmail.com"
-		}
-	],
-	"scripts": {
-		"dev-test": [
-			"phpunit --colors=always --configuration phpunit.xml --testdox --testsuite All"
-		],
-		"dev-test-cache": [
-			"phpunit --colors=always --configuration phpunit.xml --testdox --testsuite cache "
-		],
-		"dev-test-gen": [
-			"phpunit --colors=always --configuration phpunit.xml --testdox --testsuite gen "
-		],
-		"dev-test-config": [
-			"phpunit --colors=always --configuration phpunit.xml --testdox --testsuite config "
-		],
-		"phpcs": "phpcs",
-		"phpcbf": "phpcbf",
-		"phpunit": "phpunit"
-	}
+    "name": "madpeterz/yetonemorephpframework",
+    "description": "YAPF - A playgound framework for my pet projects",
+    "type": "library",
+    "license": "GPL-3.0-only",
+    "autoload": {
+        "psr-4": {
+            "YAPF\\Framework\\": "src/",
+            "YAPF\\Junk\\": "src/Junk"
+        }
+    },
+    "support": {
+        "source": "https://github.com/Madpeterz/yetonemorephpframework",
+        "issues": "https://github.com/Madpeterz/yetonemorephpframework/issues"
+    },
+    "config": {
+        "platform": {
+            "php": "8.4.3"
+        }
+    },
+    "require": {
+        "php": ">=8.4.3",
+        "guzzlehttp/guzzle": "^7.2",
+        "predis/predis": "^1.1",
+        "madpeterz/yapfcore": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "authors": [
+        {
+            "name": "Madpeter",
+            "email": "madpeter@gmail.com"
+        }
+    ],
+    "scripts": {
+        "dev-test": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite All"
+        ],
+        "dev-test-cache": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite cache "
+        ],
+        "dev-test-gen": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite gen "
+        ],
+        "dev-test-config": [
+            "phpunit --colors=always --configuration phpunit.xml --testdox --testsuite config " 
+        ],
+        "phpcs": "phpcs",
+        "phpcbf": "phpcbf",
+        "phpunit": "phpunit"
+    }
 }
