@@ -41,7 +41,7 @@ class MysqliSearchTest extends TestCase
     {
         $tables = ["twintables1","twintables2"];
         $results = $this->sql->searchTables($tables, "notafield", "none", "s", "=", 99, "id");
-        $this->assertSame($results->message, "Unable to prepare: Unknown column 'tb1.notafield' in 'where clause'");
+        $this->assertSame($results->message, "Unable to prepare: Unknown column 'tb1.notafield' in 'WHERE'");
         $this->assertSame($results->status, false);
         $this->assertSame($results->items, 0);
     }

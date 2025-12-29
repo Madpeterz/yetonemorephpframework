@@ -71,7 +71,7 @@ class mysqli_remove_test extends TestCase
         //[rowsDeleted => int, status => bool, message => string]
         $this->assertSame($results->status, false);
         $this->assertSame($results->itemsRemoved, 0);
-        $error_msg = "Unable to prepare: Unknown column 'badtheif' in 'where clause'";
+        $error_msg = "Unable to prepare: Unknown column 'badtheif' in 'WHERE'";
         $this->assertSame($results->message, $error_msg);
     }
 

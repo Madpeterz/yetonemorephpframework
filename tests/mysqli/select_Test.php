@@ -5,6 +5,7 @@ namespace YAPFtest;
 use PHPUnit\Framework\TestCase;
 use YAPF\Framework\MySQLi\MysqliEnabled as MysqliConnector;
 
+
 class MysqliSelectTest extends TestCase
 {
     protected ?MysqliConnector $sql;
@@ -399,7 +400,7 @@ class MysqliSelectTest extends TestCase
             "dir" => "DESC"
         ];
         $result = $this->sql->selectV2($basic_config, $order_config, null, null, $joinTables);
-        $this->assertSame($result->message, "Unable to prepare: Unknown column 'tw2.extended1' in 'field list'");
+        $this->assertSame($result->message, "Unable to prepare: Unknown column 'tw2.extended1' in 'SELECT'");
         $this->assertSame($result->status, false);
     }
 

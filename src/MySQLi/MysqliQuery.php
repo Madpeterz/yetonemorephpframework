@@ -18,13 +18,11 @@ abstract class MysqliQuery extends MysqliChange
         return $this->sql_selects;
     }
 
-    public function directSelectSQL(string $sqlRaw): SelectReply
+    public function directSelectSQL(string $sqlRaw, array $bindArgs = [], string $bindText = ""): SelectReply
     {
         if ($this->sqlStart(true) == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
-        $bindArgs = [];
-        $bindText = "";
         $stmt = $this->prepareBindExecute($sqlRaw, $bindArgs, $bindText);
         if ($stmt === null) {
             return new SelectReply($this->myLastErrorBasic);

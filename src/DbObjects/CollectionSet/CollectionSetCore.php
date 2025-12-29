@@ -83,6 +83,7 @@ abstract class CollectionSetCore extends SqlConnectedClass
         }
         return $found_values;
     }
+
     /**
      * > notes: minCountToShow applys the filter
      * after counting everything so setting to not null
@@ -90,12 +91,28 @@ abstract class CollectionSetCore extends SqlConnectedClass
      * unless you want SQL to trim the result stack
      * before passing it to php
      */
-    public function groupCountInDb(string $groupByField, ?int $minCountToShow = null): GroupedCountReply
-    {
+    public function groupCountInDb(
+        string $groupByField,
+        ?int $minCountToShow = null,
+        ?string $whereFilterByField = null,
+        $whereFilterValue = null
+    ): GroupedCountReply {
 
         $this->makeWorker();
         if ($this->worker->hasField($groupByField) == false) {
             return new GroupedCountReply("Unknown groupby field");
+        }
+        $sqlArgs = [];
+        $sqlString = "";
+
+        $whereAddon = "";
+        if (($whereFilterByField != null) && ($whereFilterValue != null)) {
+            if ($this->worker->hasField($whereFilterByField) == false) {
+                return new GroupedCountReply("Unknown where filter field");
+            }
+            $whereAddon = " WHERE " . $whereFilterByField . " = ?";
+            $sqlArgs = [$whereFilterValue];
+            $sqlString = $this->worker->getFieldType($whereFilterByField, true);
         }
         $having = "";
         if ($minCountToShow != null) {
@@ -106,12 +123,20 @@ abstract class CollectionSetCore extends SqlConnectedClass
             $having = " HAVING SortedCount >= " . $minCountToShow . "";
         }
         $sqlRaw = '' .
-            'SELECT count(id) as SortedCount, ' . $groupByField . '' .
+            'SELECT count(id) as SortedCount, ' . $groupByField . ' ' .
             ' FROM ' . $this->worker->getTable() . '' .
-            ' GROUP BY ' . $groupByField . '' .
+            $whereAddon .
+            ' GROUP BY ' . $groupByField . ' ' .
             $having .
             ' ORDER BY SortedCount DESC';
-        $reply = $this->sql->directSelectSQL($sqlRaw);
+        if (substr_count($sqlRaw, "?") != count($sqlArgs)) {
+            return new GroupedCountReply(message: "SQL binding count mismatch\n" .
+            $sqlRaw . "\n Args: " . json_encode($sqlArgs));
+        }
+        if (strlen($sqlString) != count($sqlArgs)) {
+            return new GroupedCountReply(message: "SQL Argument count mismatch");
+        }
+        $reply = $this->sql->directSelectSQL($sqlRaw, $sqlArgs, $sqlString);
         if ($reply->status == false) {
             $this->addError(errorMessage: $reply->message);
             return new GroupedCountReply(message: $reply->message);
@@ -182,16 +207,12 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     public function addToCollected($object): void
     {
-        try
-        {
+        try {
             $this->collected[$object->_Id] = $object;
             $this->rebuildIndex();
-        }
-        catch (Exception $e)
-        {
+        } catch (Exception $e) {
             $this->addError("Attempted to add object to collection but failed");
         }
-
     }
 
     protected $fastObjectArrayIndex = [];
@@ -213,9 +234,14 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function buildObjectGetIndex(string $fieldName, bool $force_rebuild = false): void
     {
         $this->makeWorker();
-        if ((in_array(needle: $fieldName, haystack: $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
+        if (
+            (in_array(
+                needle: $fieldName,
+                haystack: $this->fastObjectArrayIndex
+            ) == false) || ($force_rebuild == true)
+        ) {
             $loadString = "_" . ucfirst($fieldName);
-            if($this->worker->getFieldType($fieldName) != null) {
+            if ($this->worker->getFieldType($fieldName) != null) {
                 $this->fastObjectArrayIndex[] = $fieldName;
                 $index = [];
                 foreach ($this->collected as $object) {
@@ -248,9 +274,8 @@ abstract class CollectionSetCore extends SqlConnectedClass
             $this->addError(errorMessage: "Field was not found as part of search array dataset");
             return [];
         }
-        if($this->worker->getFieldType($fieldName) == null)
-        {
-            $this->addError(errorMessage: $fieldName." is unknown");
+        if ($this->worker->getFieldType($fieldName) == null) {
+            $this->addError(errorMessage: $fieldName . " is unknown");
             return [];
         }
         if (array_key_exists(key: $fieldValue, array: $this->fastIndexDataset[$fieldName]) == false) {

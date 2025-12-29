@@ -301,12 +301,37 @@ class CollectionSetTest extends TestCase
     {
         $CounttoonehundoSet = new CounttoonehundoSet();
         $result = $CounttoonehundoSet->groupCountInDb("cvalue");
+		$this->assertSame("ok", $result->message, "Expected ok message back");
         $this->assertSame(true, $result->status, "Expected a true reply, " . $CounttoonehundoSet->getLastSql());
         $this->assertSame(10, count($result->results), "Expected 11 entrys in the result set " . $CounttoonehundoSet->getLastSql());
         foreach ($result->results as $cvalue => $count) {
             $this->assertSame($count, 10, "Expected cvalue: " . $cvalue . " to have count of 10");
         }
     }
+
+	public function testGroupCountInDbWithMinCount()
+	{
+		$CounttoonehundoSet = new CounttoonehundoSet();
+		$result = $CounttoonehundoSet->groupCountInDb("cvalue", 1);
+		$this->assertSame("ok", $result->message, "Expected ok message back");
+        $this->assertSame(true, $result->status, "Expected a true reply, " . $CounttoonehundoSet->getLastSql());
+        $this->assertSame(10, count($result->results), "Expected 11 entrys in the result set " . $CounttoonehundoSet->getLastSql());
+        foreach ($result->results as $cvalue => $count) {
+            $this->assertSame($count, 10, "Expected cvalue: " . $cvalue . " to have count of 10");
+        }
+	}
+
+	public function testGroupCountInDbWithMinCountWithFilter()
+	{
+		$CounttoonehundoSet = new CounttoonehundoSet();
+		$result = $CounttoonehundoSet->groupCountInDb("cvalue", 1, "cvalue", 128);
+		$this->assertSame("ok", $result->message, "Expected ok message back");
+        $this->assertSame(true, $result->status, "Expected a true reply, " . $CounttoonehundoSet->getLastSql());
+        $this->assertSame(1, count($result->results), "Expected 1 entrys in the result set " . $CounttoonehundoSet->getLastSql());
+        foreach ($result->results as $cvalue => $count) {
+            $this->assertSame($count, 10, "Expected cvalue: " . $cvalue . " to have count of 10");
+        }
+	}
 
     public function testForeachOverSetThenForeachOverSingle()
     {
