@@ -82,7 +82,6 @@ abstract class CollectionSetBulk extends CollectionSetCore
             $loop++;
         }
         return ["status" => $all_ok, "dataset" => $updateConfig, "message" => $message];
-
     }
 
     /**
@@ -102,7 +101,7 @@ abstract class CollectionSetBulk extends CollectionSetCore
             $localWorker = $this->collected[$entry_id];
             $loop2 = 0;
             while ($loop2 < $total_updateFields) {
-                $lookup = "_".ucfirst($updateFields[$loop2]);
+                $lookup = "_" . ucfirst($updateFields[$loop2]);
                 if ($localWorker->$lookup != $newValues[$loop2]) {
                     $changed_ids[] = $entry_id;
                     break;

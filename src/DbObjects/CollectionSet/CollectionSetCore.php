@@ -182,16 +182,12 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     public function addToCollected($object): void
     {
-        try
-        {
+        try {
             $this->collected[$object->_Id] = $object;
             $this->rebuildIndex();
-        }
-        catch (Exception $e)
-        {
+        } catch (Exception $e) {
             $this->addError("Attempted to add object to collection but failed");
         }
-
     }
 
     protected $fastObjectArrayIndex = [];
@@ -213,9 +209,14 @@ abstract class CollectionSetCore extends SqlConnectedClass
     protected function buildObjectGetIndex(string $fieldName, bool $force_rebuild = false): void
     {
         $this->makeWorker();
-        if ((in_array(needle: $fieldName, haystack: $this->fastObjectArrayIndex) == false) || ($force_rebuild == true)) {
+        if (
+            (in_array(
+                needle: $fieldName,
+                haystack: $this->fastObjectArrayIndex
+            ) == false) || ($force_rebuild == true)
+        ) {
             $loadString = "_" . ucfirst($fieldName);
-            if($this->worker->getFieldType($fieldName) != null) {
+            if ($this->worker->getFieldType($fieldName) != null) {
                 $this->fastObjectArrayIndex[] = $fieldName;
                 $index = [];
                 foreach ($this->collected as $object) {
@@ -248,9 +249,8 @@ abstract class CollectionSetCore extends SqlConnectedClass
             $this->addError(errorMessage: "Field was not found as part of search array dataset");
             return [];
         }
-        if($this->worker->getFieldType($fieldName) == null)
-        {
-            $this->addError(errorMessage: $fieldName." is unknown");
+        if ($this->worker->getFieldType($fieldName) == null) {
+            $this->addError(errorMessage: $fieldName . " is unknown");
             return [];
         }
         if (array_key_exists(key: $fieldValue, array: $this->fastIndexDataset[$fieldName]) == false) {

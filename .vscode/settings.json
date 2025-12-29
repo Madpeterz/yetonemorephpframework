@@ -1,20 +1,22 @@
 {
-    "cSpell.ignoreWords": [
-        "YAPF"
-    ],
-    "cSpell.words": [
-        "hashs",
-        "longtext",
-        "mediumint",
-        "mediumtext",
-        "Predis",
-        "setex",
-        "tinyint",
-        "tinytext",
-        "uids",
-        "Unixtime"
-    ],
-    "[php]": {
-        "editor.defaultFormatter": "Jota0222.multi-formatter"
-    }
+	"git.ignoreLimitWarning": true,
+	"editor.formatOnSave": true,
+	"editor.insertSpaces": false,
+	"editor.detectIndentation": false,
+	"editor.tabSize": 4,
+	"problems.visibility": true,
+	"problems.showCurrentInPath": true,
+	"[php]": {
+		"editor.defaultFormatter": "valeryanm.vscode-phpsab",
+		"editor.formatOnSave": true,
+		"editor.insertSpaces": false,
+		"editor.detectIndentation": false,
+		"editor.tabSize": 4
+	},
+	"phpsab.executablePathCS": "C:/Users/Madpeter/AppData/Roaming/Composer/vendor/bin/phpcs.bat",
+	"phpsab.executablePathCBF": "C:/Users/Madpeter/AppData/Roaming/Composer/vendor/bin/phpcbf.bat",
+	"phpsab.standard": "c:/php/agbArchive/phpcs.xml",
+	"phpsab.autoRulesetSearch": true,
+	"phpsab.snifferMode": "onSave",
+	"phpsab.snifferShowSources": true
 }
