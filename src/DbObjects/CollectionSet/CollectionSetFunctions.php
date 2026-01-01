@@ -15,16 +15,16 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     public function getObjectIdsByField(string $field, $fieldValue): false|array
     {
-        $getter = "get" . ucFirst($field);
+        $getter = "_" . ucFirst($field);
         if ($this->worker->hasField(fieldName: $field) == false) {
             $this->addError(errorMessage: "Unknown fieldname: " . $field);
             return false;
         }
         $reply = [];
         foreach ($this->collected as $item) {
-            $check = $item->$getter();
+            $check = $item->$getter;
             if ($check == $fieldValue) {
-                $reply[] = $item->getId();
+                $reply[] = $item->_Id;
             }
         }
         return $reply;
@@ -32,7 +32,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
 
     public function getWithFieldValue(string $field, string $fieldvalue): false|array
     {
-        $getter = "get" . ucFirst($field);
+        $getter = "_" . ucFirst($field);
         if ($this->worker->hasField(fieldName: $field) == false) {
             $this->addError(errorMessage: "Unknown fieldname: " . $field);
             return false;
@@ -43,9 +43,9 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         }
         $reply = [];
         foreach ($this->collected as $item) {
-            $check = $item->$getter();
+            $check = $item->$getter;
             if (str_contains(haystack: $check, needle: $fieldvalue) == true) {
-                $reply[] = $item->getId();
+                $reply[] = $item->_Id;
             }
         }
         return $reply;
@@ -73,13 +73,10 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $keyFieldGetter = "_" . ucfirst($leftField);
         $ValueFieldGetter = "_" . ucfirst($RightField);
         $worker = new $this->workerClass();
-        if($worker->getFieldType($leftField) == null)
-        {
+        if ($worker->getFieldType($leftField) == null) {
             $this->addError(errorMessage: "Field: " . $leftField . " is missing");
-            return array();
-        }
-        else if($worker->getFieldType($RightField) == null)
-        {
+            return [];
+        } elseif ($worker->getFieldType($RightField) == null) {
             $this->addError(errorMessage: "Field: " . $RightField . " is missing");
             return [];
         }
@@ -194,7 +191,10 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         $results = [];
         foreach ($this->collected as $entry) {
             /** @var GenClass $entry */
-            $results[$entry->_Id] = $entry->objectToMappedArray(ignoreFields: $ignoreFields, invertIgnore: $invertIgnore);
+            $results[$entry->_Id] = $entry->objectToMappedArray(
+                ignoreFields: $ignoreFields,
+                invertIgnore: $invertIgnore
+            );
         }
         return $results;
     }
@@ -238,7 +238,12 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         ];
         $orderConfig = ["enabled" => true, "byField" => $orderBy, "dir" => $orderDirection];
         $optionsConfig = ["pageNumber" => 0, "limit" => $limit];
-        return $this->loadWithConfig(whereConfig: $whereConfig, orderConfig: $orderConfig, optionsConfig: $optionsConfig, limitFields: $limitFields);
+        return $this->loadWithConfig(
+            whereConfig: $whereConfig,
+            orderConfig: $orderConfig,
+            optionsConfig: $optionsConfig,
+            limitFields: $limitFields
+        );
     }
     /**
      * loadLimited
@@ -254,7 +259,14 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
         ?array $whereConfig = null,
         ?array $limitFields = null
     ): SetsLoadReply {
-        return $this->loadNewest(limit: $limit, page: $page, orderBy: $orderBy, orderDirection: $orderDirection, whereConfig: $whereConfig, limitFields: $limitFields);
+        return $this->loadNewest(
+            limit: $limit,
+            page: $page,
+            orderBy: $orderBy,
+            orderDirection: $orderDirection,
+            whereConfig: $whereConfig,
+            limitFields: $limitFields
+        );
     }
     /**
      * loadNewest
@@ -372,7 +384,6 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     /**
      * processLoad
      * takes the reply from mysqli and fills out objects and builds the collection
-     * @return SetsLoadReply
      */
     protected function processLoad(
         SelectReply $loadData,

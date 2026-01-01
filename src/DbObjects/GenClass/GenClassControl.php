@@ -74,11 +74,11 @@ abstract class GenClassControl extends GenClassFunctions implements Iterator
             if (in_array($field, $excludeFields) == true) {
                 continue;
             }
-            $functionnameget = "get" . ucfirst($field);
-            if ($copy->$functionnameget() != $this->$functionnameget()) {
+            $functionnameget = "_" . ucfirst($field);
+            if ($copy->$functionnameget != $this->$functionnameget) {
                 continue;
             }
-            $fieldIsDefault[$field] = $this->$functionnameget();
+            $fieldIsDefault[$field] = $this->$functionnameget;
         }
         return $fieldIsDefault;
     }
@@ -96,7 +96,7 @@ abstract class GenClassControl extends GenClassFunctions implements Iterator
         if (in_array($field, $fields) == false) {
             return false;
         }
-        $functionnameget = "get" . ucfirst($field);
+        $functionnameget = "_" . ucfirst($field);
         if ($copy->$functionnameget() != $this->$functionnameget()) {
             return false;
         }
