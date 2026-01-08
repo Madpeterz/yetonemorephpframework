@@ -200,6 +200,7 @@ abstract class MysqliFunctions extends MysqliQueryLogger
         $commands_run = 0;
         foreach ($commands as $command) {
             $this->lastSql = $command;
+            $microtimeStart = hrtime(true);
             try {
                 if ($this->sqlConnection->real_query($command) == false) {
                     $had_error = true;
@@ -207,6 +208,8 @@ abstract class MysqliFunctions extends MysqliQueryLogger
                 }
                 $this->sqlConnection->store_result();
                 $commands_run++;
+                $commandbit = explode(" ", $command);
+                $this->logQuery(strtolower($commandbit[0]), $command, 0, (hrtime(true) - $microtimeStart));
             } catch (Throwable $e) {
                 $had_error = true;
                 break;

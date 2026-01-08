@@ -3,7 +3,6 @@
 namespace YAPF\Framework\MySQLi;
 
 use mysqli_stmt;
-use YAPF\Framework\Helpers\FunctionHelper;
 use YAPF\Framework\Responses\MySQLi\AddReply;
 use YAPF\Framework\Responses\MySQLi\RemoveReply;
 use YAPF\Framework\Responses\MySQLi\UpdateReply;
@@ -90,6 +89,7 @@ abstract class MysqliChange extends MysqliWhere
         if ($this->sqlStart(false) == false) {
             return new RemoveReply($this->myLastErrorBasic);
         }
+        $microtimeStart = hrtime(true);
         $this->queryStats["deletes"]++;
         $sql = "DELETE FROM " . $table . "";
         $stmt = $this->processSqlRequest("", [], $sql, $whereConfig);
@@ -101,6 +101,7 @@ abstract class MysqliChange extends MysqliWhere
         if ($rowsChanged > 0) {
             $this->needToSave = true;
         }
+        $this->logQuery("delete", $sql, $rowsChanged, (hrtime(true) - $microtimeStart));
         return new RemoveReply("ok", true, $rowsChanged);
     }
 
@@ -141,6 +142,7 @@ abstract class MysqliChange extends MysqliWhere
         if ($this->sqlStart(false) == false) {
             return new UpdateReply($this->myLastErrorBasic);
         }
+        $microtimeStart = hrtime(true);
         $reply = $this->checkUpdateV2($table, $updateConfig);
         if ($reply->status == false) {
             return $reply;
@@ -178,6 +180,7 @@ abstract class MysqliChange extends MysqliWhere
         $changes = mysqli_stmt_affected_rows($stmt);
         $stmt->close();
         $this->needToSave = true;
+        $this->logQuery("update", $sql, $changes, (hrtime(true) - $microtimeStart));
         return new UpdateReply("ok", true, $changes);
     }
 
@@ -215,6 +218,7 @@ abstract class MysqliChange extends MysqliWhere
         if ($this->sqlStart(false) == false) {
             return new AddReply($this->myLastErrorBasic);
         }
+        $microtimeStart = hrtime(true);
         $reply = $this->checkAddV2($config);
         if ($reply->status == false) {
             return $reply;
@@ -250,6 +254,7 @@ abstract class MysqliChange extends MysqliWhere
             $this->needToSave = true;
         }
         $stmt->close();
+        $this->logQuery("insert", $sql, $rowsAdded, (hrtime(true) - $microtimeStart));
         return new AddReply("ok", true, $newID);
     }
 }

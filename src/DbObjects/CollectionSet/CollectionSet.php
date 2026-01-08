@@ -28,6 +28,15 @@ abstract class CollectionSet extends CollectionSetFunctions implements Iterator
         ++$this->position;
     }
 
+    public function getNext(): GenClass|null
+    {
+        $this->next();
+        if ($this->valid() == false) {
+            return null;
+        }
+        return $this->current();
+    }
+
     public function valid(): bool
     {
         if ($this->position < 0) {

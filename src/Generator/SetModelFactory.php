@@ -68,6 +68,16 @@ class SetModelFactory extends SingleModelFactory
         $this->fileLines[] = [1];
         $this->fileLines[] = '}';
         $this->fileLines[] = '/**';
+        $this->fileLines[] = ' * getNext';
+        $this->fileLines[] = ' * returns the next object in a collection';
+        $this->fileLines[] = ' */';
+        $this->fileLines[] = 'public function getNext(): ?' . $this->className . '';
+        $this->fileLines[] = '{';
+        $this->fileLines[] = [2];
+        $this->fileLines[] = 'return parent::getNext();';
+        $this->fileLines[] = [1];
+        $this->fileLines[] = '}';
+        $this->fileLines[] = '/**';
         $this->fileLines[] = ' * getObjectByField';
         $this->fileLines[] = ' * returns the first object in a collection that matchs the field and value checks';
         $this->fileLines[] = ' */';
