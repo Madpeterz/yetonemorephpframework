@@ -139,7 +139,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      */
     public function hasField(string $fieldName): bool
     {
-        return in_array($fieldName, $this->fields);
+        return array_key_exists($fieldName, $this->dataset);
     }
     /**
      * getFieldType
@@ -148,7 +148,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      */
     public function getFieldType(string $fieldName, bool $as_mysqli_code = false): ?string
     {
-        if (in_array($fieldName, $this->fields) == false) {
+        if ($this->hasField($fieldName) == false) {
             $error_meesage = " Attempting to read a fieldtype [" . $fieldName . "] has failed";
             $this->addError(get_class($this) . $error_meesage);
             return null;
@@ -179,7 +179,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      */
     public function isLoaded(): bool
     {
-        if (in_array("id", $this->fields) == false) {
+        if ($this->hasField("id") == false) {
             return false;
         }
         if ($this->getField("id") < 1) {
@@ -194,7 +194,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      */
     protected function getField(string $fieldName): mixed
     {
-        if (in_array($fieldName, $this->fields) == false) {
+        if ($this->hasField($fieldName) == false) {
             $this->addError(get_class($this) . " Attempting to get field that does not exist");
             return null;
         }
@@ -242,7 +242,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
         $hasErrors = false;
         $saveDataset = $this->dataset;
         foreach ($keyvalues as $key => $value) {
-            if (in_array($key, $this->fields) == false) {
+            if ($this->hasField($key) == false) {
                 continue;
             }
             $this->dataset[$key]["value"] = $value;
@@ -273,8 +273,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      */
     protected function updateField(string $fieldName, $value, bool $ignoreIdWarning = false): void
     {
-        try
-        {
+        try {
             if ($this->disableUpdates == true) {
                 throw new Exception("Attempt to update with limitFields enabled!");
             }
@@ -292,12 +291,9 @@ abstract class GenClassFunctions extends SqlConnectedClass
                     $this->dataset[$fieldName]["value"] = 1;
                 }
             }
-        }
-        catch (Exception $e)
-        {
+        } catch (Exception $e) {
             $this->addError(errorMessage: $e->getMessage());
         }
-
     }
     /**
      * checkUpdateField
@@ -321,7 +317,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
             $this->addError("update_field is not allowed for this object");
             return new UpdateReply($this->myLastErrorBasic);
         }
-        if (in_array($fieldName, $this->fields) == false) {
+        if ($this->hasField($fieldName) == false) {
             $this->addError("Sorry this object does not have the field: " . $fieldName);
             return new UpdateReply($this->myLastErrorBasic);
         }
@@ -401,12 +397,12 @@ abstract class GenClassFunctions extends SqlConnectedClass
                 continue;
             }
             $pramName = "_" . ucfirst($field);
-            if($this->getFieldType($field) == null) {
+            if ($this->getFieldType($field) == null) {
                 $all_ok = false;
-                $why_failed = "field ".$field." is not supported on this class";
+                $why_failed = "field " . $field . " is not supported on this class";
                 break;
             }
-            $this->$pramName=$copy->$pramName;
+            $this->$pramName = $copy->$pramName;
         }
         if ($all_ok == false) {
             $this->addError($why_failed);

@@ -23,6 +23,7 @@ abstract class MysqliQuery extends MysqliChange
         if ($this->sqlStart(true) == false) {
             return new SelectReply($this->myLastErrorBasic);
         }
+        $microtimeStart = hrtime(true);
         $stmt = $this->prepareBindExecute($sqlRaw, $bindArgs, $bindText);
         if ($stmt === null) {
             return new SelectReply($this->myLastErrorBasic);
@@ -38,6 +39,8 @@ abstract class MysqliQuery extends MysqliChange
         $dataset = $this->buildDataset(false, $result);
         $stmt->free_result();
         $stmt->close();
+        $queryTime = hrtime(true) - $microtimeStart;
+        $this->logQuery("select", $sqlRaw, count($dataset), $queryTime);
         $this->sqlConnection->next_result();
         $this->sql_selects++;
         return new SelectReply("ok", true, $dataset);
@@ -69,7 +72,7 @@ abstract class MysqliQuery extends MysqliChange
         }
         $mainTableId = "";
         $auto_ids = false;
-
+        $microtimeStart = hrtime(true);
         $this->selectBuildTableIds($joinTables, $mainTableId, $auto_ids, $clean_ids);
         $sql = "SELECT ";
         $this->selectBuildFields($sql, $basic_config);
@@ -100,6 +103,8 @@ abstract class MysqliQuery extends MysqliChange
         $stmt->close();
         $this->sqlConnection->next_result();
         $this->sql_selects++;
+        $queryTime = hrtime(true) - $microtimeStart;
+        $this->logQuery("select", $sql, count($dataset), $queryTime);
         return new SelectReply("ok", true, $dataset);
     }
     /**
@@ -156,12 +161,22 @@ abstract class MysqliQuery extends MysqliChange
             $this->addError("Requires a match field to be sent");
             return new SelectReply($this->myLastErrorBasic);
         }
-        if (in_array($matchType, ["s", "d", "i", "b"]) == false) {
+        $matchtypes = [
+            "s" => true,
+            "d" => true,
+            "i" => true,
+            "b" => true,
+        ];
+        if (array_key_exists($matchType, $matchtypes) == false) {
             $this->addError("Match type is not valid");
             return new SelectReply($this->myLastErrorBasic);
         }
         if ($matchValue === null) {
-            if (in_array($matchCode, ["IS", "IS NOT"]) == false) {
+            $isCodes = [
+                "IS" => true,
+                "IS NOT" => true,
+            ];
+            if (array_key_exists($matchCode, $isCodes) == false) {
                 $this->addError("Match value can not be null");
                 return new SelectReply($this->myLastErrorBasic);
             }
@@ -202,6 +217,7 @@ abstract class MysqliQuery extends MysqliChange
         if ($check->status == false) {
             return $check;
         }
+        $microtimeStart = hrtime(true);
         $match_symbol = "?";
         if ($matchValue === null) {
             $match_symbol = "NULL";
@@ -240,6 +256,7 @@ abstract class MysqliQuery extends MysqliChange
             $dataset[$loop] = $entry;
             $loop++;
         }
+        $this->logQuery("select", $sql, count($dataset), (hrtime(true) - $microtimeStart));
         return new SelectReply("ok", true, $dataset);
     }
 }

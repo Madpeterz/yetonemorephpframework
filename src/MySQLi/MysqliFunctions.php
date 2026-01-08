@@ -2,14 +2,13 @@
 
 namespace YAPF\Framework\MySQLi;
 
-use App\Db as Db;
 use mysqli;
 use mysqli_stmt;
 use Throwable;
 use YAPF\Framework\Helpers\FunctionHelper;
 use YAPF\Framework\Responses\MySQLi\RawReply;
 
-abstract class MysqliFunctions extends Db
+abstract class MysqliFunctions extends MysqliQueryLogger
 {
     public bool $fullSqlErrors = false;
     protected ?mysqli $sqlConnection = null;

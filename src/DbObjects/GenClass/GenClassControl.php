@@ -97,7 +97,7 @@ abstract class GenClassControl extends GenClassFunctions implements Iterator
             return false;
         }
         $functionnameget = "_" . ucfirst($field);
-        if ($copy->$functionnameget() != $this->$functionnameget()) {
+        if ($copy->$functionnameget != $this->$functionnameget) {
             return false;
         }
         return true;
