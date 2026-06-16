@@ -50,16 +50,19 @@ class WhereConfigMaker_Test extends TestCase
         $this->assertSame("AND",$result["joinWith"][0],"joinWith entry is not as expected");
     }
     public function testWithARealObject()
-    {
+    {	
+		$whereConfig = new WhereConfigMaker()
+			->field("id")->in([1,4,8,34])->result();
+		CounttoonehundoSet::blindUpdate("cvalue","1",$whereConfig);
         $whereConfig = new WhereConfigMaker()
-            ->field("cvalue")->in([1,2,4,8,16,32,64,128,256,512])
+            ->field("cvalue")->in([1,2,4,8,16,32,64,128,256,512,123])
             ->and()
             ->field("id")->in([1,4,8,34])->result();
         $countToSet = new CounttoonehundoSet();
         $load = $countToSet->loadWithConfig($whereConfig);
         $this->assertSame(true,$load->status,"Failed to fetch from database");
         $this->assertSame(
-            "SELECT * FROM test.counttoonehundo  WHERE cvalue IN ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? ) AND id IN ( ? , ? , ? , ? )",
+            "SELECT * FROM test.counttoonehundo  WHERE cvalue IN ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? ) AND id IN ( ? , ? , ? , ? )",
             $countToSet->getLastSql(),
             "Wrong SQL created");
         $this->assertSame(4,$countToSet->getCount(),"wrong amount of objects loaded");

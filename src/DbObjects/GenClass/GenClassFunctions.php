@@ -11,7 +11,7 @@ use YAPF\Framework\Responses\DbObjects\UpdateReply;
 
 abstract class GenClassFunctions extends SqlConnectedClass
 {
-    protected $use_table = "";
+    protected static string $use_table = "";
     protected $save_dataset = [];
     protected $dataset = [];
     protected $fields = [];
@@ -217,7 +217,7 @@ abstract class GenClassFunctions extends SqlConnectedClass
      */
     public function getTable(): string
     {
-        return $this->use_table;
+        return static::$use_table;
     }
 
     protected bool $expectedSqlLoadError = false;
@@ -253,17 +253,6 @@ abstract class GenClassFunctions extends SqlConnectedClass
         }
         $this->save_dataset = $this->dataset;
         return true;
-    }
-    /**
-     * setTable
-     * Sets the table used by the object
-     * note: You should avoid using this unless you know
-     * what your doing
-     */
-    public function setTable(string $tablename = ""): void
-    {
-        $this->addError("Warning: setTable called. if you expected this please ignore");
-        $this->use_table = $tablename;
     }
     /**
      * updateField

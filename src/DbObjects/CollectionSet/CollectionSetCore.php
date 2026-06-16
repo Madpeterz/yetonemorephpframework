@@ -13,26 +13,11 @@ abstract class CollectionSetCore extends SqlConnectedClass
 {
     protected array $collected = [];
     protected $indexes = [];
-    protected ?string $workerClass = null;
+    protected static ?string $workerClass = null;
     protected ?GenClass $worker = null;
 
     protected bool $disableUpdates = false;
     protected ?array $limitedFields = null;
-
-    /**
-     * __construct
-     * sets up the worker class
-     * by taking the assigned collection name
-     * example: TreeCollectionSet
-     * removing: CollectionSet
-     * to get: Tree as the base class for this collection
-     */
-    public function __construct(string $workerClass)
-    {
-        global $system;
-        $this->workerClass = $workerClass;
-        parent::__construct();
-    }
 
     /**
      * getTable
@@ -195,8 +180,11 @@ abstract class CollectionSetCore extends SqlConnectedClass
      */
     protected function makeWorker(): ?GenClass
     {
+		if (static::$workerClass == null) {
+			throw new Exception("Worker class is not set for this collection set, please rerun gen");
+		}
         if ($this->worker == null) {
-            $this->worker = new $this->workerClass();
+            $this->worker = new static::$workerClass();
         }
         return $this->worker;
     }

@@ -13,7 +13,7 @@ class Issue4Test extends TestCase
         $load_status = $countto->loadID(44);
         $this->assertSame(true, $load_status->status);
         $this->assertSame($countto->_Id, 44);
-        $this->assertSame($countto->_Cvalue, 8);
+        $this->assertSame($countto->_Cvalue, 123);
         $reply = $countto->bulkChange(["cvalue" => 55]);
         $this->assertSame("ok", $reply->message, "Wrong error message");
         $this->assertSame(true, $reply->status, "bulk change failed");

@@ -291,7 +291,7 @@ class SingleModelFactory extends ModelFactoryShared
         $this->fileLines[] = 'class ' . $this->className . ' extends genClass';
         $this->fileLines[] = '{';
         $this->fileLines[] = [1];
-        $this->fileLines[] = 'protected $use_table = "' . $dbNameAddon . '' . $this->table . '";';
+        $this->fileLines[] = 'protected static string $use_table = "' . $dbNameAddon . '' . $this->table . '";';
 
     }
 }

@@ -3,11 +3,160 @@
 namespace YAPF\Framework\DbObjects\CollectionSet;
 
 use Exception;
+use YAPF\Framework\MySQLi\MysqliEnabled;
 use YAPF\Framework\Responses\DbObjects\MultiUpdateReply;
 use YAPF\Framework\Responses\DbObjects\RemoveReply;
 
 abstract class CollectionSetBulk extends CollectionSetCore
 {
+    /**
+     * blindRemove
+     * Removes entrys in the database based on the where config provided.
+	 * does not use the collection system itself, saves from loading first
+	 * 
+	 * $where = ["A"=>"Ctest","B"=>"Ftest"] // simple check where A = Ctest AND B = Ftest
+	 * $where = $whereConfig // complex were config object
+	 * 
+	 * $sql a link to the sql connection to use, if not provided attempts to grab it from system
+     */
+	public static function blindRemove(?array $where=[], ?MysqliEnabled $sql = null): RemoveReply
+	{
+		if ($sql == null) {
+			global $system;
+			$sql = $system->getSQL();
+		}
+		if($sql == null) {
+			return new RemoveReply("No SQL connection available");
+		}	
+		if((is_array($where) == true) && (count($where) == 0))
+		{
+			return new RemoveReply("where must be null, a simple keypair filter or a whereconfig array");
+		}
+		$useWhereConfig = $where;
+		$where = null;
+		$worker = new static::$workerClass();
+		if(
+			($useWhereConfig != null) && 
+			(is_array($useWhereConfig) == true) && 
+			(
+			array_key_exists("fields", $useWhereConfig) == false || 
+			array_key_exists("values", $useWhereConfig) == false
+			)
+		) {
+			// key pair array for whereConfig
+			$newWhereConfig = [
+				"fields" => [],
+				"values" => [],
+				"matches" => [],
+				"types" => [],
+			];
+			foreach($useWhereConfig as $key => $value) {
+				$newWhereConfig["fields"][] = $key;
+				$newWhereConfig["values"][] = $value;
+				$matchCode = "=";
+				if($value === null) {
+					$matchCode = "IS";
+				}
+				$newWhereConfig["matches"][] = $matchCode;
+				$newWhereConfig["types"][] = $worker->getFieldType($key, false);
+			}
+			$useWhereConfig = $newWhereConfig;
+		}
+        $remove_status = $sql->removeV2(table: $worker->getTable(), whereConfig: $useWhereConfig);
+
+        if ($remove_status->status == false) {
+            return new RemoveReply($remove_status->message);
+        }
+        return new RemoveReply("ok", true, $remove_status->itemsRemoved);
+
+	}
+
+	/**
+     * blindUpdate
+     * updates entrys in the database without having to first load them
+	 * $field = the field to update "example" or an array of fields to update ["example","andthis"]
+	 * $newvalue = the new value to set it to if a single field, or an array of values matching the order of field
+	 * 
+	 * $where = ["A"=>"Ctest","B"=>"Ftest"] // simple check where A = Ctest AND B = Ftest
+	 * $where = $whereConfig // complex were config object
+	 * 
+	 * $sql a link to the sql connection to use, if not provided attempts to grab it from system
+     */
+	public static function blindUpdate(string|array $field, string|array $newvalue, ?array $where=[], ?MysqliEnabled $sql = null): MultiUpdateReply
+	{
+		if ($sql == null) {
+			global $system;
+			$sql = $system->getSQL();
+		}
+		if($sql == null) {
+			return new MultiUpdateReply("No SQL connection available");
+		}
+		if((is_array($where) == true) && (count($where) == 0))
+		{
+			return new MultiUpdateReply("where must be null, a simple keypair filter or a whereconfig array");
+		}
+		$useWhereConfig = $where;
+		$where = null;
+		$worker = new static::$workerClass();
+		if(
+			($useWhereConfig != null) && 
+			(is_array($useWhereConfig) == true) && 
+			(
+			array_key_exists("fields", $useWhereConfig) == false || 
+			array_key_exists("values", $useWhereConfig) == false
+			)
+		) {
+			// key pair array for whereConfig
+			$newWhereConfig = [
+				"fields" => [],
+				"values" => [],
+				"matches" => [],
+				"types" => [],
+			];
+			foreach($useWhereConfig as $key => $value) {
+				$newWhereConfig["fields"][] = $key;
+				$newWhereConfig["values"][] = $value;
+				$matchCode = "=";
+				if($value === null) {
+					$matchCode = "IS";
+				}
+				$newWhereConfig["matches"][] = $matchCode;
+				$newWhereConfig["types"][] = $worker->getFieldType($key, false);
+			}
+			$useWhereConfig = $newWhereConfig;
+		}
+        $updateConfig = [
+            "fields" => [],
+            "values" => [],
+            "types" => [],
+        ];
+		if((is_string($field) == true) &&  (is_array($newvalue) == false))
+		{
+			$updateConfig["fields"][] = $field;
+			$updateConfig["values"][] = $newvalue;
+			$updateConfig["types"][] = $worker->getFieldType($field, true);
+		}
+		else if((is_array($field) == true) && (is_array($newvalue) == true))
+		{
+			if(count($field) != count($newvalue))
+			{
+				return new MultiUpdateReply("field and newvalue arrays are not the same length");
+			}
+			foreach($field as $index => $fieldName)
+			{
+				$updateConfig["fields"][] = $fieldName;
+				$updateConfig["values"][] = $newvalue[$index];
+				$updateConfig["types"][] = $worker->getFieldType($fieldName, false);
+			}
+		}
+		$update = $sql->updateV2(table: $worker->getTable(), updateConfig: $updateConfig, whereConfig: $useWhereConfig);
+		if ($update->status == false) {
+			return new MultiUpdateReply($update->message);
+		}
+		return new MultiUpdateReply($update->message, $update->status, $update->itemsUpdated);
+
+	}
+
     /**
      * purgeCollection
      * Removes all objects from the database that are in the collection
@@ -170,11 +319,15 @@ abstract class CollectionSetBulk extends CollectionSetCore
         $totalChanges = count($changeConfig);
         unset($changeConfig);
         unset($makeUpdateConfig);
-        $update_status = $this->sql->updateV2($table, $updateConfig, $whereConfig, $totalChanges);
+        $update_status = $this->sql->updateV2($table, $updateConfig, $whereConfig);
         if ($update_status->status == false) {
             $this->addError("Update failed because:" . $update_status->message);
             return new MultiUpdateReply($this->myLastErrorBasic);
         }
+		if ($update_status->itemsUpdated != $totalChanges) {
+			$this->addError("Update failed because: Incorrect number of items updated");
+			return new MultiUpdateReply($this->myLastErrorBasic);
+		}
         $this->updateMultipleApplyChanges($updateFields, $newValues);
         return new MultiUpdateReply("ok", true, $totalChanges);
     }

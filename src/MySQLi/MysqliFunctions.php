@@ -351,6 +351,7 @@ abstract class MysqliFunctions extends MysqliQueryLogger
                 if ($this->fullSqlErrors == true) {
                     $error_msg .= ": ";
                     $error_msg .= $e->getMessage();
+					$error_msg .= " witth binding: ".implode(",",$bindArgs)." text: ".$bindText;
                 }
                 $this->addError($error_msg);
                 return null;

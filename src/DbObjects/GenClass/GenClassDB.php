@@ -394,6 +394,7 @@ abstract class GenClassDB extends GenClassControl
             $this->addError($reply->message);
             return new UpdateReply($this->myLastErrorBasic);
         }
+		$this->save_dataset = $this->dataset;
         return new UpdateReply("ok", true, $reply->itemsUpdated);
     }
 }

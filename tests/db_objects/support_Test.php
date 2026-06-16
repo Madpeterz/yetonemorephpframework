@@ -13,7 +13,7 @@ use YAPF\Junk\Models\Liketests;
 
 class BrokenObjectThatSetsWhatever extends genClass
 {
-    protected $use_table = "test.counttoonehundo";
+    protected static string $use_table = "test.counttoonehundo";
     protected $fields = ["id","cvalue"];
     protected $dataset = [
         "id" => ["type" => "int", "value" => null],
@@ -60,12 +60,6 @@ class DbObjectsSupportTest extends TestCase
         $testing = new Counttoonehundo();
         $result = $testing->setup(["fake" => true]);
         $this->assertSame(true,$result); // InValid fields are ignored
-    }
-    public function testSetTable()
-    {
-        $testing = new Counttoonehundo();
-        $testing->setTable("wrongtable");
-        $this->assertSame($testing->getTable(), "wrongtable");
     }
     public function testSetWeirdness()
     {

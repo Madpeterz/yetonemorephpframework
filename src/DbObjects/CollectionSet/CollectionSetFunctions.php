@@ -72,11 +72,11 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
     {
         $keyFieldGetter = "_" . ucfirst($leftField);
         $ValueFieldGetter = "_" . ucfirst($RightField);
-        $worker = new $this->workerClass();
-        if ($worker->getFieldType($leftField) == null) {
+		$this->makeWorker();
+        if ($this->worker->getFieldType($leftField) == null) {
             $this->addError(errorMessage: "Field: " . $leftField . " is missing");
             return [];
-        } elseif ($worker->getFieldType($RightField) == null) {
+        } elseif ($this->worker->getFieldType($RightField) == null) {
             $this->addError(errorMessage: "Field: " . $RightField . " is missing");
             return [];
         }
@@ -110,7 +110,7 @@ abstract class CollectionSetFunctions extends CollectionSetBulk
      */
     public function getWorkerClass(): string
     {
-        return $this->workerClass;
+        return static::$workerClass;
     }
     /**
      * getCollectionHash
